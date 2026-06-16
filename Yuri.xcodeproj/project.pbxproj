@@ -135,7 +135,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/zsh;
-			shellScript = "if command -v swiftlint >/dev/null 2>&1; then\n    swiftlint lint --strict --no-cache --config \"$SRCROOT/.swiftlint.yml\"\nelse\n    echo \"warning: SwiftLint is not installed. Run 'brew install swiftlint'.\"\nfi\n\ntouch \"$DERIVED_FILE_DIR/SwiftLint.stamp\"\n";
+			shellScript = "export PATH=\"/opt/homebrew/bin:/usr/local/bin:$PATH\"\n\nif command -v swiftlint >/dev/null 2>&1; then\n    swiftlint lint --strict --no-cache --config \"$SRCROOT/.swiftlint.yml\"\nelse\n    echo \"warning: SwiftLint is not installed. Run 'brew install swiftlint'.\"\nfi\n\ntouch \"$DERIVED_FILE_DIR/SwiftLint.stamp\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -279,8 +279,9 @@
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_LSUIElement = NO;
 				INFOPLIST_KEY_NSMainStoryboardFile = Main;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -310,8 +311,9 @@
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSMainStoryboardFile = Main;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
