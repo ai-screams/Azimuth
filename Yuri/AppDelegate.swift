@@ -18,6 +18,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         action: #selector(openAccessibilitySettings(_:)),
         keyEquivalent: ""
     )
+    #if DEBUG
+        private let debugResolutionMenuItem = NSMenuItem()
+    #endif
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         configureActivationPolicy()
@@ -47,6 +50,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     func menuWillOpen(_ menu: NSMenu) {
         refreshPermissionState()
+        #if DEBUG
+            updateDebugResolutionMenuItem()
+        #endif
     }
 
     deinit {
@@ -109,6 +115,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.addItem(.separator())
 
         #if DEBUG
+            debugResolutionMenuItem.isEnabled = false
+            debugResolutionMenuItem.title = "Focused window: open menu to check"
+            menu.addItem(debugResolutionMenuItem)
+
             let identifyItem = NSMenuItem(
                 title: "Identify Focused Window (Debug)",
                 action: #selector(identifyFocusedWindowDebug(_:)),
@@ -186,27 +196,35 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 #if DEBUG
     extension AppDelegate {
         private func configureDebugWindowProbe() {
-            frontmostAppTracker.onChange = { [weak self] app in
-                self?.logFocusedWindowResolution(source: app.localizedName ?? "unknown")
+            frontmostAppTracker.onChange = { [weak self] _ in
+                guard let self else { return }
+                NSLog("[Yuri P3] activate -> %@", currentResolutionText())
             }
         }
 
         @objc private func identifyFocusedWindowDebug(_ sender: Any?) {
-            logFocusedWindowResolution(source: "menu")
+            let text = currentResolutionText()
+            NSLog("[Yuri P3] menu -> %@", text)
+
+            let alert = NSAlert()
+            alert.messageText = "Focused Window (Debug)"
+            alert.informativeText = text
+            alert.runModal()
         }
 
-        private func logFocusedWindowResolution(source: String) {
-            let result = FocusedWindowResolver.resolveFrontmostFocusedWindow(tracker: frontmostAppTracker)
-            switch result {
+        private func updateDebugResolutionMenuItem() {
+            debugResolutionMenuItem.title = "Focused: \(currentResolutionText())"
+        }
+
+        private func currentResolutionText() -> String {
+            let appName = frontmostAppTracker.lastFocusedApp?.localizedName ?? "—"
+            switch FocusedWindowResolver.resolveFrontmostFocusedWindow(tracker: frontmostAppTracker) {
             case let .success(window):
-                NSLog(
-                    "[Yuri P3] %@ -> OK subrole=%@ frame=%@",
-                    source,
-                    window.subrole,
-                    NSStringFromRect(window.frame.rect)
-                )
+                let width = Int(window.frame.size.width)
+                let height = Int(window.frame.size.height)
+                return "\(appName) → OK \(width)×\(height) (\(window.subrole))"
             case let .failure(error):
-                NSLog("[Yuri P3] %@ -> FAIL %@", source, error.userFacingMessage)
+                return "\(appName) → \(error.userFacingMessage)"
             }
         }
     }
