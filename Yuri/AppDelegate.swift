@@ -126,6 +126,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             )
             identifyItem.target = self
             menu.addItem(identifyItem)
+
+            for command in WindowCommand.allCases {
+                let item = NSMenuItem(
+                    title: "\(command.displayName) (Debug)",
+                    action: #selector(runWindowCommandDebug(_:)),
+                    keyEquivalent: ""
+                )
+                item.tag = WindowCommand.allCases.firstIndex(of: command) ?? 0
+                item.target = self
+                menu.addItem(item)
+            }
             menu.addItem(.separator())
         #endif
 
@@ -214,6 +225,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
         private func updateDebugResolutionMenuItem() {
             debugResolutionMenuItem.title = "Focused: \(currentResolutionText())"
+        }
+
+        @objc private func runWindowCommandDebug(_ sender: NSMenuItem) {
+            let commands = WindowCommand.allCases
+            guard sender.tag >= 0, sender.tag < commands.count else { return }
+            let command = commands[sender.tag]
+
+            switch WindowCommandExecutor.run(command, tracker: frontmostAppTracker) {
+            case let .success(frame):
+                NSLog("[Yuri P4] %@ -> OK %@", command.displayName, NSStringFromRect(frame))
+            case let .failure(error):
+                NSLog("[Yuri P4] %@ -> FAIL %@", command.displayName, error.userFacingMessage)
+                NSSound.beep()
+            }
         }
 
         private func currentResolutionText() -> String {
