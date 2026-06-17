@@ -4,7 +4,10 @@ import AppKit
 /// 변환은 involution(같은 공식)이며 주 디스플레이 높이를 기준으로 Y를 뒤집는다.
 enum CoordinateSpace {
     private static var primaryHeight: CGFloat {
-        NSScreen.screens.first?.frame.height ?? 0
+        // 전역 좌표 원점(0,0)을 소유하는 디스플레이의 높이를 기준으로 뒤집는다.
+        // NSScreen.screens.first가 항상 주 디스플레이라는 보장은 없다(멀티모니터).
+        let originScreen = NSScreen.screens.first { $0.frame.origin == .zero }
+        return (originScreen ?? NSScreen.screens.first)?.frame.height ?? 0
     }
 
     static func flip(_ rect: CGRect) -> CGRect {

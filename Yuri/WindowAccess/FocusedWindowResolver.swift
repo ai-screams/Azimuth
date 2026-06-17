@@ -54,7 +54,7 @@ enum FocusedWindowResolver {
     static func resolveFrontmostFocusedWindow(
         tracker: FrontmostAppTracker
     ) -> Result<ResolvedWindow, WindowResolutionError> {
-        guard let app = tracker.lastFocusedApp ?? NSWorkspace.shared.frontmostApplication else {
+        guard let app = tracker.targetApplication else {
             return .failure(.noFrontmostApplication)
         }
         return resolveFocusedWindow(for: app)

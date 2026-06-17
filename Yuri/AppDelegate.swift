@@ -127,13 +127,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             identifyItem.target = self
             menu.addItem(identifyItem)
 
-            for command in WindowCommand.allCases {
+            for (index, command) in WindowCommand.allCases.enumerated() {
                 let item = NSMenuItem(
                     title: "\(command.displayName) (Debug)",
                     action: #selector(runWindowCommandDebug(_:)),
                     keyEquivalent: ""
                 )
-                item.tag = WindowCommand.allCases.firstIndex(of: command) ?? 0
+                item.tag = index
                 item.target = self
                 menu.addItem(item)
             }
@@ -234,7 +234,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
             switch WindowCommandExecutor.run(command, tracker: frontmostAppTracker) {
             case let .success(frame):
-                NSLog("[Yuri P4] %@ -> OK %@", command.displayName, NSStringFromRect(frame))
+                NSLog("[Yuri P4] %@ -> OK AX %@", command.displayName, NSStringFromRect(frame))
             case let .failure(error):
                 NSLog("[Yuri P4] %@ -> FAIL %@", command.displayName, error.userFacingMessage)
                 NSSound.beep()

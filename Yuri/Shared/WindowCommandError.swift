@@ -4,6 +4,7 @@ enum WindowCommandError: Error, Equatable {
     case resolution(WindowResolutionError)
     case workAreaUnavailable
     case notMovable
+    case applyFailed
 
     var userFacingMessage: String {
         switch self {
@@ -13,6 +14,8 @@ enum WindowCommandError: Error, Equatable {
             "작업영역을 찾을 수 없음"
         case .notMovable:
             "이 창은 이동/리사이즈할 수 없음"
+        case .applyFailed:
+            "창에 적용하지 못함"
         }
     }
 }

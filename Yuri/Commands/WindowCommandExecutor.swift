@@ -26,7 +26,7 @@ enum WindowCommandExecutor {
         _ command: WindowCommand,
         tracker: FrontmostAppTracker
     ) -> Result<CGRect, WindowCommandError> {
-        guard let app = tracker.lastFocusedApp ?? NSWorkspace.shared.frontmostApplication else {
+        guard let app = tracker.targetApplication else {
             return .failure(.resolution(.noFrontmostApplication))
         }
         return run(command, on: app)
