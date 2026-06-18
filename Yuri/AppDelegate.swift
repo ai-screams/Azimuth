@@ -13,6 +13,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var settingsWindowController: NSWindowController?
     private let permissionStatusMenuItem = NSMenuItem()
     private let frontmostAppTracker = FrontmostAppTracker()
+    private let windowUndoStore = WindowUndoStore()
     private let openAccessibilitySettingsMenuItem = NSMenuItem(
         title: "Open Accessibility Settings…",
         action: #selector(openAccessibilitySettings(_:)),
@@ -127,16 +128,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             identifyItem.target = self
             menu.addItem(identifyItem)
 
-            for (index, command) in WindowCommand.allCases.enumerated() {
+            let commandsItem = NSMenuItem(title: "Window Commands (Debug)", action: nil, keyEquivalent: "")
+            let commandsSubmenu = NSMenu()
+            for (index, command) in WindowCommand.menuCommands.enumerated() {
                 let item = NSMenuItem(
-                    title: "\(command.displayName) (Debug)",
+                    title: command.displayName,
                     action: #selector(runWindowCommandDebug(_:)),
                     keyEquivalent: ""
                 )
                 item.tag = index
                 item.target = self
-                menu.addItem(item)
+                commandsSubmenu.addItem(item)
             }
+            commandsItem.submenu = commandsSubmenu
+            menu.addItem(commandsItem)
             menu.addItem(.separator())
         #endif
 
@@ -228,15 +233,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
 
         @objc private func runWindowCommandDebug(_ sender: NSMenuItem) {
-            let commands = WindowCommand.allCases
+            let commands = WindowCommand.menuCommands
             guard sender.tag >= 0, sender.tag < commands.count else { return }
             let command = commands[sender.tag]
 
-            switch WindowCommandExecutor.run(command, tracker: frontmostAppTracker) {
+            let result = WindowCommandExecutor.run(
+                command,
+                tracker: frontmostAppTracker,
+                undoStore: windowUndoStore
+            )
+            switch result {
             case let .success(frame):
-                NSLog("[Yuri P4] %@ -> OK AX %@", command.displayName, NSStringFromRect(frame))
+                NSLog("[Yuri P5] %@ -> OK AX %@", command.displayName, NSStringFromRect(frame))
             case let .failure(error):
-                NSLog("[Yuri P4] %@ -> FAIL %@", command.displayName, error.userFacingMessage)
+                NSLog("[Yuri P5] %@ -> FAIL %@", command.displayName, error.userFacingMessage)
                 NSSound.beep()
             }
         }
