@@ -1,11 +1,11 @@
 import CoreGraphics
 
-enum Axis: Equatable {
+nonisolated enum Axis: Equatable {
     case horizontal
     case vertical
 }
 
-enum Fraction: Equatable {
+nonisolated enum Fraction: Equatable {
     case half
     case third
     case twoThird
@@ -33,13 +33,13 @@ enum Fraction: Equatable {
     }
 }
 
-enum Slot: Equatable {
+nonisolated enum Slot: Equatable {
     case first
     case center
     case last
 }
 
-struct AbsolutePlacement: Equatable {
+nonisolated struct AbsolutePlacement: Equatable {
     let axis: Axis
     let fraction: Fraction
     let slot: Slot
@@ -66,7 +66,7 @@ struct AbsolutePlacement: Equatable {
     }
 }
 
-enum MoveDirection: Equatable {
+nonisolated enum MoveDirection: Equatable {
     case left
     case right
     case up
@@ -89,7 +89,7 @@ enum MoveDirection: Equatable {
     }
 }
 
-enum RelativeAnchor: Equatable {
+nonisolated enum RelativeAnchor: Equatable {
     case left
     case right
     case top
@@ -109,7 +109,7 @@ enum RelativeAnchor: Equatable {
     }
 }
 
-enum WindowCommand: Equatable {
+nonisolated enum WindowCommand: Equatable {
     case maximize
     case absolute(AbsolutePlacement)
     case move(MoveDirection)

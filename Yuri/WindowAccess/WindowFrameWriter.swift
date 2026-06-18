@@ -1,6 +1,6 @@
 import ApplicationServices
 
-enum WindowFrameWriter {
+nonisolated enum WindowFrameWriter {
     static func apply(_ frame: CGRect, to element: AXUIElement) -> Result<CGRect, WindowCommandError> {
         // 권한 가드를 쓰기 경계에도 둔다(방어적 — 호출 순서에 의존하지 않게).
         guard AccessibilityPermissionService.currentStatus().isTrusted else {

@@ -1,6 +1,6 @@
 import Foundation
 
-enum WindowCommandError: Error, Equatable {
+nonisolated enum WindowCommandError: Error, Equatable {
     case resolution(WindowResolutionError)
     case workAreaUnavailable
     case notMovable

@@ -8,7 +8,7 @@
 import ApplicationServices
 import Cocoa
 
-enum AccessibilityPermissionStatus {
+nonisolated enum AccessibilityPermissionStatus {
     case granted
     case required
 
@@ -44,7 +44,7 @@ enum AccessibilityPermissionStatus {
     }
 }
 
-enum AccessibilityPermissionService {
+nonisolated enum AccessibilityPermissionService {
     private static let settingsURLs = [
         "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility",
         "x-apple.systempreferences:com.apple.preference.security"

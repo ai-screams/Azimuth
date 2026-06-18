@@ -1,6 +1,6 @@
 import ApplicationServices
 
-enum AXAttribute {
+nonisolated enum AXAttribute {
     static func copyValue(_ element: AXUIElement, _ attribute: String) -> (value: CFTypeRef?, error: AXError) {
         var ref: CFTypeRef?
         let error = AXUIElementCopyAttributeValue(element, attribute as CFString, &ref)

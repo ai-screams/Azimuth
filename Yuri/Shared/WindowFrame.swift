@@ -1,6 +1,6 @@
 import CoreGraphics
 
-struct WindowFrame: Equatable {
+nonisolated struct WindowFrame: Equatable {
     var origin: CGPoint
     var size: CGSize
 
@@ -9,7 +9,7 @@ struct WindowFrame: Equatable {
     }
 }
 
-enum WindowResolutionError: Error, Equatable {
+nonisolated enum WindowResolutionError: Error, Equatable {
     case permissionDenied
     case noFrontmostApplication
     case noFocusedWindow

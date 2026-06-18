@@ -1,7 +1,7 @@
 import ApplicationServices
 import Cocoa
 
-struct ResolvedWindow: Equatable {
+nonisolated struct ResolvedWindow: Equatable {
     let element: AXUIElement
     let subrole: String
     let pid: pid_t

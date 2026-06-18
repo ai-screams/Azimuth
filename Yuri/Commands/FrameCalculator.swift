@@ -1,6 +1,6 @@
 import CoreGraphics
 
-enum FrameCalculator {
+nonisolated enum FrameCalculator {
     /// 모든 사각형은 AX(좌상단 원점) 좌표. current=현재 창, workArea=작업영역.
     static func targetFrame(for command: WindowCommand, current: CGRect, workArea: CGRect) -> CGRect {
         switch command {
