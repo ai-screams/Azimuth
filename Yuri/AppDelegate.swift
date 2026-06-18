@@ -6,31 +6,25 @@
 //
 
 import Cocoa
+import os
 
 @main
-final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
-    private var statusItem: NSStatusItem?
-    private var settingsWindowController: NSWindowController?
-    private let permissionStatusMenuItem = NSMenuItem()
+final class AppDelegate: NSObject, NSApplicationDelegate {
     private let frontmostAppTracker = FrontmostAppTracker()
     private let windowUndoStore = WindowUndoStore()
-    private let openAccessibilitySettingsMenuItem = NSMenuItem(
-        title: "Open Accessibility Settings…",
-        action: #selector(openAccessibilitySettings(_:)),
-        keyEquivalent: ""
+    private let settingsWindowController = SettingsWindowController()
+    private lazy var statusBarController = StatusBarController(
+        frontmostAppTracker: frontmostAppTracker,
+        windowUndoStore: windowUndoStore
     )
-    #if DEBUG
-        private let debugResolutionMenuItem = NSMenuItem()
-    #endif
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         configureActivationPolicy()
-        configureStatusItem()
-        refreshPermissionState()
+        statusBarController.onOpenSettings = { [weak self] in
+            self?.settingsWindowController.show()
+        }
+        statusBarController.install()
         debugShowSettingsOnLaunchIfNeeded()
-        #if DEBUG
-            configureDebugWindowProbe()
-        #endif
 
         NotificationCenter.default.addObserver(
             self,
@@ -45,158 +39,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        openSettings(sender)
+        settingsWindowController.show()
         return true
-    }
-
-    func menuWillOpen(_ menu: NSMenu) {
-        refreshPermissionState()
-        #if DEBUG
-            updateDebugResolutionMenuItem()
-        #endif
     }
 
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
 
-    @objc private func openSettings(_ sender: Any?) {
-        guard let controller = settingsWindowController ?? makeSettingsWindowController() else {
-            NSSound.beep()
-            return
-        }
-
-        settingsWindowController = controller
-        controller.showWindow(sender)
-        controller.window?.makeKeyAndOrderFront(sender)
-        NSApp.activate(ignoringOtherApps: true)
-    }
-
-    @objc private func openAccessibilitySettings(_ sender: Any?) {
-        _ = AccessibilityPermissionService.requestPrompt()
-
-        guard AccessibilityPermissionService.openSystemSettings() else {
-            NSSound.beep()
-            return
-        }
-    }
-
     @objc private func handleDidBecomeActive(_ notification: Notification) {
-        refreshPermissionState()
-    }
-
-    @objc private func quit(_ sender: Any?) {
-        NSApp.terminate(sender)
-    }
-
-    private func configureStatusItem() {
-        let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        let button = item.button
-
-        button?.image = nil
-        button?.title = "Yuri"
-        button?.toolTip = "Yuri"
-        item.menu = makeStatusMenu()
-        item.isVisible = true
-
-        statusItem = item
-        NSLog("Yuri status item created. button=%@", String(describing: button))
-    }
-
-    private func makeStatusMenu() -> NSMenu {
-        let menu = NSMenu()
-        menu.delegate = self
-
-        permissionStatusMenuItem.isEnabled = false
-        menu.addItem(permissionStatusMenuItem)
-
-        openAccessibilitySettingsMenuItem.target = self
-        menu.addItem(openAccessibilitySettingsMenuItem)
-
-        menu.addItem(.separator())
-
-        #if DEBUG
-            debugResolutionMenuItem.isEnabled = false
-            debugResolutionMenuItem.title = "Focused window: open menu to check"
-            menu.addItem(debugResolutionMenuItem)
-
-            let identifyItem = NSMenuItem(
-                title: "Identify Focused Window (Debug)",
-                action: #selector(identifyFocusedWindowDebug(_:)),
-                keyEquivalent: ""
-            )
-            identifyItem.target = self
-            menu.addItem(identifyItem)
-
-            let commandsItem = NSMenuItem(title: "Window Commands (Debug)", action: nil, keyEquivalent: "")
-            let commandsSubmenu = NSMenu()
-            for (index, command) in WindowCommand.menuCommands.enumerated() {
-                let item = NSMenuItem(
-                    title: command.displayName,
-                    action: #selector(runWindowCommandDebug(_:)),
-                    keyEquivalent: ""
-                )
-                item.tag = index
-                item.target = self
-                commandsSubmenu.addItem(item)
-            }
-            commandsItem.submenu = commandsSubmenu
-            menu.addItem(commandsItem)
-            menu.addItem(.separator())
-        #endif
-
-        let settingsItem = NSMenuItem(
-            title: "Open Settings…",
-            action: #selector(openSettings(_:)),
-            keyEquivalent: ","
-        )
-        settingsItem.target = self
-        menu.addItem(settingsItem)
-
-        menu.addItem(.separator())
-
-        let quitItem = NSMenuItem(
-            title: "Quit Yuri",
-            action: #selector(quit(_:)),
-            keyEquivalent: "q"
-        )
-        quitItem.target = self
-        menu.addItem(quitItem)
-
-        return menu
-    }
-
-    private func makeSettingsWindowController() -> NSWindowController? {
-        let viewController = ViewController()
-        let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 560, height: 420),
-            styleMask: [.titled, .closable, .miniaturizable, .resizable],
-            backing: .buffered,
-            defer: false
-        )
-        window.center()
-        window.title = "Yuri Settings"
-        window.contentViewController = viewController
-
-        return NSWindowController(window: window)
-    }
-
-    private func refreshPermissionState() {
-        let status = AccessibilityPermissionService.currentStatus()
-
-        permissionStatusMenuItem.title = status.menuTitle
-        openAccessibilitySettingsMenuItem.isHidden = status.isTrusted
-
-        statusItem?.button?.title = status.isTrusted ? "Yuri" : "Yuri!"
-        statusItem?.button?.toolTip = status.isTrusted
-            ? "Yuri"
-            : "Yuri needs Accessibility access"
+        statusBarController.refreshPermissionState()
     }
 
     private func debugShowSettingsOnLaunchIfNeeded() {
         #if DEBUG
-            openSettings(nil)
-            NSLog("Yuri debug launch opened settings window.")
+            settingsWindowController.show()
+            Log.app.debug("Yuri debug launch opened settings window.")
         #endif
     }
 
@@ -208,59 +66,3 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         #endif
     }
 }
-
-#if DEBUG
-    extension AppDelegate {
-        private func configureDebugWindowProbe() {
-            frontmostAppTracker.onChange = { [weak self] _ in
-                guard let self else { return }
-                NSLog("[Yuri P3] activate -> %@", currentResolutionText())
-            }
-        }
-
-        @objc private func identifyFocusedWindowDebug(_ sender: Any?) {
-            let text = currentResolutionText()
-            NSLog("[Yuri P3] menu -> %@", text)
-
-            let alert = NSAlert()
-            alert.messageText = "Focused Window (Debug)"
-            alert.informativeText = text
-            alert.runModal()
-        }
-
-        private func updateDebugResolutionMenuItem() {
-            debugResolutionMenuItem.title = "Focused: \(currentResolutionText())"
-        }
-
-        @objc private func runWindowCommandDebug(_ sender: NSMenuItem) {
-            let commands = WindowCommand.menuCommands
-            guard sender.tag >= 0, sender.tag < commands.count else { return }
-            let command = commands[sender.tag]
-
-            let result = WindowCommandExecutor.run(
-                command,
-                tracker: frontmostAppTracker,
-                undoStore: windowUndoStore
-            )
-            switch result {
-            case let .success(frame):
-                NSLog("[Yuri P5] %@ -> OK AX %@", command.displayName, NSStringFromRect(frame))
-            case let .failure(error):
-                NSLog("[Yuri P5] %@ -> FAIL %@", command.displayName, error.userFacingMessage)
-                NSSound.beep()
-            }
-        }
-
-        private func currentResolutionText() -> String {
-            let appName = frontmostAppTracker.lastFocusedApp?.localizedName ?? "—"
-            switch FocusedWindowResolver.resolveFrontmostFocusedWindow(tracker: frontmostAppTracker) {
-            case let .success(window):
-                let width = Int(window.frame.size.width)
-                let height = Int(window.frame.size.height)
-                return "\(appName) → OK \(width)×\(height) (\(window.subrole))"
-            case let .failure(error):
-                return "\(appName) → \(error.userFacingMessage)"
-            }
-        }
-    }
-#endif
