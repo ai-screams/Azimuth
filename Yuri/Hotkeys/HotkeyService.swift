@@ -33,6 +33,16 @@ final class HotkeyService {
         return true
     }
 
+    func reload(_ bindings: [HotkeyBinding], perform: @escaping (WindowCommand) -> Void) {
+        unregisterAll()
+        for binding in bindings {
+            let command = binding.command
+            register(keyCode: binding.keyCode, modifiers: binding.modifiers) {
+                perform(command)
+            }
+        }
+    }
+
     func unregisterAll() {
         for ref in hotKeyRefs {
             UnregisterEventHotKey(ref)

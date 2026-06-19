@@ -14,6 +14,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let windowUndoStore = WindowUndoStore()
     private let settingsWindowController = SettingsWindowController()
     private let hotkeyService = HotkeyService()
+    private let preferencesStore = PreferencesStore()
     private lazy var statusBarController = StatusBarController(
         frontmostAppTracker: frontmostAppTracker,
         windowUndoStore: windowUndoStore
@@ -25,7 +26,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             self?.settingsWindowController.show()
         }
         statusBarController.install()
-        registerDefaultHotkeys()
+        reloadHotkeys()
         debugShowSettingsOnLaunchIfNeeded()
 
         NotificationCenter.default.addObserver(
@@ -55,18 +56,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NotificationCenter.default.removeObserver(self)
     }
 
-    @discardableResult
-    private func registerDefaultHotkeys() -> Int {
-        var count = 0
-        for binding in DefaultHotkeys.standard {
-            let command = binding.command
-            let ok = hotkeyService.register(keyCode: binding.keyCode, modifiers: binding.modifiers) { [weak self] in
-                guard let self else { return }
-                runHotkeyCommand(command)
-            }
-            if ok { count += 1 }
+    private func reloadHotkeys() {
+        hotkeyService.reload(preferencesStore.activePreset.bindings) { [weak self] command in
+            self?.runHotkeyCommand(command)
         }
-        return count
     }
 
     private func runHotkeyCommand(_ command: WindowCommand) {
