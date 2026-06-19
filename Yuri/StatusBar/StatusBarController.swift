@@ -36,8 +36,16 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         let status = AccessibilityPermissionService.currentStatus()
         permissionStatusMenuItem.title = status.menuTitle
         openAccessibilitySettingsMenuItem.isHidden = status.isTrusted
-        statusItem?.button?.title = status.isTrusted ? "Yuri" : "Yuri!"
-        statusItem?.button?.toolTip = status.isTrusted ? "Yuri" : "Yuri needs Accessibility access"
+        updateStatusButton(isTrusted: status.isTrusted)
+    }
+
+    private func updateStatusButton(isTrusted: Bool) {
+        guard let button = statusItem?.button else { return }
+        let symbol = isTrusted ? "macwindow.on.rectangle" : "exclamationmark.triangle"
+        let image = NSImage(systemSymbolName: symbol, accessibilityDescription: "Yuri")
+        image?.isTemplate = true
+        button.image = image
+        button.toolTip = isTrusted ? "Yuri" : "Yuri needs Accessibility access"
     }
 
     func menuWillOpen(_ menu: NSMenu) {
@@ -48,14 +56,11 @@ final class StatusBarController: NSObject, NSMenuDelegate {
     }
 
     private func configureStatusItem() {
-        let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        let button = item.button
-        button?.image = nil
-        button?.title = "Yuri"
-        button?.toolTip = "Yuri"
+        let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         item.menu = makeStatusMenu()
         item.isVisible = true
         statusItem = item
+        updateStatusButton(isTrusted: AccessibilityPermissionService.currentStatus().isTrusted)
         Log.app.debug("Yuri status item created.")
     }
 
