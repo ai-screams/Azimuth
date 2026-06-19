@@ -6,6 +6,7 @@
 //
 
 import Cocoa
+import os
 
 @MainActor
 final class ViewController: NSViewController {
@@ -23,9 +24,29 @@ final class ViewController: NSViewController {
         static let statusFontSize: CGFloat = 13
     }
 
+    private let preferencesStore: PreferencesStore
+    private let launchService: LaunchAtLoginService
+    private let onPresetChange: () -> Void
+
+    init(
+        preferencesStore: PreferencesStore,
+        launchService: LaunchAtLoginService,
+        onPresetChange: @escaping () -> Void
+    ) {
+        self.preferencesStore = preferencesStore
+        self.launchService = launchService
+        self.onPresetChange = onPresetChange
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) is not supported")
+    }
+
     private let titleLabel = NSTextField(labelWithString: "Yuri Settings")
     private let subtitleLabel = NSTextField(
-        wrappingLabelWithString: "Development shell for Yuri's menu bar workflow and permissions."
+        wrappingLabelWithString: "Configure Yuri's shortcuts, feedback, and launch behavior."
     )
 
     private let permissionsTitleLabel = NSTextField(labelWithString: "Permissions")
@@ -34,15 +55,17 @@ final class ViewController: NSViewController {
     private lazy var actionButton = makeActionButton()
 
     private let shortcutsTitleLabel = NSTextField(labelWithString: "Shortcuts")
-    private let shortcutsBodyLabel = NSTextField(
-        wrappingLabelWithString: "Next step: register global shortcuts and expose Standard / Vim presets."
+    private let presetCaptionLabel = NSTextField(labelWithString: "Keymap preset")
+    private lazy var presetPopUp = makePresetPopUp()
+    private let presetHintLabel = NSTextField(
+        wrappingLabelWithString: "Standard uses arrow keys; Vim swaps to H/J/K/L for halves, moves, and resizes."
     )
 
     private let behaviorTitleLabel = NSTextField(labelWithString: "Behavior")
-    private let behaviorBodyLabel = NSTextField(
-        wrappingLabelWithString:
-        "Planned: Dock visibility, menu bar presentation, and launch behavior will become user-configurable."
-    )
+    private lazy var soundFeedbackButton = makeSoundFeedbackButton()
+    private lazy var launchAtLoginButton = makeLaunchAtLoginButton()
+    private let launchApprovalLabel = NSTextField(wrappingLabelWithString: "")
+    private lazy var launchApprovalButton = makeLaunchApprovalButton()
 
     private lazy var permissionsSection = makeSection(
         titleLabel: permissionsTitleLabel,
@@ -50,11 +73,11 @@ final class ViewController: NSViewController {
     )
     private lazy var shortcutsSection = makeSection(
         titleLabel: shortcutsTitleLabel,
-        bodyViews: [shortcutsBodyLabel]
+        bodyViews: [presetCaptionLabel, presetPopUp, presetHintLabel]
     )
     private lazy var behaviorSection = makeSection(
         titleLabel: behaviorTitleLabel,
-        bodyViews: [behaviorBodyLabel]
+        bodyViews: [soundFeedbackButton, launchAtLoginButton, launchApprovalLabel, launchApprovalButton]
     )
     private lazy var contentStackView = makeContentStackView()
 
@@ -66,6 +89,7 @@ final class ViewController: NSViewController {
         super.viewDidLoad()
         configureView()
         updatePermissionUI()
+        updateBehaviorUI()
 
         NotificationCenter.default.addObserver(
             self,
@@ -78,6 +102,7 @@ final class ViewController: NSViewController {
     override func viewWillAppear() {
         super.viewWillAppear()
         updatePermissionUI()
+        updateBehaviorUI()
     }
 
     deinit {
@@ -95,28 +120,41 @@ final class ViewController: NSViewController {
 
     @objc private func handleDidBecomeActive(_ notification: Notification) {
         updatePermissionUI()
+        updateBehaviorUI()
+    }
+
+    @objc private func presetChanged(_ sender: NSPopUpButton) {
+        guard let preset = sender.selectedItem?.representedObject as? HotkeyPreset else { return }
+        preferencesStore.activePreset = preset
+        onPresetChange()
+    }
+
+    @objc private func soundFeedbackChanged(_ sender: NSButton) {
+        preferencesStore.soundFeedbackEnabled = sender.state == .on
+    }
+
+    @objc private func launchAtLoginChanged(_ sender: NSButton) {
+        if sender.state == .on {
+            do {
+                try launchService.enable()
+            } catch {
+                if preferencesStore.soundFeedbackEnabled {
+                    NSSound.beep()
+                }
+                Log.app.error("Failed to register login item: \(error.localizedDescription, privacy: .public)")
+            }
+        } else {
+            launchService.disable { [weak self] in self?.updateBehaviorUI() }
+        }
+        updateBehaviorUI()
+    }
+
+    @objc private func openLoginItemsSettings(_ sender: Any?) {
+        launchService.openSystemSettingsLoginItems()
     }
 
     private func configureView() {
-        titleLabel.font = .systemFont(ofSize: Layout.titleFontSize, weight: .semibold)
-        subtitleLabel.textColor = .secondaryLabelColor
-        subtitleLabel.maximumNumberOfLines = 0
-
-        permissionsTitleLabel.font = .systemFont(ofSize: Layout.sectionTitleFontSize, weight: .semibold)
-
-        statusLabel.font = .systemFont(ofSize: Layout.statusFontSize, weight: .medium)
-        detailLabel.textColor = .secondaryLabelColor
-        detailLabel.lineBreakMode = .byWordWrapping
-        detailLabel.maximumNumberOfLines = 0
-
-        shortcutsTitleLabel.font = .systemFont(ofSize: Layout.sectionTitleFontSize, weight: .semibold)
-        shortcutsBodyLabel.textColor = .secondaryLabelColor
-        shortcutsBodyLabel.maximumNumberOfLines = 0
-
-        behaviorTitleLabel.font = .systemFont(ofSize: Layout.sectionTitleFontSize, weight: .semibold)
-        behaviorBodyLabel.textColor = .secondaryLabelColor
-        behaviorBodyLabel.maximumNumberOfLines = 0
-
+        configureFonts()
         view.addSubview(contentStackView)
 
         NSLayoutConstraint.activate([
@@ -130,6 +168,28 @@ final class ViewController: NSViewController {
         ])
     }
 
+    private func configureFonts() {
+        titleLabel.font = .systemFont(ofSize: Layout.titleFontSize, weight: .semibold)
+        subtitleLabel.textColor = .secondaryLabelColor
+        subtitleLabel.maximumNumberOfLines = 0
+
+        permissionsTitleLabel.font = .systemFont(ofSize: Layout.sectionTitleFontSize, weight: .semibold)
+        statusLabel.font = .systemFont(ofSize: Layout.statusFontSize, weight: .medium)
+        detailLabel.textColor = .secondaryLabelColor
+        detailLabel.lineBreakMode = .byWordWrapping
+        detailLabel.maximumNumberOfLines = 0
+
+        shortcutsTitleLabel.font = .systemFont(ofSize: Layout.sectionTitleFontSize, weight: .semibold)
+        presetCaptionLabel.font = .systemFont(ofSize: Layout.statusFontSize, weight: .medium)
+        presetHintLabel.textColor = .secondaryLabelColor
+        presetHintLabel.maximumNumberOfLines = 0
+
+        behaviorTitleLabel.font = .systemFont(ofSize: Layout.sectionTitleFontSize, weight: .semibold)
+        launchApprovalLabel.textColor = .systemOrange
+        launchApprovalLabel.font = .systemFont(ofSize: Layout.statusFontSize)
+        launchApprovalLabel.maximumNumberOfLines = 0
+    }
+
     private func updatePermissionUI() {
         let status = AccessibilityPermissionService.currentStatus()
 
@@ -139,7 +199,66 @@ final class ViewController: NSViewController {
         actionButton.isHidden = status.isTrusted
     }
 
-    private func makeActionButton() -> NSButton {
+    /// SMAppService는 상태 변경 알림(KVO/Notification)을 제공하지 않으므로, 로그인 항목 상태는
+    /// 화면 표시·앱 활성화(didBecomeActive) 시점에 폴링해 갱신한다. 설정창이 떠 있는 채로
+    /// System Settings에서 토글하면 다시 활성화될 때까지 갱신이 지연될 수 있다.
+    private func updateBehaviorUI() {
+        soundFeedbackButton.state = preferencesStore.soundFeedbackEnabled ? .on : .off
+        launchAtLoginButton.state = launchService.isEnabled ? .on : .off
+
+        let needsApproval = launchService.requiresApproval
+        launchApprovalLabel.isHidden = !needsApproval
+        launchApprovalButton.isHidden = !needsApproval
+        if needsApproval {
+            launchApprovalLabel.stringValue =
+                "Login item is registered but needs approval in System Settings > General > Login Items."
+        }
+    }
+
+    private func makePresetPopUp() -> NSPopUpButton {
+        let popUp = NSPopUpButton(frame: .zero, pullsDown: false)
+        // 각 항목에 프리셋을 representedObject로 묶어 위치(index) 의존을 피한다.
+        for preset in HotkeyPreset.allCases {
+            popUp.addItem(withTitle: preset.displayName)
+            popUp.lastItem?.representedObject = preset
+        }
+        if let index = HotkeyPreset.allCases.firstIndex(of: preferencesStore.activePreset) {
+            popUp.selectItem(at: index)
+        }
+        popUp.target = self
+        popUp.action = #selector(presetChanged(_:))
+        return popUp
+    }
+
+    private func makeSoundFeedbackButton() -> NSButton {
+        NSButton(
+            checkboxWithTitle: "Play a sound when a command can't run",
+            target: self,
+            action: #selector(soundFeedbackChanged(_:))
+        )
+    }
+
+    private func makeLaunchAtLoginButton() -> NSButton {
+        NSButton(
+            checkboxWithTitle: "Launch Yuri at login",
+            target: self,
+            action: #selector(launchAtLoginChanged(_:))
+        )
+    }
+
+    private func makeLaunchApprovalButton() -> NSButton {
+        let button = NSButton(
+            title: "Open Login Items Settings…",
+            target: self,
+            action: #selector(openLoginItemsSettings(_:))
+        )
+        button.bezelStyle = .rounded
+        return button
+    }
+}
+
+private extension ViewController {
+    func makeActionButton() -> NSButton {
         let button = NSButton(
             title: "Open Accessibility Settings…",
             target: self,
@@ -149,7 +268,7 @@ final class ViewController: NSViewController {
         return button
     }
 
-    private func makeContentStackView() -> NSStackView {
+    func makeContentStackView() -> NSStackView {
         let stackView = NSStackView(views: [
             titleLabel,
             subtitleLabel,
@@ -164,7 +283,7 @@ final class ViewController: NSViewController {
         return stackView
     }
 
-    private func makeSection(titleLabel: NSTextField, bodyViews: [NSView]) -> NSBox {
+    func makeSection(titleLabel: NSTextField, bodyViews: [NSView]) -> NSBox {
         let stackView = NSStackView(views: [titleLabel] + bodyViews)
         stackView.alignment = .leading
         stackView.orientation = .vertical

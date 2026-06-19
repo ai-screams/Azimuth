@@ -3,6 +3,19 @@ import Cocoa
 @MainActor
 final class SettingsWindowController {
     private var windowController: NSWindowController?
+    private let preferencesStore: PreferencesStore
+    private let launchService: LaunchAtLoginService
+    private let onPresetChange: () -> Void
+
+    init(
+        preferencesStore: PreferencesStore,
+        launchService: LaunchAtLoginService,
+        onPresetChange: @escaping () -> Void
+    ) {
+        self.preferencesStore = preferencesStore
+        self.launchService = launchService
+        self.onPresetChange = onPresetChange
+    }
 
     func show() {
         let controller = windowController ?? makeWindowController()
@@ -29,7 +42,11 @@ final class SettingsWindowController {
     }
 
     private func makeWindowController() -> NSWindowController {
-        let viewController = ViewController()
+        let viewController = ViewController(
+            preferencesStore: preferencesStore,
+            launchService: launchService,
+            onPresetChange: onPresetChange
+        )
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 560, height: 420),
             styleMask: [.titled, .closable, .miniaturizable, .resizable],

@@ -12,9 +12,14 @@ import os
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private let frontmostAppTracker = FrontmostAppTracker()
     private let windowUndoStore = WindowUndoStore()
-    private let settingsWindowController = SettingsWindowController()
     private let hotkeyService = HotkeyService()
     private let preferencesStore = PreferencesStore()
+    private let launchAtLoginService = LaunchAtLoginService()
+    private lazy var settingsWindowController = SettingsWindowController(
+        preferencesStore: preferencesStore,
+        launchService: launchAtLoginService,
+        onPresetChange: { [weak self] in self?.reloadHotkeys() }
+    )
     private lazy var statusBarController = StatusBarController(
         frontmostAppTracker: frontmostAppTracker,
         windowUndoStore: windowUndoStore
@@ -68,7 +73,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         case .success:
             break
         case let .failure(error):
-            NSSound.beep()
+            if preferencesStore.soundFeedbackEnabled {
+                NSSound.beep()
+            }
             Log.windows.debug(
                 "Hotkey \(command.displayName, privacy: .public) -> FAIL \(error.userFacingMessage, privacy: .public)"
             )
