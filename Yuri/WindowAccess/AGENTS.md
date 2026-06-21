@@ -1,0 +1,41 @@
+<!-- Parent: ../AGENTS.md -->
+<!-- Generated: 2026-06-19 | Updated: 2026-06-19 -->
+
+# WindowAccess
+
+## Purpose
+Accessibility(AX) API와 직접 맞닿는 계층. "어느 앱/어느 창"을 해석하고, 창 frame을 읽고 쓰고, 되돌리기 상태와 화면 작업영역을 계산한다. 명령 엔진(`Commands/`)이 이 계층을 통해 실제 창을 조작한다.
+
+## Key Files
+| File | Description |
+|------|-------------|
+| `FrontmostAppTracker.swift` | `@MainActor`. 직전 non-Yuri 활성 앱 추적(`didActivateApplication` 옵저버). `targetApplication`으로 "명령 대상 앱" 정책을 한 곳에 모음 |
+| `FocusedWindowResolver.swift` | `@MainActor`. 대상 앱의 `kAXFocusedWindowAttribute`를 `ResolvedWindow`로 해석. 권한·풀스크린(비공개 `AXFullScreen`)·최소화·subrole(`kAXStandardWindowSubrole`) 가드. AX 오류를 `WindowResolutionError`로 매핑 |
+| `AXAttribute.swift` | `nonisolated`. `AXUIElementCopyAttributeValue` 얇은 래퍼(string/bool/element/point/size). 유일하게 범위 한정 force-cast 허용(`swiftlint:disable` 주석) |
+| `WindowFrameWriter.swift` | `nonisolated`. AX position/size 쓰기. 권한·settable 가드, 최소 크기 제약 대응 위해 position 재적용, 적용 후 실제 frame 회신 |
+| `WindowUndoStore.swift` | `@MainActor`. 창별 1단계 직전 frame 저장(capacity 64, LRU). `AXUIElement`를 `CFEqual`/`CFHash`로 식별, pid 일치 확인(닫힌 창 element 재사용 오인 방지). `clearAll`은 디스플레이 재구성 시 호출 |
+| `WorkAreaResolver.swift` | `@MainActor`. AX 창 frame이 가장 많이 겹치는 화면의 `visibleFrame`을 AX 좌표로 반환(멀티모니터 대응) |
+
+## For AI Agents
+
+### Working In This Directory
+- 권한 가드를 **읽기·쓰기 양쪽**에 둔다(호출 순서에 의존하지 않게 방어적). 권한 검사를 제거/우회하지 말 것.
+- 풀스크린은 subrole로 구분 불가 → subrole 검사보다 **먼저** 비공개 `AXFullScreen` 속성으로 판별(기존 동작 유지).
+- AX 좌표(좌상단 원점)로 다룬다. 화면/Cocoa 변환이 필요하면 `Shared/CoordinateSpace` 사용.
+
+### Testing Requirements
+- 이 계층은 실제 AX 권한이 필요해 단위 테스트 대신 **`make run`(서명 빌드) 라이브 검증**. 순수 계산은 `Commands/FrameCalculator`로 분리되어 `make test`가 커버.
+
+### Common Patterns
+- `Result<_, WindowResolutionError>` / `Result<CGRect, WindowCommandError>`로 실패 사유를 구체화.
+- `ResolvedWindow`(element/subrole/pid/frame)가 해석 결과의 단일 캐리어.
+
+## Dependencies
+
+### Internal
+- `Permissions/AccessibilityPermissionService`(권한), `Shared/WindowFrame`·`WindowResolutionError`·`CoordinateSpace`, `Commands/WindowCommandError`.
+
+### External
+- ApplicationServices(AX), AppKit(NSScreen/NSWorkspace/NSRunningApplication).
+
+<!-- MANUAL: -->
