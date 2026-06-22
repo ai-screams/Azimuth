@@ -32,6 +32,11 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         #endif
     }
 
+    /// 메뉴바 상태 아이콘 표시/숨김. 숨겨도 Yuri를 다시 실행하면 설정창이 열린다(접근 경로 보존).
+    func setVisible(_ visible: Bool) {
+        statusItem?.isVisible = visible
+    }
+
     func refreshPermissionState() {
         let status = AccessibilityPermissionService.currentStatus()
         permissionStatusMenuItem.title = status.menuTitle

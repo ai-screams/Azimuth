@@ -170,6 +170,52 @@ nonisolated enum RelativeAnchor: Equatable {
     }
 }
 
+nonisolated enum CommandGroup: String, CaseIterable {
+    case core
+    case halves
+    case thirds
+    case twoThirds
+    case move
+    case relative
+
+    /// 설정 UI 그룹 헤더 표시명.
+    var displayName: String {
+        switch self {
+        case .core:
+            "Maximize · Undo · Center"
+        case .halves:
+            "Halves"
+        case .thirds:
+            "Thirds"
+        case .twoThirds:
+            "Two-Thirds"
+        case .move:
+            "Move"
+        case .relative:
+            "Relative Resize"
+        }
+    }
+
+    /// 영속·식별용 안정 토큰. 저장 키이므로 한 번 출시되면 이 문자열을 바꾸지 말 것
+    /// (case 이름과 분리해 두어, case 리네임이 저장된 비활성 그룹 설정을 깨지 않게 한다).
+    var token: String {
+        switch self {
+        case .core:
+            "core"
+        case .halves:
+            "halves"
+        case .thirds:
+            "thirds"
+        case .twoThirds:
+            "twoThirds"
+        case .move:
+            "move"
+        case .relative:
+            "relative"
+        }
+    }
+}
+
 nonisolated enum WindowCommand: Equatable {
     case maximize
     case absolute(AbsolutePlacement)
@@ -212,6 +258,28 @@ nonisolated enum WindowCommand: Equatable {
     /// 불변식: 역조회 대상은 `menuCommands`(25개)뿐. 여기에 없는 명령의 식별자는 복원되지 않는다.
     static func command(forIdentifier identifier: String) -> WindowCommand? {
         menuCommands.first { $0.identifier == identifier }
+    }
+
+    /// 그룹 단위 on/off용 논리 그룹.
+    /// 순서 의존: `.move(.center)`가 `.move`보다 앞서야 중앙 이동이 `.core`로 분류된다.
+    var group: CommandGroup {
+        switch self {
+        case .maximize, .undo, .move(.center):
+            .core
+        case .move:
+            .move
+        case .relativeHalf:
+            .relative
+        case let .absolute(placement):
+            switch placement.fraction {
+            case .half:
+                .halves
+            case .third:
+                .thirds
+            case .twoThird:
+                .twoThirds
+            }
+        }
     }
 
     /// DEBUG 메뉴에 노출할 명령 목록. 절대 배치의 center/middle slot은 1/3에만 둔다

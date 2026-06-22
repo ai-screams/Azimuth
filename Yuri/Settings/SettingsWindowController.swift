@@ -8,19 +8,22 @@ final class SettingsWindowController {
     private let onHotkeysChanged: () -> Void
     private let registrationFailures: () -> Set<String>
     private let setHotkeysSuspended: (Bool) -> Void
+    private let setMenuBarIconHidden: (Bool) -> Void
 
     init(
         preferencesStore: PreferencesStore,
         launchService: LaunchAtLoginService,
         onHotkeysChanged: @escaping () -> Void,
         registrationFailures: @escaping () -> Set<String>,
-        setHotkeysSuspended: @escaping (Bool) -> Void
+        setHotkeysSuspended: @escaping (Bool) -> Void,
+        setMenuBarIconHidden: @escaping (Bool) -> Void
     ) {
         self.preferencesStore = preferencesStore
         self.launchService = launchService
         self.onHotkeysChanged = onHotkeysChanged
         self.registrationFailures = registrationFailures
         self.setHotkeysSuspended = setHotkeysSuspended
+        self.setMenuBarIconHidden = setMenuBarIconHidden
     }
 
     func show() {
@@ -53,7 +56,8 @@ final class SettingsWindowController {
             launchService: launchService,
             onHotkeysChanged: onHotkeysChanged,
             registrationFailures: registrationFailures,
-            setHotkeysSuspended: setHotkeysSuspended
+            setHotkeysSuspended: setHotkeysSuspended,
+            setMenuBarIconHidden: setMenuBarIconHidden
         )
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 560, height: 640),

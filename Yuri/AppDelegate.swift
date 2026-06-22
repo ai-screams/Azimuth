@@ -21,7 +21,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         launchService: launchAtLoginService,
         onHotkeysChanged: { [weak self] in self?.reloadHotkeys() },
         registrationFailures: { [weak self] in self?.registrationFailureIdentifiers ?? [] },
-        setHotkeysSuspended: { [weak self] suspended in self?.setHotkeysSuspended(suspended) }
+        setHotkeysSuspended: { [weak self] suspended in self?.setHotkeysSuspended(suspended) },
+        setMenuBarIconHidden: { [weak self] hidden in self?.statusBarController.setVisible(!hidden) }
     )
     private lazy var statusBarController = StatusBarController(
         frontmostAppTracker: frontmostAppTracker,
@@ -34,6 +35,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             self?.settingsWindowController.show()
         }
         statusBarController.install()
+        statusBarController.setVisible(!preferencesStore.menuBarIconHidden)
         reloadHotkeys()
         debugShowSettingsOnLaunchIfNeeded()
 
@@ -65,9 +67,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func reloadHotkeys() {
-        let bindings = BindingResolver.resolve(
+        let resolved = BindingResolver.resolve(
             preset: preferencesStore.activePreset,
             overrides: preferencesStore.customShortcuts
+        )
+        let bindings = BindingResolver.enabled(
+            resolved,
+            disabledCommands: preferencesStore.disabledCommandIdentifiers,
+            disabledGroups: preferencesStore.disabledGroupTokens
         )
         let failed = hotkeyService.reload(bindings) { [weak self] command in
             self?.runHotkeyCommand(command)

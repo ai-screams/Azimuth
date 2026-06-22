@@ -30,19 +30,22 @@ final class ViewController: NSViewController {
     private let onHotkeysChanged: () -> Void
     private let registrationFailures: () -> Set<String>
     private let setHotkeysSuspended: (Bool) -> Void
+    private let setMenuBarIconHidden: (Bool) -> Void
 
     init(
         preferencesStore: PreferencesStore,
         launchService: LaunchAtLoginService,
         onHotkeysChanged: @escaping () -> Void,
         registrationFailures: @escaping () -> Set<String>,
-        setHotkeysSuspended: @escaping (Bool) -> Void
+        setHotkeysSuspended: @escaping (Bool) -> Void,
+        setMenuBarIconHidden: @escaping (Bool) -> Void
     ) {
         self.preferencesStore = preferencesStore
         self.launchService = launchService
         self.onHotkeysChanged = onHotkeysChanged
         self.registrationFailures = registrationFailures
         self.setHotkeysSuspended = setHotkeysSuspended
+        self.setMenuBarIconHidden = setMenuBarIconHidden
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -74,6 +77,10 @@ final class ViewController: NSViewController {
     private lazy var launchAtLoginButton = makeLaunchAtLoginButton()
     private let launchApprovalLabel = NSTextField(wrappingLabelWithString: "")
     private lazy var launchApprovalButton = makeLaunchApprovalButton()
+    private lazy var menuBarIconButton = makeMenuBarIconButton()
+    private let menuBarIconHintLabel = NSTextField(
+        wrappingLabelWithString: "When hidden, relaunch Yuri to reopen this settings window."
+    )
 
     private lazy var permissionsSection = makeSection(
         titleLabel: permissionsTitleLabel,
@@ -85,7 +92,14 @@ final class ViewController: NSViewController {
     )
     private lazy var behaviorSection = makeSection(
         titleLabel: behaviorTitleLabel,
-        bodyViews: [soundFeedbackButton, launchAtLoginButton, launchApprovalLabel, launchApprovalButton]
+        bodyViews: [
+            soundFeedbackButton,
+            launchAtLoginButton,
+            launchApprovalLabel,
+            launchApprovalButton,
+            menuBarIconButton,
+            menuBarIconHintLabel
+        ]
     )
     private lazy var contentStackView = makeContentStackView()
 
@@ -134,6 +148,12 @@ final class ViewController: NSViewController {
 
     @objc private func soundFeedbackChanged(_ sender: NSButton) {
         preferencesStore.soundFeedbackEnabled = sender.state == .on
+    }
+
+    @objc private func menuBarIconChanged(_ sender: NSButton) {
+        let hidden = sender.state == .on
+        preferencesStore.menuBarIconHidden = hidden
+        setMenuBarIconHidden(hidden)
     }
 
     @objc private func launchAtLoginChanged(_ sender: NSButton) {
@@ -192,6 +212,9 @@ final class ViewController: NSViewController {
         launchApprovalLabel.textColor = .systemOrange
         launchApprovalLabel.font = .systemFont(ofSize: Layout.statusFontSize)
         launchApprovalLabel.maximumNumberOfLines = 0
+        menuBarIconHintLabel.textColor = .secondaryLabelColor
+        menuBarIconHintLabel.font = .systemFont(ofSize: Layout.statusFontSize)
+        menuBarIconHintLabel.maximumNumberOfLines = 0
     }
 
     private func updatePermissionUI() {
@@ -208,6 +231,7 @@ final class ViewController: NSViewController {
     /// System Settings에서 토글하면 다시 활성화될 때까지 갱신이 지연될 수 있다.
     private func updateBehaviorUI() {
         soundFeedbackButton.state = preferencesStore.soundFeedbackEnabled ? .on : .off
+        menuBarIconButton.state = preferencesStore.menuBarIconHidden ? .on : .off
         launchAtLoginButton.state = launchService.isEnabled ? .on : .off
 
         let needsApproval = launchService.requiresApproval
@@ -224,6 +248,14 @@ final class ViewController: NSViewController {
             checkboxWithTitle: "Play a sound when a command can't run",
             target: self,
             action: #selector(soundFeedbackChanged(_:))
+        )
+    }
+
+    private func makeMenuBarIconButton() -> NSButton {
+        NSButton(
+            checkboxWithTitle: "Hide menu bar icon",
+            target: self,
+            action: #selector(menuBarIconChanged(_:))
         )
     }
 

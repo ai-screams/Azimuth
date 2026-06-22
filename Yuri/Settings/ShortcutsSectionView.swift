@@ -27,9 +27,12 @@ final class ShortcutsSectionView: NSView {
     private lazy var presetPopUp = makePresetPopUp()
     private let rowsStack = NSStackView()
     private var rows: [Row] = []
+    private var groupToggles: [String: NSButton] = [:]
 
     struct Row {
         let command: WindowCommand
+        let nameLabel: NSTextField
+        let enableCheckbox: NSButton
         let recorder: ShortcutRecorderButton
         let resetButton: NSButton
         let warningLabel: NSTextField
@@ -56,7 +59,7 @@ final class ShortcutsSectionView: NSView {
         fatalError("init(coder:) is not supported")
     }
 
-    /// 실효 바인딩·충돌·등록 실패를 다시 계산해 각 행을 갱신한다.
+    /// 실효 바인딩·활성 상태·충돌·등록 실패를 다시 계산해 그룹 토글과 각 행을 갱신한다.
     func refresh() {
         let overrides = preferencesStore.customShortcuts
         let bindings = BindingResolver.resolve(preset: preferencesStore.activePreset, overrides: overrides)
@@ -64,20 +67,52 @@ final class ShortcutsSectionView: NSView {
             bindings.map { ($0.command.identifier, $0) },
             uniquingKeysWith: { first, _ in first }
         )
-        let conflicts = BindingResolver.conflictingIdentifiers(in: bindings)
+        // 충돌·등록 실패는 실제 등록되는 활성 바인딩에만 의미가 있다.
+        let enabledBindings = BindingResolver.enabled(
+            bindings,
+            disabledCommands: preferencesStore.disabledCommandIdentifiers,
+            disabledGroups: preferencesStore.disabledGroupTokens
+        )
+        let conflicts = BindingResolver.conflictingIdentifiers(in: enabledBindings)
         let failures = registrationFailures()
 
-        for row in rows {
-            let identifier = row.command.identifier
-            if let binding = byIdentifier[identifier] {
-                let shortcut = HotkeyShortcut(keyCode: binding.keyCode, modifiers: binding.modifiers)
-                row.recorder.setIdleDisplay(shortcut.displayString)
-            } else {
-                row.recorder.setIdleDisplay("")
-            }
-            row.resetButton.isEnabled = overrides[identifier] != nil
-            apply(warning: warningText(for: identifier, conflicts: conflicts, failures: failures), to: row.warningLabel)
+        for (token, toggle) in groupToggles {
+            toggle.state = preferencesStore.isGroupEnabled(token) ? .on : .off
         }
+        for row in rows {
+            updateRow(row, binding: byIdentifier[row.command.identifier],
+                      hasOverride: overrides[row.command.identifier] != nil,
+                      conflicts: conflicts, failures: failures)
+        }
+    }
+
+    private func updateRow(
+        _ row: Row,
+        binding: HotkeyBinding?,
+        hasOverride: Bool,
+        conflicts: Set<String>,
+        failures: Set<String>
+    ) {
+        let identifier = row.command.identifier
+        let groupToken = row.command.group.token
+        let groupEnabled = preferencesStore.isGroupEnabled(groupToken)
+        let commandOn = !preferencesStore.disabledCommandIdentifiers.contains(identifier)
+        // 실효 활성 판정은 store의 단일 규칙(isCommandEnabled)에 위임한다.
+        let effective = preferencesStore.isCommandEnabled(identifier, groupToken: groupToken)
+
+        if let binding {
+            let shortcut = HotkeyShortcut(keyCode: binding.keyCode, modifiers: binding.modifiers)
+            row.recorder.setIdleDisplay(shortcut.displayString)
+        } else {
+            row.recorder.setIdleDisplay("")
+        }
+        row.enableCheckbox.state = commandOn ? .on : .off
+        row.enableCheckbox.isEnabled = groupEnabled
+        row.recorder.isEnabled = effective
+        row.resetButton.isEnabled = effective && hasOverride
+        row.nameLabel.textColor = effective ? .labelColor : .disabledControlTextColor
+        let warning = effective ? warningText(for: identifier, conflicts: conflicts, failures: failures) : ""
+        apply(warning: warning, to: row.warningLabel)
     }
 
     /// 내부 중복을 시스템 점유보다 우선 표시한다(중복이면 둘 다 등록 실패할 수 있어 메시지가 엇갈리지 않게).
@@ -168,12 +203,33 @@ private extension ShortcutsSectionView {
         rowsStack.alignment = .leading
         rowsStack.spacing = Metric.rowSpacing
         rowsStack.translatesAutoresizingMaskIntoConstraints = false
-        for command in WindowCommand.menuCommands {
-            rows.append(makeRow(for: command))
+        // 그룹 헤더 + 그 그룹에 속한 명령 행을 차례로 쌓는다(menuCommands 순서 유지).
+        for group in CommandGroup.allCases {
+            let commands = WindowCommand.menuCommands.filter { $0.group == group }
+            guard !commands.isEmpty else { continue }
+            addGroupHeader(group)
+            for command in commands {
+                rows.append(makeRow(for: command))
+            }
         }
     }
 
+    func addGroupHeader(_ group: CommandGroup) {
+        let toggle = NSButton(checkboxWithTitle: group.displayName, target: self, action: #selector(groupToggled(_:)))
+        toggle.font = .systemFont(ofSize: Metric.captionFontSize, weight: .semibold)
+        groupToggles[group.token] = toggle
+
+        let container = NSStackView(views: [toggle])
+        container.orientation = .horizontal
+        container.translatesAutoresizingMaskIntoConstraints = false
+        rowsStack.addArrangedSubview(container)
+        container.widthAnchor.constraint(equalTo: rowsStack.widthAnchor).isActive = true
+    }
+
     func makeRow(for command: WindowCommand) -> Row {
+        let enable = NSButton(checkboxWithTitle: "", target: self, action: #selector(commandEnableToggled(_:)))
+        enable.setAccessibilityLabel("Enable \(command.displayName)")
+
         let name = NSTextField(labelWithString: command.displayName)
         name.lineBreakMode = .byTruncatingTail
 
@@ -194,7 +250,7 @@ private extension ShortcutsSectionView {
         let reset = NSButton(title: "Reset", target: self, action: #selector(resetRow(_:)))
         reset.bezelStyle = .rounded
 
-        let container = NSStackView(views: [name, recorder, reset, warning])
+        let container = NSStackView(views: [enable, name, recorder, reset, warning])
         container.orientation = .horizontal
         container.spacing = 8
         container.translatesAutoresizingMaskIntoConstraints = false
@@ -207,7 +263,14 @@ private extension ShortcutsSectionView {
             container.heightAnchor.constraint(equalToConstant: Metric.rowHeight),
             container.widthAnchor.constraint(equalTo: rowsStack.widthAnchor)
         ])
-        return Row(command: command, recorder: recorder, resetButton: reset, warningLabel: warning)
+        return Row(
+            command: command,
+            nameLabel: name,
+            enableCheckbox: enable,
+            recorder: recorder,
+            resetButton: reset,
+            warningLabel: warning
+        )
     }
 
     func makePresetPopUp() -> NSPopUpButton {
@@ -246,6 +309,20 @@ private extension ShortcutsSectionView {
 
     @objc func resetAll() {
         preferencesStore.clearAllShortcuts()
+        onHotkeysChanged()
+        refresh()
+    }
+
+    @objc func groupToggled(_ sender: NSButton) {
+        guard let token = groupToggles.first(where: { $0.value == sender })?.key else { return }
+        preferencesStore.setGroupDisabled(token, disabled: sender.state == .off)
+        onHotkeysChanged()
+        refresh()
+    }
+
+    @objc func commandEnableToggled(_ sender: NSButton) {
+        guard let row = rows.first(where: { $0.enableCheckbox == sender }) else { return }
+        preferencesStore.setCommandDisabled(row.command.identifier, disabled: sender.state == .off)
         onHotkeysChanged()
         refresh()
     }

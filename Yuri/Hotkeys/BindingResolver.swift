@@ -23,6 +23,18 @@ nonisolated enum BindingResolver {
         }
     }
 
+    /// 그룹 off 또는 개별 unbind된 명령을 제외한, 실제 등록 대상 바인딩만 남긴다.
+    static func enabled(
+        _ bindings: [HotkeyBinding],
+        disabledCommands: Set<String>,
+        disabledGroups: Set<String>
+    ) -> [HotkeyBinding] {
+        bindings.filter { binding in
+            !disabledGroups.contains(binding.command.group.token)
+                && !disabledCommands.contains(binding.command.identifier)
+        }
+    }
+
     /// 같은 (keyCode, modifiers) 조합을 2개 이상 명령이 쓰면, 그 명령들의 identifier를 모두 반환한다.
     static func conflictingIdentifiers(in bindings: [HotkeyBinding]) -> Set<String> {
         var byCombo: [Combo: [String]] = [:]

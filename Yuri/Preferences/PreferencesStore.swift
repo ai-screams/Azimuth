@@ -12,6 +12,9 @@ final class PreferencesStore {
     private let activePresetKey = "activeHotkeyPreset"
     private let soundFeedbackKey = "soundFeedbackEnabled"
     private let customShortcutsKey = "customShortcuts"
+    private let disabledCommandsKey = "disabledCommandIdentifiers"
+    private let disabledGroupsKey = "disabledGroupTokens"
+    private let menuBarIconHiddenKey = "menuBarIconHidden"
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -76,5 +79,47 @@ final class PreferencesStore {
 
     func clearAllShortcuts() {
         customShortcuts = [:]
+    }
+
+    // MARK: - 명령/그룹 활성화 (Phase 7d)
+
+    /// 개별 비활성(unbind)된 명령 식별자.
+    var disabledCommandIdentifiers: Set<String> {
+        get { Set(defaults.stringArray(forKey: disabledCommandsKey) ?? []) }
+        set { defaults.set(Array(newValue), forKey: disabledCommandsKey) }
+    }
+
+    /// 그룹째 비활성된 그룹 토큰.
+    var disabledGroupTokens: Set<String> {
+        get { Set(defaults.stringArray(forKey: disabledGroupsKey) ?? []) }
+        set { defaults.set(Array(newValue), forKey: disabledGroupsKey) }
+    }
+
+    /// 메뉴바 상태 아이콘 숨김 여부. defaults.bool은 미설정 키에 false를 주는데,
+    /// 그게 곧 올바른 기본값(아이콘 표시)이라 별도 처리 불필요.
+    var menuBarIconHidden: Bool {
+        get { defaults.bool(forKey: menuBarIconHiddenKey) }
+        set { defaults.set(newValue, forKey: menuBarIconHiddenKey) }
+    }
+
+    /// 그룹이 켜져 있고 개별 비활성도 아니어야 명령이 활성이다.
+    func isCommandEnabled(_ identifier: String, groupToken: String) -> Bool {
+        !disabledGroupTokens.contains(groupToken) && !disabledCommandIdentifiers.contains(identifier)
+    }
+
+    func setCommandDisabled(_ identifier: String, disabled: Bool) {
+        var set = disabledCommandIdentifiers
+        if disabled { set.insert(identifier) } else { set.remove(identifier) }
+        disabledCommandIdentifiers = set
+    }
+
+    func isGroupEnabled(_ token: String) -> Bool {
+        !disabledGroupTokens.contains(token)
+    }
+
+    func setGroupDisabled(_ token: String, disabled: Bool) {
+        var set = disabledGroupTokens
+        if disabled { set.insert(token) } else { set.remove(token) }
+        disabledGroupTokens = set
     }
 }
