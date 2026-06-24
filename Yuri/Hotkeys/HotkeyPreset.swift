@@ -28,6 +28,7 @@ nonisolated enum HotkeyPreset: String, CaseIterable {
         let base = UInt32(controlKey | optionKey)
         let moveMods = UInt32(controlKey | optionKey | cmdKey)
         let relMods = UInt32(controlKey | optionKey | shiftKey)
+        let displayMods = UInt32(controlKey | optionKey | cmdKey | shiftKey)
         let isVim = self == .vim
 
         // Direction keys: Vim uses HJKL, Standard uses arrow keys
@@ -45,8 +46,24 @@ nonisolated enum HotkeyPreset: String, CaseIterable {
             + coreBindings(undoKey: undoKey, base: base)
             + moveBindings(left: left, right: right, up: up, down: down, moveMods: moveMods)
             + relativeHalfBindings(left: left, right: right, up: up, down: down, relMods: relMods)
+            + displayMoveBindings(left: left, right: right, up: up, down: down, displayMods: displayMods)
             + thirdBindings(base: base)
             + twoThirdBindings(base: base)
+    }
+
+    private func displayMoveBindings(
+        left: UInt32,
+        right: UInt32,
+        up: UInt32,
+        down: UInt32,
+        displayMods: UInt32
+    ) -> [HotkeyBinding] {
+        [
+            HotkeyBinding(command: .moveToDisplay(.left), keyCode: left, modifiers: displayMods),
+            HotkeyBinding(command: .moveToDisplay(.right), keyCode: right, modifiers: displayMods),
+            HotkeyBinding(command: .moveToDisplay(.top), keyCode: up, modifiers: displayMods),
+            HotkeyBinding(command: .moveToDisplay(.bottom), keyCode: down, modifiers: displayMods)
+        ]
     }
 
     private func snapThrowBindings(

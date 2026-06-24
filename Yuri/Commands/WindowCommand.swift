@@ -204,6 +204,20 @@ nonisolated enum SnapEdge: Equatable {
         }
     }
 
+    /// 디스플레이 이동 명령 표시용 방향어(top=Up, bottom=Down).
+    var displayDirection: String {
+        switch self {
+        case .left:
+            "Left"
+        case .right:
+            "Right"
+        case .top:
+            "Up"
+        case .bottom:
+            "Down"
+        }
+    }
+
     /// 인접 디스플레이로 던졌을 때 진입 반대쪽 절반(우→좌, 좌→우, 위→하, 아래→위).
     var opposite: SnapEdge {
         switch self {
@@ -226,6 +240,7 @@ nonisolated enum CommandGroup: String, CaseIterable {
     case twoThirds
     case move
     case relative
+    case display
 
     /// 설정 UI 그룹 헤더 표시명.
     var displayName: String {
@@ -242,6 +257,8 @@ nonisolated enum CommandGroup: String, CaseIterable {
             "Move"
         case .relative:
             "Relative Resize"
+        case .display:
+            "Displays"
         }
     }
 
@@ -261,6 +278,8 @@ nonisolated enum CommandGroup: String, CaseIterable {
             "move"
         case .relative:
             "relative"
+        case .display:
+            "display"
         }
     }
 }
@@ -269,6 +288,7 @@ nonisolated enum WindowCommand: Equatable {
     case maximize
     case absolute(AbsolutePlacement)
     case snapThrow(SnapEdge)
+    case moveToDisplay(SnapEdge)
     case move(MoveDirection)
     case relativeHalf(RelativeAnchor)
     case undo
@@ -281,6 +301,8 @@ nonisolated enum WindowCommand: Equatable {
             placement.displayName
         case let .snapThrow(edge):
             edge.displayName
+        case let .moveToDisplay(edge):
+            "Move to \(edge.displayDirection) Display"
         case let .move(direction):
             "Move \(direction.displayName)"
         case let .relativeHalf(anchor):
@@ -301,6 +323,8 @@ nonisolated enum WindowCommand: Equatable {
             "absolute.\(placement.axis.token).\(placement.fraction.token).\(placement.slot.token)"
         case let .snapThrow(edge):
             "snapThrow.\(edge.token)"
+        case let .moveToDisplay(edge):
+            "moveToDisplay.\(edge.token)"
         case let .move(direction):
             "move.\(direction.token)"
         case let .relativeHalf(anchor):
@@ -322,6 +346,8 @@ nonisolated enum WindowCommand: Equatable {
             .core
         case .snapThrow:
             .halves
+        case .moveToDisplay:
+            .display
         case .move:
             .move
         case .relativeHalf:
@@ -365,6 +391,10 @@ nonisolated enum WindowCommand: Equatable {
         .relativeHalf(.right),
         .relativeHalf(.top),
         .relativeHalf(.bottom),
+        .moveToDisplay(.left),
+        .moveToDisplay(.right),
+        .moveToDisplay(.top),
+        .moveToDisplay(.bottom),
         .undo
     ]
 }

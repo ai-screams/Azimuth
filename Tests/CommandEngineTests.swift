@@ -17,6 +17,7 @@ enum CommandEngineTests {
         testMoves()
         testRelativeHalves()
         testSnapHalves()
+        testDisplayMove()
         testCommandModel()
         testCommandIdentifiers()
 
@@ -126,8 +127,35 @@ enum CommandEngineTests {
         expectName("snap left name", WindowCommand.snapThrow(.left).displayName, "Left 1/2")
     }
 
+    private static func testDisplayMove() {
+        let rightHalf = FrameCalculator.halfRect(.right, workArea: workArea)
+        let leftHalf = FrameCalculator.halfRect(.left, workArea: workArea)
+        let bottomHalf = FrameCalculator.halfRect(.bottom, workArea: workArea)
+        let rightInRight = FrameCalculator.isWithinHalf(rightHalf, edge: .right, workArea: workArea)
+        let leftInRight = FrameCalculator.isWithinHalf(leftHalf, edge: .right, workArea: workArea)
+        let bottomInBottom = FrameCalculator.isWithinHalf(bottomHalf, edge: .bottom, workArea: workArea)
+        expectName("right half within right", "\(rightInRight)", "true")
+        expectName("left half not within right", "\(leftInRight)", "false")
+        expectName("bottom half within bottom", "\(bottomInBottom)", "true")
+
+        let from = CGRect(x: 0, y: 0, width: 1000, height: 1000)
+        let to = CGRect(x: 2000, y: 0, width: 1000, height: 1000)
+        expect("display move keeps left-half", display(CGRect(x: 0, y: 0, width: 500, height: 1000), from, to),
+               CGRect(x: 2000, y: 0, width: 500, height: 1000))
+        expect("display move keeps relative origin", display(CGRect(x: 250, y: 250, width: 500, height: 500), from, to),
+               CGRect(x: 2250, y: 250, width: 500, height: 500))
+        let small = CGRect(x: 100, y: 0, width: 600, height: 600)
+        expect("display move caps into smaller", display(CGRect(x: 0, y: 0, width: 1000, height: 1000), from, small),
+               CGRect(x: 100, y: 0, width: 600, height: 600))
+        expectName("moveToDisplay name", WindowCommand.moveToDisplay(.top).displayName, "Move to Up Display")
+    }
+
+    private static func display(_ rect: CGRect, _ from: CGRect, _ to: CGRect) -> CGRect {
+        FrameCalculator.displayMoveRect(rect, from: from, to: to)
+    }
+
     private static func testCommandModel() {
-        expectName("menuCommands count", "\(WindowCommand.menuCommands.count)", "25")
+        expectName("menuCommands count", "\(WindowCommand.menuCommands.count)", "29")
         expectName("maximize name", WindowCommand.maximize.displayName, "Maximize")
         expectName("right 1/2 name", absolute(.horizontal, .half, .last).displayName, "Right 1/2")
         expectName("vertical middle 1/3 name", absolute(.vertical, .third, .center).displayName, "Middle 1/3")
@@ -142,8 +170,8 @@ enum CommandEngineTests {
         for command in commands where WindowCommand.command(forIdentifier: command.identifier) == command {
             roundTripped += 1
         }
-        expectName("identifier round-trip count", "\(roundTripped)", "25")
-        expectName("unique identifier count", "\(Set(commands.map { $0.identifier }).count)", "25")
+        expectName("identifier round-trip count", "\(roundTripped)", "29")
+        expectName("unique identifier count", "\(Set(commands.map { $0.identifier }).count)", "29")
         expectName("absolute identifier", absolute(.horizontal, .third, .center).identifier,
                    "absolute.horizontal.third.center")
         expectName("move identifier", WindowCommand.move(.center).identifier, "move.center")

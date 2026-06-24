@@ -11,6 +11,9 @@ nonisolated enum FrameCalculator {
         case let .snapThrow(edge):
             // 순수 폴백 = 그 방향 절반(스냅). 인접 디스플레이로 던지는 분기는 Executor가 처리한다.
             halfRect(edge, workArea: workArea)
+        case .moveToDisplay:
+            // 인접 디스플레이가 필요하므로 Executor가 처리한다. 폴백(인접 없음)은 현 위치 유지.
+            current
         case let .move(direction):
             moveFrame(direction, current: current, workArea: workArea)
         case let .relativeHalf(anchor):
@@ -36,6 +39,36 @@ nonisolated enum FrameCalculator {
         case .bottom:
             return CGRect(x: workArea.minX, y: workArea.midY, width: workArea.width, height: halfHeight)
         }
+    }
+
+    /// 창이 그 방향 절반 영역에 (대체로) 들어와 있는가. snapThrow의 던지기 트리거에 쓴다.
+    /// "정확히 절반"이 아니라 "그 쪽 절반에 수용되는가"로 판정 → 크기증분 창·약간의 어긋남도 던질 수 있다.
+    static func isWithinHalf(_ rect: CGRect, edge: SnapEdge, workArea: CGRect, tolerance: CGFloat = 10) -> Bool {
+        switch edge {
+        case .left:
+            return rect.maxX <= workArea.midX + tolerance
+        case .right:
+            return rect.minX >= workArea.midX - tolerance
+        case .top:
+            return rect.maxY <= workArea.midY + tolerance
+        case .bottom:
+            return rect.minY >= workArea.midY - tolerance
+        }
+    }
+
+    /// 현재 창을 `from` 작업영역 기준 상대 위치·크기를 유지한 채 `to` 작업영역으로 옮긴다(다음 디스플레이 이동).
+    /// 크기는 대상 화면을 넘지 않게 캡(비율 1.0)하고, 위치는 대상 영역 안으로 클램프한다.
+    static func displayMoveRect(_ rect: CGRect, from: CGRect, to destination: CGRect) -> CGRect {
+        guard from.width > 0, from.height > 0 else { return destination }
+        let relativeX = (rect.minX - from.minX) / from.width
+        let relativeY = (rect.minY - from.minY) / from.height
+        let width = Swift.min(rect.width / from.width, 1) * destination.width
+        let height = Swift.min(rect.height / from.height, 1) * destination.height
+        let originX = clamped(destination.minX + relativeX * destination.width,
+                              lower: destination.minX, upper: destination.maxX - width)
+        let originY = clamped(destination.minY + relativeY * destination.height,
+                              lower: destination.minY, upper: destination.maxY - height)
+        return CGRect(x: originX, y: originY, width: width, height: height)
     }
 
     // MARK: - 절대 배치 (축 독립)

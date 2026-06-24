@@ -37,28 +37,34 @@ enum WindowCommandExecutor {
         return WindowFrameWriter.apply(target, to: resolved.element)
     }
 
-    /// snapThrow만 인접 디스플레이를 알아야 하므로 여기서 분기하고, 나머지는 순수 FrameCalculator에 위임한다.
+    /// snapThrow·moveToDisplay만 인접 디스플레이를 알아야 하므로 여기서 분기하고, 나머지는 순수 FrameCalculator에 위임.
     private static func targetFrame(for command: WindowCommand, current: CGRect, workArea: CGRect) -> CGRect {
-        if case let .snapThrow(edge) = command {
+        switch command {
+        case let .snapThrow(edge):
             return snapThrowTarget(edge, current: current, workArea: workArea)
+        case let .moveToDisplay(edge):
+            return moveToDisplayTarget(edge, current: current, workArea: workArea)
+        default:
+            return FrameCalculator.targetFrame(for: command, current: current, workArea: workArea)
         }
-        return FrameCalculator.targetFrame(for: command, current: current, workArea: workArea)
     }
 
-    /// 이미 그 방향 절반이면 인접 디스플레이의 반대쪽 절반으로 던지고, 아니면 현재 화면의 그 절반으로 스냅한다.
+    /// 이미 그 방향 절반에 들어와 있으면 인접 디스플레이의 반대쪽 절반으로 던지고, 아니면 현재 화면의 그 절반으로 스냅.
     private static func snapThrowTarget(_ edge: SnapEdge, current: CGRect, workArea: CGRect) -> CGRect {
-        let half = FrameCalculator.halfRect(edge, workArea: workArea)
-        guard approximatelyEqual(current, half) else { return half }
+        guard FrameCalculator.isWithinHalf(current, edge: edge, workArea: workArea) else {
+            return FrameCalculator.halfRect(edge, workArea: workArea)
+        }
         let adjacent = DisplayResolver.adjacentWorkArea(forAXWindowFrame: current, edge: edge)
-        return adjacent.map { FrameCalculator.halfRect(edge.opposite, workArea: $0) } ?? half
+        return adjacent.map { FrameCalculator.halfRect(edge.opposite, workArea: $0) }
+            ?? FrameCalculator.halfRect(edge, workArea: workArea)
     }
 
-    /// 최소 크기 제약·재적용 오차를 흡수하기 위한 허용오차 비교.
-    private static func approximatelyEqual(_ lhs: CGRect, _ rhs: CGRect, tolerance: CGFloat = 6) -> Bool {
-        abs(lhs.minX - rhs.minX) <= tolerance
-            && abs(lhs.minY - rhs.minY) <= tolerance
-            && abs(lhs.width - rhs.width) <= tolerance
-            && abs(lhs.height - rhs.height) <= tolerance
+    /// 모양과 무관하게 그 방향 인접 디스플레이로 상대 위치·크기를 유지해 이동. 인접 없으면 현 위치 유지.
+    private static func moveToDisplayTarget(_ edge: SnapEdge, current: CGRect, workArea: CGRect) -> CGRect {
+        guard let destination = DisplayResolver.adjacentWorkArea(forAXWindowFrame: current, edge: edge) else {
+            return current
+        }
+        return FrameCalculator.displayMoveRect(current, from: workArea, to: destination)
     }
 
     static func run(
