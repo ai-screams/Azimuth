@@ -1,6 +1,8 @@
 import ApplicationServices
 
-nonisolated enum WindowFrameWriter {
+/// AX 쓰기는 메인 스레드에서만 안전하며 권한 캐시(@MainActor)를 읽으므로 @MainActor로 격리한다.
+@MainActor
+enum WindowFrameWriter {
     static func apply(_ frame: CGRect, to element: AXUIElement) -> Result<CGRect, WindowCommandError> {
         // 권한 가드를 쓰기 경계에도 둔다(방어적 — 호출 순서에 의존하지 않게).
         guard AccessibilityPermissionService.currentStatus().isTrusted else {
@@ -16,7 +18,9 @@ nonisolated enum WindowFrameWriter {
         setPoint(element, kAXPositionAttribute, frame.origin)
 
         guard positionError == .success, sizeError == .success else {
-            return .failure(.applyFailed)
+            // Space 전환·애니메이션 중엔 cannotComplete가 흔하다 → 일시적 실패로 구분(조용히 스킵).
+            let isTransient = positionError == .cannotComplete || sizeError == .cannotComplete
+            return .failure(isTransient ? .transient : .applyFailed)
         }
 
         guard let origin = AXAttribute.point(element, kAXPositionAttribute as String),

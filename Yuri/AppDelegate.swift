@@ -96,6 +96,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         switch result {
         case .success:
             break
+        case .failure(.transient):
+            // Space 전환·애니메이션 중 일시적 실패는 비프 없이 조용히 무시한다.
+            Log.windows.debug("Hotkey \(command.displayName, privacy: .public) -> transient, skipped")
         case let .failure(error):
             if preferencesStore.soundFeedbackEnabled {
                 NSSound.beep()
@@ -107,6 +110,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func handleDidBecomeActive(_ notification: Notification) {
+        // 사용자가 System Settings에서 권한을 바꿨을 수 있으므로 캐시를 비우고 다시 조회한다.
+        AccessibilityPermissionService.invalidateCache()
         statusBarController.refreshPermissionState()
     }
 
