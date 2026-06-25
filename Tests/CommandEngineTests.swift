@@ -131,12 +131,20 @@ enum CommandEngineTests {
         let rightHalf = FrameCalculator.halfRect(.right, workArea: workArea)
         let leftHalf = FrameCalculator.halfRect(.left, workArea: workArea)
         let bottomHalf = FrameCalculator.halfRect(.bottom, workArea: workArea)
-        let rightInRight = FrameCalculator.isWithinHalf(rightHalf, edge: .right, workArea: workArea)
-        let leftInRight = FrameCalculator.isWithinHalf(leftHalf, edge: .right, workArea: workArea)
-        let bottomInBottom = FrameCalculator.isWithinHalf(bottomHalf, edge: .bottom, workArea: workArea)
-        expectName("right half within right", "\(rightInRight)", "true")
-        expectName("left half not within right", "\(leftInRight)", "false")
-        expectName("bottom half within bottom", "\(bottomInBottom)", "true")
+        let rightFillsRight = FrameCalculator.fillsHalf(rightHalf, edge: .right, workArea: workArea)
+        let leftFillsRight = FrameCalculator.fillsHalf(leftHalf, edge: .right, workArea: workArea)
+        let bottomFillsBottom = FrameCalculator.fillsHalf(bottomHalf, edge: .bottom, workArea: workArea)
+        expectName("right half fills right", "\(rightFillsRight)", "true")
+        expectName("left half does not fill right", "\(leftFillsRight)", "false")
+        expectName("bottom half fills bottom", "\(bottomFillsBottom)", "true")
+        // 절반보다 작은 창은 "채움"이 아니다 → snapThrow가 던지지 않고 그 절반으로 스냅.
+        let smallInRight = CGRect(x: 1400, y: 400, width: 300, height: 300)
+        expectName("small window in right half does not fill",
+                   "\(FrameCalculator.fillsHalf(smallInRight, edge: .right, workArea: workArea))", "false")
+        // 크기증분으로 한 셀 모자란 거의-꽉찬 창은 채움으로 인정 → 던지기.
+        let nearlyRight = CGRect(x: 965, y: 30, width: 950, height: 1045)
+        expectName("nearly-full right half still fills",
+                   "\(FrameCalculator.fillsHalf(nearlyRight, edge: .right, workArea: workArea))", "true")
 
         let from = CGRect(x: 0, y: 0, width: 1000, height: 1000)
         let to = CGRect(x: 2000, y: 0, width: 1000, height: 1000)

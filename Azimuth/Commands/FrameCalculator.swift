@@ -41,19 +41,28 @@ nonisolated enum FrameCalculator {
         }
     }
 
-    /// 창이 그 방향 절반 영역에 (대체로) 들어와 있는가. snapThrow의 튕기기 트리거에 쓴다.
-    /// "정확히 절반"이 아니라 "그 쪽 절반에 수용되는가"로 판정 → 크기증분 창·약간의 어긋남도 던질 수 있다.
-    static func isWithinHalf(_ rect: CGRect, edge: SnapEdge, workArea: CGRect, tolerance: CGFloat = 10) -> Bool {
-        switch edge {
-        case .left:
-            return rect.maxX <= workArea.midX + tolerance
-        case .right:
-            return rect.minX >= workArea.midX - tolerance
-        case .top:
-            return rect.maxY <= workArea.midY + tolerance
-        case .bottom:
-            return rect.minY >= workArea.midY - tolerance
-        }
+    /// 창이 그 방향 절반을 (대체로) 채우고 있는가. snapThrow의 "이미 절반 → 튕기기" 트리거에 쓴다.
+    /// 판정: ① 그 절반 영역에 대체로 담겨 있고(반대쪽/화면 밖으로 tolerance 이상 넘치지 않음),
+    /// ② 절반 면적의 minCoverage 이상을 덮는다. 절반보다 작은 창은 ②에서 걸러져 "채움"이 아니다(→ 스냅).
+    /// 크기증분 앱(터미널 등)은 far edge가 한 셀 모자라도 커버리지가 높아 통과한다. 모든 방향 동일 규칙.
+    static func fillsHalf(
+        _ rect: CGRect,
+        edge: SnapEdge,
+        workArea: CGRect,
+        tolerance: CGFloat = 20,
+        minCoverage: CGFloat = 0.9
+    ) -> Bool {
+        let half = halfRect(edge, workArea: workArea)
+        guard half.width > 0, half.height > 0 else { return false }
+        let contained = rect.minX >= half.minX - tolerance
+            && rect.maxX <= half.maxX + tolerance
+            && rect.minY >= half.minY - tolerance
+            && rect.maxY <= half.maxY + tolerance
+        guard contained else { return false }
+        let inter = rect.intersection(half)
+        guard !inter.isNull else { return false }
+        let coverage = (inter.width * inter.height) / (half.width * half.height)
+        return coverage >= minCoverage
     }
 
     /// 현재 창을 `from` 작업영역 기준 상대 위치·크기를 유지한 채 `to` 작업영역으로 옮긴다(다음 디스플레이 이동).
