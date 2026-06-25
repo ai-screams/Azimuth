@@ -1,5 +1,13 @@
 # Azimuth
 
+[![Download](https://img.shields.io/badge/Download-.dmg-1a2a4a?logo=apple&logoColor=white)](https://github.com/ai-screams/Azimuth/releases/latest)
+[![Latest release](https://img.shields.io/github/v/release/ai-screams/Azimuth?sort=semver&color=1a2a4a)](https://github.com/ai-screams/Azimuth/releases/latest)
+[![Platform](https://img.shields.io/badge/macOS-26.3%2B-555555)](#requirements)
+[![Swift](https://img.shields.io/badge/Swift-5-F05138?logo=swift&logoColor=white)](https://swift.org)
+[![CI](https://github.com/ai-screams/Azimuth/actions/workflows/ci.yml/badge.svg)](https://github.com/ai-screams/Azimuth/actions/workflows/ci.yml)
+[![Downloads](https://img.shields.io/github/downloads/ai-screams/Azimuth/total?color=1a2a4a)](https://github.com/ai-screams/Azimuth/releases)
+[![License](https://img.shields.io/badge/license-TBD-lightgrey)](#)
+
 Azimuth is a keyboard-driven window manager for macOS, built with Swift and AppKit. It lives in the menu bar and lets you place, resize, move, and throw the focused window across your screens with predictable shortcuts — no mouse, no guesswork.
 
 Design principle: **predictability over clever inference.** Every command does exactly one well-defined thing, and effects compose. If you can get a result by combining simple commands, Azimuth doesn't add a separate "smart" feature for it.
