@@ -1,16 +1,16 @@
 <!-- Generated: 2026-06-19 | Updated: 2026-06-19 -->
 
-# Yuri
+# Azimuth
 
 ## Purpose
-Yuri는 macOS 메뉴바 **윈도우 매니저**다 (Magnet/Rectangle 류). Accessibility(AX) API로 다른 앱의 포커스된 일반 창을 식별하고, 전역 단축키 또는 메뉴 명령으로 반분/1·2·3분할/최대화/이동/상대 변형/되돌리기를 수행한다. Swift + AppKit, 스토리보드 없는 프로그래매틱 진입(`Yuri/main.swift`). Xcode 프로젝트(objectVersion 77, file-system synchronized group).
+Azimuth는 macOS 메뉴바 **윈도우 매니저**다 (Magnet/Rectangle 류). Accessibility(AX) API로 다른 앱의 포커스된 일반 창을 식별하고, 전역 단축키 또는 메뉴 명령으로 반분/1·2·3분할/최대화/이동/상대 변형/되돌리기를 수행한다. Swift + AppKit, 스토리보드 없는 프로그래매틱 진입(`Azimuth/main.swift`). Xcode 프로젝트(objectVersion 77, file-system synchronized group).
 
 ## Key Files
 | File | Description |
 |------|-------------|
 | `Makefile` | `build`(ad-hoc 컴파일/CI 전용) · `run`(Apple Dev 서명, 권한 테스트용) · `lint` · `format` · `test` · `secrets` · `install-hooks` |
 | `README.md` | 프로젝트 개요 |
-| `Yuri.xcodeproj` | Xcode 프로젝트. 비샌드박스, `DEVELOPMENT_TEAM=7K6MK3KP9K`, `SWIFT_DEFAULT_ACTOR_ISOLATION=MainActor`, deployment target macOS 26.3 |
+| `Azimuth.xcodeproj` | Xcode 프로젝트. 비샌드박스, `DEVELOPMENT_TEAM=7K6MK3KP9K`, `SWIFT_DEFAULT_ACTOR_ISOLATION=MainActor`, deployment target macOS 26.3 |
 | `.swiftlint.yml` | SwiftLint strict 설정 |
 | `.swiftformat` | SwiftFormat 설정 (pre-commit + CI에서 `--lint`) |
 | `.gitleaks.toml` | 시크릿 스캔 규칙 |
@@ -19,7 +19,7 @@ Yuri는 macOS 메뉴바 **윈도우 매니저**다 (Magnet/Rectangle 류). Acces
 ## Subdirectories
 | Directory | Purpose |
 |-----------|---------|
-| `Yuri/` | 앱 소스 전체 (see `Yuri/AGENTS.md`) |
+| `Azimuth/` | 앱 소스 전체 (see `Azimuth/AGENTS.md`) |
 | `Tests/` | 명령 엔진 순수 로직 회귀 테스트 (see `Tests/AGENTS.md`) |
 | `scripts/` | build/run/lint/format/test/secret-scan 쉘 스크립트 (see `scripts/AGENTS.md`) |
 | `.github/` | GitHub Actions CI (see `.github/AGENTS.md`) |
@@ -31,7 +31,7 @@ Yuri는 macOS 메뉴바 **윈도우 매니저**다 (Magnet/Rectangle 류). Acces
 - **권한/보안은 절대 우회하지 말 것**(정공법). AX 권한은 공식 API로 요청하고 사용자가 System Settings에서 부여하게 한다. `tccutil reset`(Apple 공식)은 허용.
 - **권한 테스트는 `make run`(Apple Dev 서명)으로.** `make build`는 `CODE_SIGNING_ALLOWED=NO`(ad-hoc)라 cdhash가 바뀌어 TCC 권한이 초기화된다 → 컴파일/CI 검증 전용.
 - `.docs/`는 내부 문서이며 **git에 커밋·푸시 금지**(gitignore됨).
-- 소스 추가는 `Yuri/` 아래에 두면 file-system synchronized group으로 **자동 포함**된다(pbxproj 수정 불필요). 단, 새 타깃/의존성 추가는 pbxproj/GUI 필요.
+- 소스 추가는 `Azimuth/` 아래에 두면 file-system synchronized group으로 **자동 포함**된다(pbxproj 수정 불필요). 단, 새 타깃/의존성 추가는 pbxproj/GUI 필요.
 
 ### Testing Requirements
 - 변경 후 항상: `make build` → `make lint` → `make test`. 머지 전 통과 필수(CI가 동일하게 검사).

@@ -1,4 +1,4 @@
-// Yuri 명령 엔진(순수 로직) 회귀 테스트.
+// Azimuth 명령 엔진(순수 로직) 회귀 테스트.
 // Xcode 테스트 타깃 대신 swiftc로 컴파일/실행한다(scripts/test.sh, `make test`, CI).
 // 대상: FrameCalculator(기하 계산) + WindowCommand(명령 모델). AppKit/AX 비의존 순수 로직만.
 
@@ -116,7 +116,7 @@ enum CommandEngineTests {
 
     private static func testSnapHalves() {
         let base = CGRect(x: 300, y: 200, width: 700, height: 500)
-        // snapThrow의 순수 폴백(스냅)은 그 방향 절반과 같다(던지기는 Executor에서 화면 의존).
+        // snapThrow의 순수 폴백(스냅)은 그 방향 절반과 같다(튕기기는 Executor에서 화면 의존).
         expect("snap left = left 1/2", target(.snapThrow(.left), base), CGRect(x: 0, y: 25, width: 960, height: 1055))
         expect("snap right = right 1/2", target(.snapThrow(.right), base), CGRect(x: 960, y: 25, width: 960, height: 1055))
         expect("snap top = top 1/2", target(.snapThrow(.top), base), CGRect(x: 0, y: 25, width: 1920, height: 527.5))

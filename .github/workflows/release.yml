@@ -1,0 +1,46 @@
+name: Release
+
+# 태그(v*) 푸시 시: 빌드 → Developer ID 서명 → 공증 → DMG → GitHub Release 자동 생성.
+# 예) git tag v1.0.0 && git push origin v1.0.0
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write # 릴리스 생성/자산 업로드
+
+jobs:
+  release:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Import Developer ID certificate
+        uses: apple-actions/import-codesign-certs@v3
+        with:
+          p12-file-base64: ${{ secrets.DEVELOPER_ID_CERT_P12 }}
+          p12-password: ${{ secrets.DEVELOPER_ID_CERT_PASSWORD }}
+
+      - name: Install create-dmg
+        run: brew install create-dmg
+
+      - name: Build, sign, notarize, package
+        env:
+          DEVELOPMENT_TEAM: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+          VERSION: ${{ github.ref_name }}
+        run: ./scripts/release.sh
+
+      - name: Create GitHub Release with DMG
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.dmg
+          generate_release_notes: true
+          fail_on_unmatched_files: true

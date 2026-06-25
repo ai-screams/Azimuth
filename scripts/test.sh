@@ -11,8 +11,8 @@ cd "$ROOT_DIR"
 BIN="$(mktemp -t yuri-tests-XXXXXX)"
 
 swiftc \
-    "$ROOT_DIR/Yuri/Commands/FrameCalculator.swift" \
-    "$ROOT_DIR/Yuri/Commands/WindowCommand.swift" \
+    "$ROOT_DIR/Azimuth/Commands/FrameCalculator.swift" \
+    "$ROOT_DIR/Azimuth/Commands/WindowCommand.swift" \
     "$ROOT_DIR/Tests/CommandEngineTests.swift" \
     -o "$BIN" || { rm -f "$BIN"; exit 1; }
 

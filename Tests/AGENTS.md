@@ -26,7 +26,7 @@
 ## Dependencies
 
 ### Internal
-- `Yuri/Commands/FrameCalculator.swift`, `Yuri/Commands/WindowCommand.swift`(직접 컴파일 대상).
+- `Azimuth/Commands/FrameCalculator.swift`, `Azimuth/Commands/WindowCommand.swift`(직접 컴파일 대상).
 
 ### External
 - CoreGraphics, Foundation.

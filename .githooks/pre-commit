@@ -18,7 +18,7 @@ if ! command -v swiftlint >/dev/null 2>&1; then
 fi
 
 echo "Running SwiftFormat --lint..."
-swiftformat "$ROOT_DIR/Yuri" --config "$ROOT_DIR/.swiftformat" --lint
+swiftformat "$ROOT_DIR/Azimuth" --config "$ROOT_DIR/.swiftformat" --lint
 
 echo "Running SwiftLint..."
 swiftlint lint --strict --no-cache --config "$ROOT_DIR/.swiftlint.yml"

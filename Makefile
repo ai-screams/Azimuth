@@ -16,6 +16,10 @@ run:
 test:
 	./scripts/test.sh
 
+# 배포본(DMG) 생성: Developer ID 서명 + 공증 + DMG. 자격/사용법은 RELEASING.md 참조.
+release:
+	./scripts/release.sh
+
 secrets:
 	./scripts/secret-scan.sh
 

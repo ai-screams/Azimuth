@@ -55,7 +55,7 @@ jobs:
         run: brew install swiftlint swiftformat
 
       - name: SwiftFormat
-        run: swiftformat ./Yuri --config ./.swiftformat --lint
+        run: swiftformat ./Azimuth --config ./.swiftformat --lint
 
       - name: SwiftLint
         run: swiftlint lint --strict --no-cache --config ./.swiftlint.yml
@@ -63,8 +63,8 @@ jobs:
       - name: Xcode build
         run: |
           xcodebuild \
-            -project ./Yuri.xcodeproj \
-            -scheme Yuri \
+            -project ./Azimuth.xcodeproj \
+            -scheme Azimuth \
             -configuration Debug \
             -destination 'platform=macOS' \
             CODE_SIGNING_ALLOWED=NO \

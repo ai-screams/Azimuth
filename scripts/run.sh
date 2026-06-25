@@ -7,7 +7,7 @@
 # 그러면 TCC가 매번 "다른 앱"으로 보고 Accessibility 권한이 무효화된다(권한 꼬임).
 #
 # 이 스크립트는 안정적인 Apple Development 정체성으로 서명해 빌드한다. designated requirement가
-# `identifier "com.aiscream.Yuri" + Apple Development 리프`에 고정되므로, 같은 서명으로 재빌드해도
+# `identifier "com.aiscream.Azimuth" + Apple Development 리프`에 고정되므로, 같은 서명으로 재빌드해도
 # 한 번 부여한 권한이 유지된다. 이것이 정공법이다(권한 우회·검사 무력화 금지).
 
 set -euo pipefail
@@ -20,8 +20,8 @@ DEVELOPMENT_TEAM="${DEVELOPMENT_TEAM:-7K6MK3KP9K}"
 
 # CODE_SIGNING_ALLOWED를 끄지 않는다 = Apple Development로 정상 서명.
 xcodebuild \
-    -project "$ROOT_DIR/Yuri.xcodeproj" \
-    -scheme Yuri \
+    -project "$ROOT_DIR/Azimuth.xcodeproj" \
+    -scheme Azimuth \
     -configuration Debug \
     -destination "platform=macOS" \
     CODE_SIGN_STYLE=Automatic \
@@ -31,8 +31,8 @@ xcodebuild \
 # 빌드 산출물 경로를 빌드 설정에서 직접 읽는다(하드코딩 금지).
 APP_PATH="$(
     xcodebuild \
-        -project "$ROOT_DIR/Yuri.xcodeproj" \
-        -scheme Yuri \
+        -project "$ROOT_DIR/Azimuth.xcodeproj" \
+        -scheme Azimuth \
         -configuration Debug \
         -showBuildSettings 2>/dev/null \
     | awk -F' = ' '
@@ -46,7 +46,7 @@ echo "Signed build: $APP_PATH"
 codesign -dvvv "$APP_PATH" 2>&1 | grep -iE "^Authority=Apple Development|^TeamIdentifier" || true
 
 # 이전 인스턴스를 종료해 새 서명 빌드가 뜨도록 한다.
-pkill -x Yuri 2>/dev/null || true
+pkill -x Azimuth 2>/dev/null || true
 
 open "$APP_PATH"
 echo "Launched ✅ (Apple Development signed — Accessibility 권한 유지됨)"

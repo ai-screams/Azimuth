@@ -11,4 +11,4 @@ if ! command -v swiftformat >/dev/null 2>&1; then
     exit 1
 fi
 
-swiftformat "$ROOT_DIR/Yuri" --config "$ROOT_DIR/.swiftformat"
+swiftformat "$ROOT_DIR/Azimuth" --config "$ROOT_DIR/.swiftformat"
