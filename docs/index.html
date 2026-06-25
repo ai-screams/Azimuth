@@ -1,0 +1,1765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Azimuth — A keyboard-driven window manager for macOS. Predictability over clever inference." />
+  <title>Azimuth — macOS Window Manager</title>
+
+  <style>
+    /* ─── Design tokens ──────────────────────────────────────────── */
+    :root {
+      --navy:        #1a2a4a;
+      --navy-mid:    #243656;
+      --navy-light:  #2f4878;
+      --steel:       #3d6199;
+      --accent:      #4a7fc1;
+      --accent-soft: #6494cc;
+      --accent-glow: rgba(74,127,193,0.18);
+
+      --bg:          #f5f6f8;
+      --bg-card:     #ffffff;
+      --bg-hero:     #eef1f6;
+      --surface:     #f0f2f6;
+      --border:      rgba(0,0,0,0.09);
+      --border-card: rgba(0,0,0,0.07);
+
+      --text:        #1a1e2a;
+      --text-mid:    #3a4050;
+      --text-muted:  #6a717f;
+      --text-faint:  #9aa0ae;
+
+      --keycap-bg:   #ffffff;
+      --keycap-border: #c8cdd8;
+      --keycap-shadow: rgba(0,0,0,0.14);
+      --keycap-text: #1a1e2a;
+
+      --win-bg:      rgba(255,255,255,0.92);
+      --win-border:  rgba(0,0,0,0.12);
+      --menubar-bg:  rgba(240,242,248,0.95);
+
+      --radius-sm:   6px;
+      --radius:      10px;
+      --radius-lg:   16px;
+      --radius-xl:   22px;
+
+      --shadow-card: 0 1px 3px rgba(0,0,0,0.06), 0 4px 14px rgba(0,0,0,0.07);
+      --shadow-float: 0 2px 8px rgba(0,0,0,0.08), 0 8px 28px rgba(0,0,0,0.1);
+
+      --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+              "Helvetica Neue", Arial, sans-serif;
+      --font-mono: "SF Mono", ui-monospace, "Cascadia Code", "Fira Code",
+                   Menlo, Monaco, Consolas, monospace;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --navy:        #0e1929;
+        --navy-mid:    #162035;
+        --navy-light:  #1e2f4e;
+        --steel:       #3361a0;
+        --accent:      #5a8fd4;
+        --accent-soft: #7aaae0;
+        --accent-glow: rgba(90,143,212,0.2);
+
+        --bg:          #0d1117;
+        --bg-card:     #161b27;
+        --bg-hero:     #0f1520;
+        --surface:     #1a2135;
+        --border:      rgba(255,255,255,0.07);
+        --border-card: rgba(255,255,255,0.06);
+
+        --text:        #e8ecf4;
+        --text-mid:    #b8c0d0;
+        --text-muted:  #7a8499;
+        --text-faint:  #4a5268;
+
+        --keycap-bg:   #1e2640;
+        --keycap-border: #334266;
+        --keycap-shadow: rgba(0,0,0,0.4);
+        --keycap-text: #d0d8f0;
+
+        --win-bg:      rgba(22,28,48,0.9);
+        --win-border:  rgba(255,255,255,0.1);
+        --menubar-bg:  rgba(14,22,40,0.96);
+
+        --shadow-card: 0 1px 3px rgba(0,0,0,0.2), 0 4px 16px rgba(0,0,0,0.3);
+        --shadow-float: 0 2px 8px rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.4);
+      }
+    }
+
+    /* ─── Reset & base ───────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html {
+      scroll-behavior: smooth;
+      font-size: 16px;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    a:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+      border-radius: 3px;
+    }
+
+    /* ─── Nav bar ────────────────────────────────────────────────── */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 clamp(1rem, 5vw, 3rem);
+      height: 52px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .topbar-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 650;
+      font-size: 1rem;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .lang-toggle {
+      display: flex;
+      align-items: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 3px;
+      gap: 2px;
+      cursor: default;
+    }
+    .lang-btn {
+      padding: 3px 10px;
+      border-radius: 16px;
+      font-size: 0.78rem;
+      font-weight: 550;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      transition: background 0.15s, color 0.15s;
+      line-height: 1.4;
+    }
+    .lang-btn.active {
+      background: var(--bg-card);
+      color: var(--text);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .lang-btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+
+    /* ─── Layout helpers ─────────────────────────────────────────── */
+    .container {
+      width: 100%;
+      max-width: 1060px;
+      margin: 0 auto;
+      padding: 0 clamp(1rem, 5vw, 2.5rem);
+    }
+
+    section { padding: clamp(3rem, 7vw, 5.5rem) 0; }
+
+    .section-label {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 650;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+    }
+
+    h2.section-title {
+      font-size: clamp(1.5rem, 3.5vw, 2.1rem);
+      font-weight: 680;
+      letter-spacing: -0.03em;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+      line-height: 1.2;
+    }
+
+    .section-sub {
+      color: var(--text-muted);
+      font-size: 1rem;
+      margin-bottom: 2.5rem;
+      max-width: 52ch;
+    }
+
+    /* ─── Hero ───────────────────────────────────────────────────── */
+    .hero {
+      padding: clamp(3rem, 8vw, 5.5rem) 0 clamp(2.5rem, 6vw, 4.5rem);
+      background: var(--bg-hero);
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .hero-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: clamp(2rem, 5vw, 4rem);
+      align-items: center;
+    }
+
+    @media (max-width: 720px) {
+      .hero-inner { grid-template-columns: 1fr; }
+      .hero-visual { order: -1; margin: 0 auto; max-width: 340px; width: 100%; }
+    }
+
+    .hero-content { max-width: 44ch; }
+
+    .hero-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 1.2rem;
+    }
+
+    .hero-wordmark {
+      font-size: clamp(2.4rem, 5vw, 3.6rem);
+      font-weight: 750;
+      letter-spacing: -0.05em;
+      line-height: 1;
+      color: var(--text);
+      background: linear-gradient(135deg, var(--text) 0%, var(--steel) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-tagline {
+      font-size: clamp(1.05rem, 2.5vw, 1.2rem);
+      color: var(--text-mid);
+      margin-bottom: 0.6rem;
+      line-height: 1.4;
+      font-weight: 420;
+    }
+
+    .hero-sub {
+      font-size: 0.85rem;
+      color: var(--text-faint);
+      font-style: italic;
+      margin-bottom: 2rem;
+      letter-spacing: 0.01em;
+    }
+
+    .hero-ctas {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 20px;
+      border-radius: var(--radius);
+      font-size: 0.9rem;
+      font-weight: 580;
+      cursor: pointer;
+      border: none;
+      text-decoration: none;
+      transition: transform 0.1s, box-shadow 0.1s, opacity 0.1s;
+    }
+    .btn:hover { transform: translateY(-1px); text-decoration: none; }
+    .btn:active { transform: translateY(0); }
+
+    .btn-primary {
+      background: var(--navy);
+      color: #e8f0ff;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2), 0 4px 14px rgba(26,42,74,0.25);
+    }
+    .btn-primary:hover { background: var(--navy-light); box-shadow: 0 2px 8px rgba(0,0,0,0.25), 0 6px 20px rgba(26,42,74,0.3); }
+
+    .btn-secondary {
+      background: transparent;
+      border: 1.5px solid var(--border-card);
+      color: var(--text-mid);
+      box-shadow: var(--shadow-card);
+    }
+    .btn-secondary:hover { background: var(--bg-card); border-color: var(--accent-soft); color: var(--text); }
+
+    /* ─── Hero CSS desktop mockup ────────────────────────────────── */
+    .hero-visual {
+      position: relative;
+      width: 100%;
+      max-width: 440px;
+    }
+
+    .desktop-mockup {
+      width: 100%;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-float);
+      border: 1px solid var(--border);
+      background: var(--navy);
+      aspect-ratio: 4/3;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* faux menu bar */
+    .mock-menubar {
+      height: 24px;
+      background: var(--menubar-bg);
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
+      gap: 5px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .mock-menubar-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+    }
+    .dot-r { background: #ff5f57; }
+    .dot-y { background: #febc2e; }
+    .dot-g { background: #28c840; }
+    .mock-menubar-text {
+      margin-left: auto;
+      font-size: 9px;
+      color: var(--text-muted);
+      font-weight: 500;
+      letter-spacing: 0.04em;
+    }
+
+    /* desktop canvas */
+    .mock-desktop {
+      flex: 1;
+      position: relative;
+      background: linear-gradient(135deg, #0e1c38 0%, #16294d 50%, #0e1929 100%);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 5px;
+      padding: 8px;
+    }
+
+    .mock-win {
+      background: var(--win-bg);
+      border: 1px solid var(--win-border);
+      border-radius: var(--radius-sm);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      backdrop-filter: blur(4px);
+    }
+
+    .mock-win-bar {
+      height: 14px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 5px;
+      gap: 3px;
+      flex-shrink: 0;
+    }
+    .mock-win-dot {
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: var(--border);
+    }
+
+    .mock-win-content {
+      flex: 1;
+      padding: 4px 5px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .mock-win-line {
+      height: 3px;
+      border-radius: 2px;
+      background: var(--accent-glow);
+    }
+    .mock-win-line.accent { background: rgba(74,127,193,0.4); width: 60%; }
+    .mock-win-line.short { width: 45%; }
+    .mock-win-line.shorter { width: 30%; }
+
+    /* the "active" window spans both columns in the top row */
+    .mock-win-active {
+      grid-column: 1 / 3;
+      border-color: rgba(74,127,193,0.35);
+      box-shadow: 0 0 0 1px rgba(74,127,193,0.25), 0 2px 12px rgba(74,127,193,0.15);
+    }
+
+    /* snap indicator overlay */
+    .mock-snap-hint {
+      position: absolute;
+      right: 10px;
+      bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(26,42,74,0.82);
+      border: 1px solid rgba(74,127,193,0.4);
+      border-radius: var(--radius-sm);
+      padding: 4px 8px;
+      backdrop-filter: blur(6px);
+    }
+
+    .keycap-mini {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--navy-light);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-bottom-width: 2px;
+      border-radius: 3px;
+      padding: 1px 4px;
+      font-family: var(--font-mono);
+      font-size: 8px;
+      color: #c8d8f0;
+      white-space: nowrap;
+    }
+
+    .mock-snap-label {
+      font-size: 8px;
+      color: rgba(180,200,240,0.7);
+      font-family: var(--font);
+    }
+
+    /* compass SVG logo */
+    .compass-icon {
+      flex-shrink: 0;
+    }
+
+    /* ─── Highlights cards ───────────────────────────────────────── */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-lg);
+      padding: 1.3rem 1.4rem;
+      box-shadow: var(--shadow-card);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-float);
+    }
+
+    .card-icon {
+      width: 36px;
+      height: 36px;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--accent-glow);
+      border-radius: var(--radius-sm);
+    }
+
+    .card-title {
+      font-size: 0.92rem;
+      font-weight: 650;
+      color: var(--text);
+      margin-bottom: 0.3rem;
+      letter-spacing: -0.01em;
+    }
+
+    .card-body {
+      font-size: 0.83rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    /* ─── Shortcuts section ──────────────────────────────────────── */
+    #shortcuts { background: var(--surface); }
+
+    .modifier-legend {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 10px;
+      margin-bottom: 2.5rem;
+    }
+
+    .modifier-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius);
+      padding: 0.8rem 1rem;
+    }
+
+    .modifier-keys {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3px;
+      flex-shrink: 0;
+    }
+
+    .modifier-desc {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* keycap chip */
+    .key {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--keycap-bg);
+      border: 1px solid var(--keycap-border);
+      border-bottom: 2.5px solid var(--keycap-shadow);
+      border-radius: 5px;
+      padding: 2px 7px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--keycap-text);
+      line-height: 1.5;
+      white-space: nowrap;
+      vertical-align: middle;
+      box-shadow: 0 1px 2px var(--keycap-shadow);
+    }
+    .key.sym { font-family: var(--font); font-size: 0.88rem; padding: 1px 5px; }
+
+    .shortcuts-table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    table.shortcuts-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    .shortcuts-table th {
+      text-align: left;
+      padding: 0.55rem 0.9rem;
+      font-size: 0.72rem;
+      font-weight: 650;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .shortcuts-table td {
+      padding: 0.5rem 0.9rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    .shortcuts-table tr:last-child td { border-bottom: none; }
+    .shortcuts-table tr:hover td { background: var(--accent-glow); }
+
+    .shortcuts-table td:first-child { color: var(--text-muted); font-size: 0.8rem; }
+    .shortcuts-table td:nth-child(2) { color: var(--text); font-weight: 500; }
+    .shortcuts-table td:nth-child(3) { white-space: nowrap; }
+
+    .keys-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .vim-note {
+      margin-top: 1.5rem;
+      padding: 0.85rem 1.1rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-left: 3px solid var(--accent);
+      border-radius: var(--radius-sm);
+      font-size: 0.83rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    .vim-note code {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      background: var(--surface);
+      padding: 1px 5px;
+      border-radius: 3px;
+      color: var(--text-mid);
+    }
+
+    /* ─── How it works ───────────────────────────────────────────── */
+    .how-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .how-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-card);
+    }
+
+    .how-diagram {
+      aspect-ratio: 16/9;
+      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.2rem;
+      position: relative;
+    }
+
+    .how-card-body {
+      padding: 1rem 1.2rem;
+    }
+
+    .how-card-title {
+      font-size: 0.88rem;
+      font-weight: 650;
+      color: var(--text);
+      margin-bottom: 0.25rem;
+    }
+
+    .how-card-text {
+      font-size: 0.81rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* ─── Requirements section ───────────────────────────────────── */
+    .install-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 600px) {
+      .install-grid { grid-template-columns: 1fr; }
+    }
+
+    .req-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-lg);
+      padding: 1.3rem 1.5rem;
+      box-shadow: var(--shadow-card);
+    }
+
+    .req-card h3 {
+      font-size: 0.88rem;
+      font-weight: 650;
+      color: var(--text);
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.01em;
+    }
+
+    .req-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .req-list li {
+      font-size: 0.83rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      line-height: 1.5;
+    }
+
+    .req-list li::before {
+      content: "·";
+      color: var(--accent);
+      font-size: 1rem;
+      line-height: 1.3;
+      flex-shrink: 0;
+    }
+
+    pre.code-block {
+      background: var(--navy);
+      color: #c8d8f4;
+      border-radius: var(--radius);
+      padding: 1.1rem 1.3rem;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      overflow-x: auto;
+      line-height: 1.7;
+      border: 1px solid rgba(74,127,193,0.2);
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+    }
+
+    pre.code-block .comment { color: rgba(160,190,230,0.5); }
+    pre.code-block .cmd { color: #c8d8f4; }
+    pre.code-block .arg { color: var(--accent-soft); }
+
+    .install-note {
+      margin-top: 0.9rem;
+      font-size: 0.79rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+    .install-note strong { color: var(--text-mid); font-weight: 600; }
+
+    /* ─── Download meta note ─────────────────────────────────────── */
+    .dl-meta {
+      margin-top: 0.55rem;
+      font-size: 0.78rem;
+      color: var(--text-faint);
+      letter-spacing: 0.01em;
+    }
+
+    /* ─── Install steps ──────────────────────────────────────────── */
+    .install-steps {
+      list-style: none;
+      counter-reset: step;
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+      margin-bottom: 1.1rem;
+    }
+    .install-steps li {
+      counter-increment: step;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.65rem;
+      font-size: 0.85rem;
+      color: var(--text-mid);
+      line-height: 1.5;
+    }
+    .install-steps li::before {
+      content: counter(step);
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--accent-glow);
+      border: 1px solid rgba(74,127,193,0.3);
+      color: var(--accent);
+      font-size: 0.72rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1px;
+    }
+
+    .alt-section-label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 650;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      margin-bottom: 0.6rem;
+      margin-top: 1.4rem;
+    }
+
+    /* ─── Footer ─────────────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem 0;
+      background: var(--bg-hero);
+    }
+
+    .footer-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .footer-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .footer-text {
+      font-size: 0.8rem;
+      color: var(--text-faint);
+      line-height: 1.5;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .footer-links a {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    .footer-links a:hover { color: var(--accent); }
+
+    /* ─── Section divider ────────────────────────────────────────── */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 0;
+    }
+
+    /* ─── Responsive tweaks ──────────────────────────────────────── */
+    @media (max-width: 480px) {
+      .modifier-legend { grid-template-columns: 1fr; }
+      .how-grid { grid-template-columns: 1fr; }
+      .cards-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ── Sticky top bar ────────────────────────────────────────── -->
+  <header role="banner">
+    <nav class="topbar" aria-label="Main navigation">
+      <div class="topbar-logo" aria-label="Azimuth">
+        <!-- Compass inline SVG -->
+        <svg class="compass-icon" width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true"
+             xmlns="http://www.w3.org/2000/svg">
+          <circle cx="11" cy="11" r="10" stroke="var(--accent)" stroke-width="1.4"/>
+          <circle cx="11" cy="11" r="1.8" fill="var(--accent)"/>
+          <!-- N needle -->
+          <polygon points="11,11 9.3,11 11,3" fill="var(--accent)" opacity="0.9"/>
+          <!-- S needle -->
+          <polygon points="11,11 12.7,11 11,19" fill="var(--text-faint)" opacity="0.55"/>
+          <!-- tick marks -->
+          <line x1="11" y1="1.5" x2="11" y2="3.5" stroke="var(--accent)" stroke-width="1.2"/>
+          <line x1="11" y1="18.5" x2="11" y2="20.5" stroke="var(--text-faint)" stroke-width="1" opacity="0.5"/>
+          <line x1="1.5" y1="11" x2="3.5" y2="11" stroke="var(--text-faint)" stroke-width="1" opacity="0.5"/>
+          <line x1="18.5" y1="11" x2="20.5" y2="11" stroke="var(--text-faint)" stroke-width="1" opacity="0.5"/>
+        </svg>
+        <span>Azimuth</span>
+      </div>
+
+      <div class="topbar-right">
+        <div class="lang-toggle" role="group" aria-label="Language selector">
+          <button class="lang-btn active" id="btn-en" onclick="setLang('en')" aria-pressed="true">EN</button>
+          <button class="lang-btn" id="btn-ko" onclick="setLang('ko')" aria-pressed="false">KO</button>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <!-- ── 1. Hero ─────────────────────────────────────────────── -->
+    <section class="hero" aria-labelledby="hero-heading">
+      <div class="container">
+        <div class="hero-inner">
+          <div class="hero-content">
+            <div class="hero-logo" aria-hidden="true">
+              <svg class="compass-icon" width="52" height="52" viewBox="0 0 52 52" fill="none"
+                   xmlns="http://www.w3.org/2000/svg">
+                <circle cx="26" cy="26" r="24" stroke="var(--steel)" stroke-width="1.5" opacity="0.4"/>
+                <circle cx="26" cy="26" r="18" stroke="var(--accent)" stroke-width="1" opacity="0.25"/>
+                <circle cx="26" cy="26" r="3.5" fill="var(--accent)"/>
+                <!-- N needle (solid) -->
+                <polygon points="26,26 23,26 26,5" fill="var(--accent)" opacity="0.95"/>
+                <!-- S needle (ghost) -->
+                <polygon points="26,26 29,26 26,47" fill="var(--accent-soft)" opacity="0.3"/>
+                <!-- cardinal tick marks -->
+                <line x1="26" y1="2" x2="26" y2="6" stroke="var(--accent)" stroke-width="1.5"/>
+                <line x1="26" y1="46" x2="26" y2="50" stroke="var(--text-faint)" stroke-width="1" opacity="0.4"/>
+                <line x1="2" y1="26" x2="6" y2="26" stroke="var(--text-faint)" stroke-width="1" opacity="0.4"/>
+                <line x1="46" y1="26" x2="50" y2="26" stroke="var(--text-faint)" stroke-width="1" opacity="0.4"/>
+                <!-- N label -->
+                <text x="26" y="14" text-anchor="middle" font-family="-apple-system,sans-serif"
+                      font-size="5" font-weight="700" fill="var(--accent)" opacity="0.8">N</text>
+              </svg>
+            </div>
+
+            <h1 id="hero-heading" class="hero-wordmark">Azimuth</h1>
+            <p class="hero-tagline"
+               data-en="A keyboard-driven window manager for macOS."
+               data-ko="키보드로 다루는 macOS 윈도우 매니저.">
+              A keyboard-driven window manager for macOS.
+            </p>
+            <p class="hero-sub"
+               data-en="Predictability over clever inference."
+               data-ko="똑똑한 추론보다 예측 가능성.">
+              Predictability over clever inference.
+            </p>
+
+            <div class="hero-ctas">
+              <!-- Primary: Download -->
+              <a id="download-btn"
+                 href="https://github.com/ai-screams/Azimuth/releases/latest"
+                 class="btn btn-primary js-download"
+                 target="_blank" rel="noopener"
+                 data-en="Download for macOS"
+                 data-ko="macOS용 다운로드"
+                 aria-label="Download Azimuth for macOS (opens in new tab)">
+                <!-- download arrow icon -->
+                <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"
+                     xmlns="http://www.w3.org/2000/svg">
+                  <path d="M7.5 1v8M4.5 6.5l3 3 3-3M2 11.5h11" stroke="currentColor"
+                        stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Download for macOS
+              </a>
+              <!-- Secondary: GitHub -->
+              <a href="https://github.com/ai-screams/Azimuth" class="btn btn-secondary"
+                 target="_blank" rel="noopener"
+                 aria-label="View Azimuth on GitHub (opens in new tab)">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                  <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
+                           0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13
+                           -.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66
+                           .07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15
+                           -.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27
+                           .68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12
+                           .51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48
+                           0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+                </svg>
+                <span data-en="View on GitHub" data-ko="GitHub에서 보기">View on GitHub</span>
+              </a>
+              <!-- Tertiary: anchor -->
+              <a href="#how-it-works" class="btn btn-secondary"
+                 data-en="How it works" data-ko="작동 방식">How it works</a>
+            </div>
+            <p id="dl-meta" class="dl-meta"
+               data-en="Universal · macOS 26.3+ · .dmg"
+               data-ko="macOS 26.3+ · .dmg">
+              Universal · macOS 26.3+ · .dmg
+            </p>
+          </div>
+
+          <!-- CSS desktop mockup -->
+          <div class="hero-visual" aria-hidden="true">
+            <div class="desktop-mockup" role="img"
+                 aria-label="Illustration of windows arranged in a tidy grid on a macOS desktop">
+              <!-- faux menu bar -->
+              <div class="mock-menubar">
+                <div class="mock-menubar-dot dot-r"></div>
+                <div class="mock-menubar-dot dot-y"></div>
+                <div class="mock-menubar-dot dot-g"></div>
+                <span class="mock-menubar-text">Azimuth ·  Menu bar</span>
+              </div>
+
+              <!-- desktop grid -->
+              <div class="mock-desktop">
+                <!-- Top half: single window spanning full width -->
+                <div class="mock-win mock-win-active">
+                  <div class="mock-win-bar">
+                    <div class="mock-win-dot"></div>
+                    <div class="mock-win-dot"></div>
+                    <div class="mock-win-dot"></div>
+                  </div>
+                  <div class="mock-win-content">
+                    <div class="mock-win-line accent"></div>
+                    <div class="mock-win-line"></div>
+                    <div class="mock-win-line short"></div>
+                    <div class="mock-win-line"></div>
+                    <div class="mock-win-line shorter"></div>
+                  </div>
+                </div>
+
+                <!-- Bottom-left quarter -->
+                <div class="mock-win">
+                  <div class="mock-win-bar">
+                    <div class="mock-win-dot"></div>
+                    <div class="mock-win-dot"></div>
+                    <div class="mock-win-dot"></div>
+                  </div>
+                  <div class="mock-win-content">
+                    <div class="mock-win-line short"></div>
+                    <div class="mock-win-line shorter"></div>
+                  </div>
+                </div>
+
+                <!-- Bottom-right quarter -->
+                <div class="mock-win">
+                  <div class="mock-win-bar">
+                    <div class="mock-win-dot"></div>
+                    <div class="mock-win-dot"></div>
+                    <div class="mock-win-dot"></div>
+                  </div>
+                  <div class="mock-win-content">
+                    <div class="mock-win-line shorter"></div>
+                    <div class="mock-win-line short"></div>
+                  </div>
+                </div>
+
+                <!-- Snap hint overlay -->
+                <div class="mock-snap-hint">
+                  <span class="keycap-mini">⌃⌥←</span>
+                  <span class="mock-snap-label">snap left half</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 2. Highlights ──────────────────────────────────────── -->
+    <section aria-labelledby="highlights-heading">
+      <div class="container">
+        <span class="section-label"
+              data-en="Features" data-ko="기능">Features</span>
+        <h2 class="section-title" id="highlights-heading"
+            data-en="Everything in one modifier layer."
+            data-ko="하나의 수식키 레이어로 모든 것을.">
+          Everything in one modifier layer.
+        </h2>
+        <p class="section-sub"
+           data-en="Nine composable commands. No scenes. No automation. Just a reliable spatial grammar for your windows."
+           data-ko="조합 가능한 9가지 명령. 씬도 없고 자동화도 없습니다. 오직 신뢰할 수 있는 윈도우 배치 문법만.">
+          Nine composable commands. No scenes. No automation. Just a reliable spatial grammar for your windows.
+        </p>
+
+        <div class="cards-grid">
+          <!-- Card 1 -->
+          <div class="card">
+            <div class="card-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="1" y="3" width="8" height="14" rx="1.5" stroke="var(--accent)" stroke-width="1.5"/>
+                <rect x="11" y="3" width="8" height="14" rx="1.5" stroke="var(--accent)" stroke-width="1.5" opacity="0.35"/>
+                <path d="M8 10 L5 7 M8 10 L5 13" stroke="var(--accent)" stroke-width="1.3" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div class="card-title"
+                 data-en="Halves &amp; snap-throw"
+                 data-ko="반분 &amp; 튕기기">Halves &amp; snap-throw</div>
+            <p class="card-body"
+               data-en="Snap a window to a screen half. Press the same edge again to throw it to the adjacent display, landing in the opposite half."
+               data-ko="윈도우를 화면 반쪽에 스냅합니다. 같은 방향을 다시 누르면 인접 디스플레이로 던져 반대쪽 반분에 배치합니다.">
+              Snap a window to a screen half. Press the same edge again to throw it to the adjacent display, landing in the opposite half.
+            </p>
+          </div>
+
+          <!-- Card 2 -->
+          <div class="card">
+            <div class="card-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="1" y="3" width="5" height="14" rx="1.2" stroke="var(--accent)" stroke-width="1.4" opacity="0.5"/>
+                <rect x="7.5" y="3" width="5" height="14" rx="1.2" stroke="var(--accent)" stroke-width="1.4"/>
+                <rect x="14" y="3" width="5" height="14" rx="1.2" stroke="var(--accent)" stroke-width="1.4" opacity="0.5"/>
+              </svg>
+            </div>
+            <div class="card-title"
+                 data-en="Thirds &amp; two-thirds"
+                 data-ko="삼등분 &amp; 삼분의 이">Thirds &amp; two-thirds</div>
+            <p class="card-body"
+               data-en="Left/center/right and top/middle/bottom — horizontal and vertical. Axis-independent, so they compose freely."
+               data-ko="좌/중/우 및 상/중/하 — 수평·수직 모두 지원. 축이 독립적이라 자유롭게 조합됩니다.">
+              Left/center/right and top/middle/bottom — horizontal and vertical. Axis-independent, so they compose freely.
+            </p>
+          </div>
+
+          <!-- Card 3 -->
+          <div class="card">
+            <div class="card-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="1.5" y="1.5" width="17" height="17" rx="2" stroke="var(--accent)" stroke-width="1.5"/>
+                <rect x="4" y="4" width="12" height="12" rx="1" fill="var(--accent)" opacity="0.18"/>
+              </svg>
+            </div>
+            <div class="card-title"
+                 data-en="Maximize / Center"
+                 data-ko="최대화 / 가운데 배치">Maximize / Center</div>
+            <p class="card-body"
+               data-en="Maximize fills the work area (minus menu bar and Dock). Center keeps the current size and places the window in the middle."
+               data-ko="최대화는 작업영역을 채웁니다(메뉴 바·Dock 제외). 가운데 배치는 현재 크기를 유지한 채 중앙으로 이동합니다.">
+              Maximize fills the work area (minus menu bar and Dock). Center keeps the current size and places the window in the middle.
+            </p>
+          </div>
+
+          <!-- Card 4 -->
+          <div class="card">
+            <div class="card-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="3" y="5" width="9" height="10" rx="1.5" stroke="var(--accent)" stroke-width="1.4"/>
+                <path d="M13.5 10 L17 10 M17 10 L15 8 M17 10 L15 12"
+                      stroke="var(--accent)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="card-title"
+                 data-en="Move (keep size)"
+                 data-ko="이동 (크기 유지)">Move (keep size)</div>
+            <p class="card-body"
+               data-en="Nudge the window one step in any direction — by its own width or height — clamped at the work-area edge. Never resizes, never changes display."
+               data-ko="윈도우를 자체 너비·높이만큼 한 단계씩 이동합니다. 작업영역 경계에서 멈추며 크기 변경이나 디스플레이 이동은 없습니다.">
+              Nudge the window one step in any direction — by its own width or height — clamped at the work-area edge. Never resizes, never changes display.
+            </p>
+          </div>
+
+          <!-- Card 5 -->
+          <div class="card">
+            <div class="card-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="1.5" y="4" width="17" height="12" rx="1.5" stroke="var(--accent)" stroke-width="1.3" opacity="0.3"/>
+                <rect x="1.5" y="4" width="8" height="12" rx="1.5" fill="var(--accent)" opacity="0.2" stroke="var(--accent)" stroke-width="1.4"/>
+                <path d="M10 10 L7 10" stroke="var(--accent)" stroke-width="1.3" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div class="card-title"
+                 data-en="Relative shrink"
+                 data-ko="상대 축소">Relative shrink</div>
+            <p class="card-body"
+               data-en="Halves the window against a pinned edge, based on its current size — not the screen. Pin left, shrink right; exact, repeatable."
+               data-ko="현재 윈도우 크기(화면 기준 아님)를 기준으로 고정 엣지 쪽으로 반으로 줄입니다. 정확하고 반복 가능합니다.">
+              Halves the window against a pinned edge, based on its current size — not the screen. Pin left, shrink right; exact, repeatable.
+            </p>
+          </div>
+
+          <!-- Card 6 -->
+          <div class="card">
+            <div class="card-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="1" y="5" width="8" height="10" rx="1.5" stroke="var(--accent)" stroke-width="1.3" opacity="0.4"/>
+                <rect x="11" y="5" width="8" height="10" rx="1.5" stroke="var(--accent)" stroke-width="1.4"/>
+                <path d="M9.5 10 L12.5 10 M12.5 10 L11 8.5 M12.5 10 L11 11.5"
+                      stroke="var(--accent)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="card-title"
+                 data-en="Move to next display"
+                 data-ko="다음 디스플레이로 이동">Move to next display</div>
+            <p class="card-body"
+               data-en="Send the window to an adjacent monitor, preserving its shape and relative position. Size is capped so it always fits."
+               data-ko="윈도우를 인접 모니터로 보내며 형태와 상대 위치를 유지합니다. 크기는 대상 화면에 맞게 조정됩니다.">
+              Send the window to an adjacent monitor, preserving its shape and relative position. Size is capped so it always fits.
+            </p>
+          </div>
+
+          <!-- Card 7 -->
+          <div class="card">
+            <div class="card-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14 6 C14 6 13 3 10 3 C7 3 5 5 5 8 C5 11 7 13 10 13"
+                      stroke="var(--accent)" stroke-width="1.4" stroke-linecap="round" fill="none"/>
+                <path d="M6.5 6 L5 3.5 L3 5.5" stroke="var(--accent)" stroke-width="1.3"
+                      stroke-linecap="round" stroke-linejoin="round"/>
+                <rect x="7" y="13" width="6" height="4" rx="1" stroke="var(--accent)" stroke-width="1.3" opacity="0.5"/>
+              </svg>
+            </div>
+            <div class="card-title"
+                 data-en="Undo"
+                 data-ko="실행 취소">Undo</div>
+            <p class="card-body"
+               data-en="Restore the previous frame, one step per window. Display reconfiguration clears history."
+               data-ko="윈도우별로 이전 프레임을 한 단계씩 복원합니다. 디스플레이 재구성 시 이력이 초기화됩니다.">
+              Restore the previous frame, one step per window. Display reconfiguration clears history.
+            </p>
+          </div>
+
+          <!-- Card 8 -->
+          <div class="card">
+            <div class="card-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="1" y="4" width="8" height="12" rx="1.5" stroke="var(--accent)" stroke-width="1.4"/>
+                <rect x="11" y="4" width="8" height="12" rx="1.5" stroke="var(--accent)" stroke-width="1.4"/>
+                <path d="M5 10 H15" stroke="var(--accent)" stroke-width="1" stroke-dasharray="2 2" opacity="0.5"/>
+              </svg>
+            </div>
+            <div class="card-title"
+                 data-en="Multi-monitor aware"
+                 data-ko="멀티 모니터 인식">Multi-monitor aware</div>
+            <p class="card-body"
+               data-en="Position-aware adjacent-display selection: the window goes to the monitor that spatially lines up with where it currently sits."
+               data-ko="위치 인식 기반 인접 디스플레이 선택: 윈도우의 현재 위치에 공간적으로 정렬된 모니터로 이동합니다.">
+              Position-aware adjacent-display selection: the window goes to the monitor that spatially lines up with where it currently sits.
+            </p>
+          </div>
+
+          <!-- Card 9 -->
+          <div class="card">
+            <div class="card-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="2" y="5" width="16" height="10" rx="1.5" stroke="var(--accent)" stroke-width="1.3" opacity="0.3"/>
+                <rect x="2" y="5" width="6" height="4" rx="1" fill="var(--accent)" opacity="0.3"/>
+                <rect x="10" y="5" width="4" height="4" rx="1" fill="var(--accent)" opacity="0.15"/>
+                <text x="3.5" y="14" font-family="-apple-system,sans-serif" font-size="4.5"
+                      font-weight="600" fill="var(--accent)" opacity="0.8">⌃⌥</text>
+                <text x="10.5" y="14" font-family="-apple-system,sans-serif" font-size="4.5"
+                      font-weight="600" fill="var(--accent-soft)" opacity="0.6">HJKL</text>
+              </svg>
+            </div>
+            <div class="card-title"
+                 data-en="Two presets"
+                 data-ko="두 가지 프리셋">Two presets</div>
+            <p class="card-body"
+               data-en="Standard (arrow keys) and Vim (HJKL). Both fully customizable per-command, with conflict warnings and per-command Reset in Settings."
+               data-ko="Standard(화살표 키)와 Vim(HJKL). 두 프리셋 모두 명령별로 완전히 커스터마이징 가능하며, 충돌 경고와 개별 Reset을 제공합니다.">
+              Standard (arrow keys) and Vim (HJKL). Both fully customizable per-command, with conflict warnings and per-command Reset in Settings.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ── 3. Shortcuts ───────────────────────────────────────── -->
+    <section id="shortcuts" aria-labelledby="shortcuts-heading">
+      <div class="container">
+        <span class="section-label"
+              data-en="Reference" data-ko="참조">Reference</span>
+        <h2 class="section-title" id="shortcuts-heading"
+            data-en="Modifier layers"
+            data-ko="수식키 레이어">
+          Modifier layers
+        </h2>
+        <p class="section-sub"
+           data-en="Four modifier combinations, each governing a distinct class of behavior. The layers never overlap."
+           data-ko="네 가지 수식키 조합이 각각 독립된 동작 그룹을 담당합니다. 레이어는 절대 겹치지 않습니다.">
+          Four modifier combinations, each governing a distinct class of behavior. The layers never overlap.
+        </p>
+
+        <div class="modifier-legend" role="list">
+          <div class="modifier-row" role="listitem">
+            <div class="modifier-keys">
+              <span class="key sym">⌃</span><span class="key sym">⌥</span>
+            </div>
+            <div class="modifier-desc"
+                 data-en="Halves (snap/throw) · Maximize · Center · Undo · Thirds &amp; two-thirds (number keys)"
+                 data-ko="반분(스냅/튕기기) · 최대화 · 가운데 · 실행 취소 · 삼등분 &amp; 삼분의 이 (숫자 키)">
+              Halves (snap/throw) · Maximize · Center · Undo · Thirds &amp; two-thirds (number keys)
+            </div>
+          </div>
+          <div class="modifier-row" role="listitem">
+            <div class="modifier-keys">
+              <span class="key sym">⌃</span><span class="key sym">⌥</span><span class="key sym">⌘</span>
+            </div>
+            <div class="modifier-desc"
+                 data-en="Move (keep current size)"
+                 data-ko="이동 (현재 크기 유지)">
+              Move (keep current size)
+            </div>
+          </div>
+          <div class="modifier-row" role="listitem">
+            <div class="modifier-keys">
+              <span class="key sym">⌃</span><span class="key sym">⌥</span><span class="key sym">⇧</span>
+            </div>
+            <div class="modifier-desc"
+                 data-en="Relative shrink (½ against a pinned edge)"
+                 data-ko="상대 축소 (고정 엣지 기준 ½)">
+              Relative shrink (½ against a pinned edge)
+            </div>
+          </div>
+          <div class="modifier-row" role="listitem">
+            <div class="modifier-keys">
+              <span class="key sym">⌃</span><span class="key sym">⌥</span><span class="key sym">⌘</span><span class="key sym">⇧</span>
+            </div>
+            <div class="modifier-desc"
+                 data-en="Move to next display"
+                 data-ko="다음 디스플레이로 이동">
+              Move to next display
+            </div>
+          </div>
+        </div>
+
+        <!-- Shortcut table -->
+        <div class="shortcuts-table-wrap">
+          <table class="shortcuts-table" aria-label="Standard preset keyboard shortcuts">
+            <thead>
+              <tr>
+                <th data-en="Group" data-ko="그룹">Group</th>
+                <th data-en="Command" data-ko="명령">Command</th>
+                <th data-en="Shortcut" data-ko="단축키">Shortcut</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Halves -->
+              <tr>
+                <td rowspan="4" data-en="Halves" data-ko="반분">Halves</td>
+                <td data-en="Left" data-ko="왼쪽">Left</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">←</span></div></td>
+              </tr>
+              <tr>
+                <td data-en="Right" data-ko="오른쪽">Right</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">→</span></div></td>
+              </tr>
+              <tr>
+                <td data-en="Top" data-ko="위">Top</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">↑</span></div></td>
+              </tr>
+              <tr>
+                <td data-en="Bottom" data-ko="아래">Bottom</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">↓</span></div></td>
+              </tr>
+              <!-- Maximize / Undo / Center -->
+              <tr>
+                <td rowspan="3" data-en="Maximize · Undo · Center" data-ko="최대화 · 실행 취소 · 가운데">Maximize · Undo · Center</td>
+                <td data-en="Maximize" data-ko="최대화">Maximize</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">↩</span></div></td>
+              </tr>
+              <tr>
+                <td data-en="Undo" data-ko="실행 취소">Undo</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">⌫</span></div></td>
+              </tr>
+              <tr>
+                <td data-en="Center" data-ko="가운데 배치">Center</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">C</span></div></td>
+              </tr>
+              <!-- Thirds horizontal -->
+              <tr>
+                <td rowspan="5" data-en="Thirds (1/3)" data-ko="삼등분 (1/3)">Thirds (1/3)</td>
+                <td data-en="Horizontal: left · center · right" data-ko="수평: 왼쪽 · 가운데 · 오른쪽">Horizontal: left · center · right</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">1</span><span class="key">2</span><span class="key">3</span></div></td>
+              </tr>
+              <tr>
+                <td data-en="Vertical: top · middle · bottom" data-ko="수직: 위 · 가운데 · 아래">Vertical: top · middle · bottom</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">4</span><span class="key">5</span><span class="key">6</span></div></td>
+              </tr>
+              <!-- Two-thirds -->
+              <tr>
+                <td rowspan="2" data-en="Two-thirds (2/3)" data-ko="삼분의 이 (2/3)">Two-thirds (2/3)</td>
+                <td data-en="Horizontal: left · right" data-ko="수평: 왼쪽 · 오른쪽">Horizontal: left · right</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">7</span><span class="key">8</span></div></td>
+              </tr>
+              <tr>
+                <td data-en="Vertical: top · bottom" data-ko="수직: 위 · 아래">Vertical: top · bottom</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">9</span><span class="key">0</span></div></td>
+              </tr>
+              <!-- Move -->
+              <tr>
+                <td data-en="Move (keep size)" data-ko="이동 (크기 유지)">Move (keep size)</td>
+                <td data-en="Left · Right · Up · Down" data-ko="좌 · 우 · 위 · 아래">Left · Right · Up · Down</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥⌘</span><span class="key">←</span><span class="key">→</span><span class="key">↑</span><span class="key">↓</span></div></td>
+              </tr>
+              <!-- Relative shrink -->
+              <tr>
+                <td data-en="Relative shrink" data-ko="상대 축소">Relative shrink</td>
+                <td data-en="Left · Right · Up · Down" data-ko="좌 · 우 · 위 · 아래">Left · Right · Up · Down</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥⇧</span><span class="key">←</span><span class="key">→</span><span class="key">↑</span><span class="key">↓</span></div></td>
+              </tr>
+              <!-- Move to next display -->
+              <tr>
+                <td data-en="Move to next display" data-ko="다음 디스플레이로 이동">Move to next display</td>
+                <td data-en="Left · Right · Up · Down" data-ko="좌 · 우 · 위 · 아래">Left · Right · Up · Down</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥⌘⇧</span><span class="key">←</span><span class="key">→</span><span class="key">↑</span><span class="key">↓</span></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="vim-note" role="note">
+          <strong data-en="Vim preset:" data-ko="Vim 프리셋:">Vim preset:</strong>
+          <span data-en="Only directional keys and Undo change. Directions become "
+              data-ko="방향 키와 실행 취소만 변경됩니다. 방향은 ">Only directional keys and Undo change. Directions become </span>
+          <code>H</code> <span data-en="(left)" data-ko="(왼쪽)">(left)</span>&nbsp;·
+          <code>L</code> <span data-en="(right)" data-ko="(오른쪽)">(right)</span>&nbsp;·
+          <code>K</code> <span data-en="(up)" data-ko="(위)">(up)</span>&nbsp;·
+          <code>J</code> <span data-en="(down)" data-ko="(아래)">(down)</span><span data-en=", Undo → " data-ko="로 바뀌고, 실행 취소 → ">, Undo → </span><code>U</code>.
+          <span data-en="Maximize, Center, and number shortcuts are identical."
+                data-ko="최대화, 가운데, 숫자 단축키는 동일합니다.">Maximize, Center, and number shortcuts are identical.</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ── 4. How it works ────────────────────────────────────── -->
+    <section id="how-it-works" aria-labelledby="how-heading">
+      <div class="container">
+        <span class="section-label"
+              data-en="Mechanics" data-ko="작동 방식">Mechanics</span>
+        <h2 class="section-title" id="how-heading"
+            data-en="How it works"
+            data-ko="작동 방식">How it works</h2>
+        <p class="section-sub"
+           data-en="Three behaviors that define Azimuth's spatial model."
+           data-ko="Azimuth의 공간 모델을 정의하는 세 가지 동작.">
+          Three behaviors that define Azimuth's spatial model.
+        </p>
+
+        <div class="how-grid">
+
+          <!-- Diagram A: Snap + throw -->
+          <div class="how-card">
+            <div class="how-diagram" aria-hidden="true">
+              <svg width="100%" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg"
+                   role="img" aria-label="Snap and throw diagram">
+                <!-- Display 1 -->
+                <rect x="4" y="8" width="88" height="84" rx="4" fill="rgba(255,255,255,0.05)" stroke="rgba(74,127,193,0.4)" stroke-width="1"/>
+                <!-- Display 2 -->
+                <rect x="108" y="8" width="88" height="84" rx="4" fill="rgba(255,255,255,0.05)" stroke="rgba(74,127,193,0.25)" stroke-width="1"/>
+
+                <!-- Win snapped left (display 1) -->
+                <rect x="7" y="11" width="42" height="78" rx="2.5" fill="rgba(74,127,193,0.3)" stroke="rgba(74,127,193,0.7)" stroke-width="1"/>
+                <!-- Win landing right (display 2, thrown) -->
+                <rect x="152" y="11" width="41" height="78" rx="2.5" fill="rgba(74,127,193,0.12)" stroke="rgba(74,127,193,0.4)" stroke-width="1" stroke-dasharray="3 2"/>
+
+                <!-- Throw arrow -->
+                <path d="M56 50 Q98 50 143 50" stroke="rgba(74,127,193,0.8)" stroke-width="1.5"
+                      fill="none" stroke-dasharray="4 3" marker-end="url(#arr-a)"/>
+                <defs>
+                  <marker id="arr-a" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                    <path d="M0,0 L6,3 L0,6 Z" fill="rgba(74,127,193,0.9)"/>
+                  </marker>
+                </defs>
+
+                <!-- Label -->
+                <text x="8" y="98" font-family="-apple-system,sans-serif" font-size="6.5" fill="rgba(160,200,240,0.6)">⌃⌥←  →  ⌃⌥←</text>
+              </svg>
+            </div>
+            <div class="how-card-body">
+              <div class="how-card-title"
+                   data-en="Snap, then throw"
+                   data-ko="스냅 후 튕기기">Snap, then throw</div>
+              <p class="how-card-text"
+                 data-en="First press snaps to the left half. Second press on the same edge throws the window to the adjacent display, landing in the opposite half."
+                 data-ko="첫 번째 누름에 왼쪽 반분으로 스냅됩니다. 같은 방향을 다시 누르면 인접 디스플레이로 던져져 반대쪽 반분에 배치됩니다.">
+                First press snaps to the left half. Second press on the same edge throws the window to the adjacent display, landing in the opposite half.
+              </p>
+            </div>
+          </div>
+
+          <!-- Diagram B: Move + clamp -->
+          <div class="how-card">
+            <div class="how-diagram" aria-hidden="true">
+              <svg width="100%" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+                <!-- Work area -->
+                <rect x="10" y="10" width="180" height="80" rx="4"
+                      fill="rgba(255,255,255,0.04)" stroke="rgba(74,127,193,0.3)" stroke-width="1"/>
+                <!-- Menu bar hint -->
+                <rect x="10" y="10" width="180" height="9" rx="0" fill="rgba(74,127,193,0.1)"/>
+                <text x="14" y="17" font-family="-apple-system,sans-serif" font-size="5" fill="rgba(160,200,240,0.5)">work area</text>
+
+                <!-- Win step 1 (center-ish) -->
+                <rect x="55" y="35" width="48" height="42" rx="2.5" fill="rgba(74,127,193,0.18)" stroke="rgba(74,127,193,0.5)" stroke-width="1"/>
+
+                <!-- Win step 2 (clamped at right) -->
+                <rect x="142" y="35" width="46" height="42" rx="2.5" fill="rgba(74,127,193,0.32)" stroke="rgba(74,127,193,0.75)" stroke-width="1.2"/>
+
+                <!-- Move arrows -->
+                <path d="M107 56 L136 56" stroke="rgba(74,127,193,0.7)" stroke-width="1.3" fill="none" marker-end="url(#arr-b)"/>
+                <defs>
+                  <marker id="arr-b" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto">
+                    <path d="M0,0 L5,2.5 L0,5 Z" fill="rgba(74,127,193,0.8)"/>
+                  </marker>
+                </defs>
+                <text x="110" y="53" font-family="-apple-system,sans-serif" font-size="5.5" fill="rgba(160,200,240,0.7)">→ →</text>
+
+                <!-- Clamp wall -->
+                <line x1="188" y1="22" x2="188" y2="90" stroke="rgba(74,127,193,0.6)" stroke-width="1.5" stroke-dasharray="3 2"/>
+                <text x="182" y="20" font-family="-apple-system,sans-serif" font-size="5" fill="rgba(160,200,240,0.5)">edge</text>
+
+                <text x="12" y="97" font-family="-apple-system,sans-serif" font-size="6.5" fill="rgba(160,200,240,0.6)">⌃⌥⌘→  (move, keep size)</text>
+              </svg>
+            </div>
+            <div class="how-card-body">
+              <div class="how-card-title"
+                   data-en="Move clamps at the edge"
+                   data-ko="이동은 경계에서 멈춤">Move clamps at the edge</div>
+              <p class="how-card-text"
+                 data-en="The window steps by its own width and stops at the work-area boundary. No resize, no display change — just a reliable nudge."
+                 data-ko="윈도우는 자체 너비만큼 이동하며 작업영역 경계에서 멈춥니다. 크기 변경이나 디스플레이 전환 없이 정확히 이동합니다.">
+                The window steps by its own width and stops at the work-area boundary. No resize, no display change — just a reliable nudge.
+              </p>
+            </div>
+          </div>
+
+          <!-- Diagram C: Move to next display -->
+          <div class="how-card">
+            <div class="how-diagram" aria-hidden="true">
+              <svg width="100%" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+                <!-- Display 1 -->
+                <rect x="4" y="8" width="88" height="84" rx="4" fill="rgba(255,255,255,0.05)" stroke="rgba(74,127,193,0.35)" stroke-width="1"/>
+                <!-- Display 2 -->
+                <rect x="108" y="8" width="88" height="84" rx="4" fill="rgba(255,255,255,0.05)" stroke="rgba(74,127,193,0.25)" stroke-width="1"/>
+
+                <!-- Original window (display 1, upper-right area) -->
+                <rect x="46" y="20" width="44" height="36" rx="2.5" fill="rgba(74,127,193,0.25)" stroke="rgba(74,127,193,0.6)" stroke-width="1"/>
+
+                <!-- Transferred window (display 2, same relative position) -->
+                <rect x="150" y="20" width="43" height="35" rx="2.5" fill="rgba(74,127,193,0.18)" stroke="rgba(74,127,193,0.5)" stroke-width="1" stroke-dasharray="3 2"/>
+
+                <!-- Arrow -->
+                <path d="M96 38 Q100 38 103 38" stroke="rgba(74,127,193,0.85)" stroke-width="1.5"
+                      fill="none" marker-end="url(#arr-c)"/>
+                <defs>
+                  <marker id="arr-c" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto">
+                    <path d="M0,0 L5,2.5 L0,5 Z" fill="rgba(74,127,193,0.9)"/>
+                  </marker>
+                </defs>
+
+                <!-- Position reference lines -->
+                <line x1="46" y1="20" x2="46" y2="90" stroke="rgba(74,127,193,0.2)" stroke-width="0.8" stroke-dasharray="2 3"/>
+                <line x1="150" y1="20" x2="150" y2="90" stroke="rgba(74,127,193,0.2)" stroke-width="0.8" stroke-dasharray="2 3"/>
+
+                <text x="8" y="98" font-family="-apple-system,sans-serif" font-size="6.5" fill="rgba(160,200,240,0.6)">⌃⌥⌘⇧→  (shape &amp; position preserved)</text>
+              </svg>
+            </div>
+            <div class="how-card-body">
+              <div class="how-card-title"
+                   data-en="Shape preserved across displays"
+                   data-ko="디스플레이 간 형태 보존">Shape preserved across displays</div>
+              <p class="how-card-text"
+                 data-en="Move to next display keeps the window's relative position and size. It's capped so it never exceeds the target screen."
+                 data-ko="다음 디스플레이로 이동 시 상대 위치와 크기를 유지합니다. 대상 화면을 초과하지 않도록 조정됩니다.">
+                Move to next display keeps the window's relative position and size. It's capped so it never exceeds the target screen.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ── 5. Requirements & Install ──────────────────────────── -->
+    <section id="install" aria-labelledby="install-heading">
+      <div class="container">
+        <span class="section-label"
+              data-en="Getting started" data-ko="시작하기">Getting started</span>
+        <h2 class="section-title" id="install-heading"
+            data-en="Requirements &amp; install"
+            data-ko="요구사항 &amp; 설치">Requirements &amp; install</h2>
+        <p class="section-sub"
+           data-en="Download the notarized DMG — no build tools required."
+           data-ko="공증된 DMG를 다운로드하세요 — 빌드 도구 불필요.">
+          Download the notarized DMG — no build tools required.
+        </p>
+
+        <div class="install-grid">
+          <!-- Left card: Requirements -->
+          <div class="req-card">
+            <h3 data-en="Requirements" data-ko="요구사항">Requirements</h3>
+            <ul class="req-list">
+              <li data-en="macOS 26.3 (Tahoe) or later"
+                  data-ko="macOS 26.3 (Tahoe) 이상">macOS 26.3 (Tahoe) or later</li>
+              <li data-en="Accessibility permission — Azimuth controls other apps' windows via the Accessibility API. Grant it in System Settings on first launch."
+                  data-ko="손쉬운 사용 권한 — Azimuth는 손쉬운 사용 API로 다른 앱의 윈도우를 제어합니다. 첫 실행 시 시스템 설정에서 허용하세요.">
+                Accessibility permission — Azimuth controls other apps' windows via the Accessibility API. Grant it in System Settings on first launch.
+              </li>
+            </ul>
+          </div>
+
+          <!-- Right card: Install (DMG primary + build from source secondary) -->
+          <div class="req-card">
+            <h3 data-en="Install" data-ko="설치">Install</h3>
+
+            <ol class="install-steps">
+              <li data-en="Download the .dmg from the link below."
+                  data-ko="아래 링크에서 .dmg를 다운로드합니다.">Download the .dmg from the link below.</li>
+              <li data-en="Drag Azimuth to your Applications folder."
+                  data-ko="Azimuth를 응용 프로그램 폴더로 드래그합니다.">Drag Azimuth to your Applications folder.</li>
+              <li data-en="Launch Azimuth from Applications."
+                  data-ko="응용 프로그램에서 Azimuth를 실행합니다.">Launch Azimuth from Applications.</li>
+              <li data-en="Enable Azimuth in System Settings → Privacy &amp; Security → Accessibility."
+                  data-ko="시스템 설정 → 개인 정보 보호 및 보안 → 손쉬운 사용에서 Azimuth를 활성화합니다.">Enable Azimuth in System Settings → Privacy &amp; Security → Accessibility.</li>
+            </ol>
+
+            <a id="download-btn-2"
+               href="https://github.com/ai-screams/Azimuth/releases/latest"
+               class="btn btn-primary js-download"
+               target="_blank" rel="noopener"
+               data-en="Download for macOS"
+               data-ko="macOS용 다운로드"
+               aria-label="Download Azimuth for macOS (opens in new tab)">
+              <svg width="14" height="14" viewBox="0 0 15 15" fill="none" aria-hidden="true"
+                   xmlns="http://www.w3.org/2000/svg">
+                <path d="M7.5 1v8M4.5 6.5l3 3 3-3M2 11.5h11" stroke="currentColor"
+                      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Download for macOS
+            </a>
+
+            <!-- Build from source: secondary option -->
+            <span class="alt-section-label"
+                  data-en="Or build from source"
+                  data-ko="또는 소스에서 빌드">Or build from source</span>
+            <pre class="code-block" aria-label="Build from source commands"><span class="cmd">git clone</span> <span class="arg">https://github.com/ai-screams/Azimuth</span>
+<span class="cmd">cd</span> <span class="arg">Azimuth</span>
+<span class="cmd">make run</span></pre>
+            <p class="install-note"
+               data-en="&lt;strong&gt;make run&lt;/strong&gt; produces a code-signed build (Apple Development identity), keeping your Accessibility grant stable across rebuilds."
+               data-ko="&lt;strong&gt;make run&lt;/strong&gt;은 코드 서명된 빌드(Apple Development 인증)를 생성하여 재빌드 후에도 손쉬운 사용 권한이 유지됩니다.">
+              <strong>make run</strong> produces a code-signed build (Apple Development identity), keeping your Accessibility grant stable across rebuilds.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── 6. Footer ──────────────────────────────────────────── -->
+  <footer role="contentinfo">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-left">
+          <!-- small compass -->
+          <svg width="16" height="16" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+            <circle cx="11" cy="11" r="10" stroke="var(--text-faint)" stroke-width="1.2"/>
+            <circle cx="11" cy="11" r="1.6" fill="var(--text-faint)"/>
+            <polygon points="11,11 9.5,11 11,3.5" fill="var(--accent)" opacity="0.7"/>
+            <polygon points="11,11 12.5,11 11,18.5" fill="var(--text-faint)" opacity="0.4"/>
+          </svg>
+          <div class="footer-text">
+            <div data-en="© 2026 AiScream · License: TBD · Built with Swift + AppKit"
+                 data-ko="© 2026 AiScream · 라이선스: 미정 · Swift + AppKit으로 제작">
+              © 2026 AiScream · License: TBD · Built with Swift + AppKit
+            </div>
+          </div>
+        </div>
+        <div class="footer-links">
+          <a href="https://github.com/ai-screams/Azimuth" target="_blank" rel="noopener"
+             data-en="GitHub" data-ko="GitHub">GitHub</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ── Language toggle + download progressive-enhancement JS ── -->
+  <script>
+    (function () {
+      'use strict';
+
+      var STORAGE_KEY = 'azimuth-lang';
+      var currentLang = localStorage.getItem(STORAGE_KEY) || 'en';
+
+      function applyLang(lang) {
+        currentLang = lang;
+        localStorage.setItem(STORAGE_KEY, lang);
+
+        // update all elements with data-en / data-ko
+        var els = document.querySelectorAll('[data-en], [data-ko]');
+        for (var i = 0; i < els.length; i++) {
+          var el = els[i];
+          var val = el.getAttribute('data-' + lang);
+          if (val === null) continue;
+
+          // install-note uses HTML (bold tags)
+          if (el.classList.contains('install-note')) {
+            el.innerHTML = val;
+          } else {
+            el.textContent = val;
+          }
+        }
+
+        // update html lang attribute
+        document.documentElement.lang = lang === 'ko' ? 'ko' : 'en';
+
+        // update button states
+        var btnEn = document.getElementById('btn-en');
+        var btnKo = document.getElementById('btn-ko');
+        if (btnEn && btnKo) {
+          btnEn.classList.toggle('active', lang === 'en');
+          btnKo.classList.toggle('active', lang === 'ko');
+          btnEn.setAttribute('aria-pressed', String(lang === 'en'));
+          btnKo.setAttribute('aria-pressed', String(lang === 'ko'));
+        }
+      }
+
+      // expose for onclick
+      window.setLang = applyLang;
+
+      // ── Progressive enhancement: resolve latest DMG from GitHub Releases ──
+      // One allowed external request. Silent on any failure.
+      (function () {
+        if (!window.fetch) return;
+        try {
+          fetch('https://api.github.com/repos/ai-screams/Azimuth/releases/latest', {
+            headers: { 'Accept': 'application/vnd.github+json' }
+          })
+          .then(function (res) {
+            if (!res.ok) return null;
+            return res.json();
+          })
+          .then(function (data) {
+            try {
+              if (!data || !data.tag_name) return;
+
+              var tag = data.tag_name;
+
+              // Find the .dmg asset
+              var dmgUrl = null;
+              var dmgSize = null;
+              var assets = data.assets || [];
+              for (var i = 0; i < assets.length; i++) {
+                var a = assets[i];
+                if (a.name && a.name.slice(-4).toLowerCase() === '.dmg') {
+                  dmgUrl = a.browser_download_url;
+                  dmgSize = a.size ? Math.round(a.size / (1024 * 1024)) + ' MB' : null;
+                  break;
+                }
+              }
+
+              // Build bilingual labels
+              var labelEn = 'Download Azimuth ' + tag + ' (.dmg)';
+              var labelKo = 'Azimuth ' + tag + ' 다운로드 (.dmg)';
+
+              // Build dl-meta text
+              var metaEn = 'Universal · macOS 26.3+ · .dmg' + (dmgSize ? ' · ' + dmgSize : '');
+              var metaKo = 'macOS 26.3+ · .dmg' + (dmgSize ? ' · ' + dmgSize : '');
+
+              // Update all .js-download buttons
+              var btns = document.querySelectorAll('.js-download');
+              for (var j = 0; j < btns.length; j++) {
+                var btn = btns[j];
+                if (dmgUrl) btn.href = dmgUrl;
+                btn.setAttribute('data-en', labelEn);
+                btn.setAttribute('data-ko', labelKo);
+                // Update visible text (the text node inside the button)
+                // The button may contain child SVG + text — update textContent of
+                // the text node or the whole button's last text node.
+                // Safest: set the current-lang text directly now, lang toggle will handle future flips.
+                var nodes = btn.childNodes;
+                for (var k = nodes.length - 1; k >= 0; k--) {
+                  if (nodes[k].nodeType === 3 /* TEXT_NODE */ && nodes[k].textContent.trim()) {
+                    nodes[k].textContent = '\n              ' + (currentLang === 'ko' ? labelKo : labelEn) + '\n            ';
+                    break;
+                  }
+                }
+              }
+
+              // Update dl-meta
+              var dlMeta = document.getElementById('dl-meta');
+              if (dlMeta) {
+                dlMeta.setAttribute('data-en', metaEn);
+                dlMeta.setAttribute('data-ko', metaKo);
+                dlMeta.textContent = currentLang === 'ko' ? metaKo : metaEn;
+              }
+            } catch (e) { /* silent */ }
+          })
+          .catch(function () { /* silent — network failure, 404, rate limit */ });
+        } catch (e) { /* silent */ }
+      })();
+
+      // apply lang on page load (after DOM is ready, before fetch resolves)
+      applyLang(currentLang);
+    })();
+  </script>
+
+</body>
+</html>
