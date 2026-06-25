@@ -10,7 +10,10 @@ nonisolated struct ResolvedWindow: Equatable {
 
 @MainActor
 enum FocusedWindowResolver {
-    private static let supportedSubroles: Set<String> = [kAXStandardWindowSubrole as String]
+    private static let supportedSubroles: Set<String> = [
+        kAXStandardWindowSubrole as String,
+        kAXDialogSubrole as String
+    ]
 
     /// 비공개 속성. 풀스크린은 subrole로 구분 불가해 이 속성으로 판별한다(macOS 10.11+ 사실상 표준).
     private static let fullScreenAttribute = "AXFullScreen"
@@ -42,8 +45,11 @@ enum FocusedWindowResolver {
             return .failure(.noFocusedWindow)
         }
 
+        // 표준 창/다이얼로그는 허용. 그 외(JetBrains 등 자바/AWT, 일부 Electron의 비표준·누락 subrole)는
+        // 위치·크기를 실제로 설정할 수 있을 때만 허용한다(시트·팝오버 등은 settable=false라 계속 차단).
         let subrole = AXAttribute.string(window, kAXSubroleAttribute as String)
-        guard let subrole, supportedSubroles.contains(subrole) else {
+        let isSupportedSubrole = subrole.map(supportedSubroles.contains) ?? false
+        guard isSupportedSubrole || isMovableAndResizable(window) else {
             return .failure(.unsupportedWindowType(subrole: subrole))
         }
 
@@ -55,7 +61,7 @@ enum FocusedWindowResolver {
 
         return .success(ResolvedWindow(
             element: window,
-            subrole: subrole,
+            subrole: subrole ?? (kAXUnknownSubrole as String),
             pid: app.processIdentifier,
             frame: WindowFrame(origin: origin, size: size)
         ))
@@ -81,5 +87,16 @@ enum FocusedWindowResolver {
         default:
             .axError(code: error.rawValue)
         }
+    }
+
+    /// 위치·크기 속성을 실제로 설정할 수 있는 창인지. subrole이 비표준/누락이어도
+    /// 이동·리사이즈가 가능하면 지원 대상으로 본다(JetBrains 등 자바 창 대응).
+    private static func isMovableAndResizable(_ window: AXUIElement) -> Bool {
+        func settable(_ attribute: String) -> Bool {
+            var flag = DarwinBoolean(false)
+            let err = AXUIElementIsAttributeSettable(window, attribute as CFString, &flag)
+            return err == .success && flag.boolValue
+        }
+        return settable(kAXPositionAttribute as String) && settable(kAXSizeAttribute as String)
     }
 }
