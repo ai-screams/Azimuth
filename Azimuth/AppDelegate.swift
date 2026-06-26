@@ -31,6 +31,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         configureActivationPolicy()
+        // 표준 메인 메뉴(App·Edit·Window)를 설치한다. 없으면 ⌘Q·⌘W·텍스트 편집이
+        // 어디서도 처리되지 않아 경고음만 난다(.accessory 빌드도 키 equivalent는 동작).
+        NSApp.mainMenu = MainMenuBuilder.make(
+            appName: "Azimuth",
+            settingsTarget: self,
+            settingsAction: #selector(openSettings(_:))
+        )
         statusBarController.onOpenSettings = { [weak self] in
             self?.settingsWindowController.show()
         }
@@ -60,6 +67,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         settingsWindowController.show()
         return true
+    }
+
+    /// App 메뉴 "Settings…"(⌘,) 항목 액션.
+    @objc private func openSettings(_ sender: Any?) {
+        settingsWindowController.show()
     }
 
     deinit {
