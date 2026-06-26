@@ -1,6 +1,18 @@
 # Created by https://www.toptal.com/developers/gitignore/api/windows,linux,macos,git,vim,emacs,visualstudiocode,jetbrains+all,xcode,swift,swiftpackagemanager,swiftpm,objective-c
 # Edit at https://www.toptal.com/developers/gitignore?templates=windows,linux,macos,git,vim,emacs,visualstudiocode,jetbrains+all,xcode,swift,swiftpackagemanager,swiftpm,objective-c
 
+### Azimuth (project-specific) ###
+# Internal notes/docs — never commit (see CLAUDE.md). Were ignored only via .git/info/exclude; make it explicit.
+.docs/
+# OMC orchestration state (project memory, plans, mode state).
+.omc/
+# Release artifacts (also covered by build//dist/, kept explicit).
+dist/
+build/
+*.dmg
+*.xcarchive
+ExportOptions.plist
+
 ### Emacs ###
 # -*- mode: gitignore; -*-
 *~

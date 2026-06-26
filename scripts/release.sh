@@ -143,8 +143,20 @@ if [[ ! -f "$DMG" ]]; then
     hdiutil create -volname "$APP_NAME" -srcfolder "$STAGE" -ov -format UDZO "$DMG"
 fi
 
-# DMG에도 staple(다운로드 후 오프라인 첫 실행 보장 강화)
-xcrun stapler staple "$DMG" || true
+# DMG 컨테이너도 Developer ID 서명 → 공증 → staple(다운로드 시 경고 0, spctl open 통과).
+# 앱은 이미 공증·staple됐지만, 배포 산출물인 DMG 자체에도 서명+티켓을 박는다(정석 순서).
+print "▸ [+] DMG 서명 + 공증 + staple…"
+codesign --force --timestamp --sign "$DEVELOPER_ID_IDENTITY" "$DMG"
+if [[ -n "${NOTARY_PROFILE:-}" ]]; then
+    xcrun notarytool submit "$DMG" --keychain-profile "$NOTARY_PROFILE" --wait
+else
+    xcrun notarytool submit "$DMG" \
+        --apple-id "$APPLE_ID" \
+        --password "$APPLE_APP_PASSWORD" \
+        --team-id "$DEVELOPMENT_TEAM" \
+        --wait
+fi
+xcrun stapler staple "$DMG"
 
 print "✅ 완료: $DMG"
 ls -la "$DMG" | cat
