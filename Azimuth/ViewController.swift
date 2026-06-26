@@ -103,8 +103,20 @@ final class ViewController: NSViewController {
     )
     private lazy var contentStackView = makeContentStackView()
 
+    /// 모든 콘텐츠를 담는 바깥 세로 스크롤뷰. 창을 콘텐츠보다 낮게 줄여도 하단 섹션이
+    /// 잘리지 않고 스크롤된다(폭은 창에 고정되어 가로 스크롤은 발생하지 않는다).
+    private let scrollView = NSScrollView()
+    /// 스크롤 문서 뷰. 위에서부터 콘텐츠가 채워지도록 뒤집힌(flipped) 좌표계를 쓴다.
+    private let documentView = FlippedView()
+
     override func loadView() {
         view = NSView(frame: NSRect(origin: .zero, size: Layout.windowSize))
+    }
+
+    /// 콘텐츠 전체를 다 보여주기 위한 자연 높이(스크롤 없이 필요한 높이). 창 초기/최대 높이 산정에 쓴다.
+    func naturalContentHeight() -> CGFloat {
+        view.layoutSubtreeIfNeeded()
+        return documentView.frame.height
     }
 
     override func viewDidLoad() {
@@ -178,19 +190,41 @@ final class ViewController: NSViewController {
 
     private func configureView() {
         configureFonts()
-        view.addSubview(contentStackView)
+
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.hasVerticalScroller = true
+        scrollView.hasHorizontalScroller = false
+        scrollView.autohidesScrollers = true
+        scrollView.drawsBackground = false
+        scrollView.contentView.drawsBackground = false
+
+        documentView.translatesAutoresizingMaskIntoConstraints = false
+        documentView.addSubview(contentStackView)
+        scrollView.documentView = documentView
+        view.addSubview(scrollView)
 
         shortcutsSectionView.widthAnchor.constraint(
             equalToConstant: Layout.shortcutsContentWidth
         ).isActive = true
 
         NSLayoutConstraint.activate([
-            contentStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Layout.contentInset),
-            contentStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -Layout.contentInset),
-            contentStackView.topAnchor.constraint(equalTo: view.topAnchor, constant: Layout.contentInset),
+            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            scrollView.topAnchor.constraint(equalTo: view.topAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+
+            // 문서 폭을 보이는 영역(clip view)에 맞춰 가로 스크롤을 막는다. 폭은 창에 고정되어 있다.
+            documentView.widthAnchor.constraint(equalTo: scrollView.contentView.widthAnchor),
+
+            contentStackView.leadingAnchor.constraint(
+                equalTo: documentView.leadingAnchor, constant: Layout.contentInset
+            ),
+            contentStackView.trailingAnchor.constraint(
+                equalTo: documentView.trailingAnchor, constant: -Layout.contentInset
+            ),
+            contentStackView.topAnchor.constraint(equalTo: documentView.topAnchor, constant: Layout.contentInset),
             contentStackView.bottomAnchor.constraint(
-                lessThanOrEqualTo: view.bottomAnchor,
-                constant: -Layout.contentInset
+                equalTo: documentView.bottomAnchor, constant: -Layout.contentInset
             )
         ])
     }
@@ -242,40 +276,6 @@ final class ViewController: NSViewController {
                 "Login item is registered but needs approval in System Settings > General > Login Items."
         }
     }
-
-    private func makeSoundFeedbackButton() -> NSButton {
-        NSButton(
-            checkboxWithTitle: "Play a sound when a command can't run",
-            target: self,
-            action: #selector(soundFeedbackChanged(_:))
-        )
-    }
-
-    private func makeMenuBarIconButton() -> NSButton {
-        NSButton(
-            checkboxWithTitle: "Hide menu bar icon",
-            target: self,
-            action: #selector(menuBarIconChanged(_:))
-        )
-    }
-
-    private func makeLaunchAtLoginButton() -> NSButton {
-        NSButton(
-            checkboxWithTitle: "Launch Azimuth at login",
-            target: self,
-            action: #selector(launchAtLoginChanged(_:))
-        )
-    }
-
-    private func makeLaunchApprovalButton() -> NSButton {
-        let button = NSButton(
-            title: "Open Login Items Settings…",
-            target: self,
-            action: #selector(openLoginItemsSettings(_:))
-        )
-        button.bezelStyle = .rounded
-        return button
-    }
 }
 
 private extension ViewController {
@@ -284,6 +284,40 @@ private extension ViewController {
             title: "Open Accessibility Settings…",
             target: self,
             action: #selector(openAccessibilitySettings(_:))
+        )
+        button.bezelStyle = .rounded
+        return button
+    }
+
+    func makeSoundFeedbackButton() -> NSButton {
+        NSButton(
+            checkboxWithTitle: "Play a sound when a command can't run",
+            target: self,
+            action: #selector(soundFeedbackChanged(_:))
+        )
+    }
+
+    func makeMenuBarIconButton() -> NSButton {
+        NSButton(
+            checkboxWithTitle: "Hide menu bar icon",
+            target: self,
+            action: #selector(menuBarIconChanged(_:))
+        )
+    }
+
+    func makeLaunchAtLoginButton() -> NSButton {
+        NSButton(
+            checkboxWithTitle: "Launch Azimuth at login",
+            target: self,
+            action: #selector(launchAtLoginChanged(_:))
+        )
+    }
+
+    func makeLaunchApprovalButton() -> NSButton {
+        let button = NSButton(
+            title: "Open Login Items Settings…",
+            target: self,
+            action: #selector(openLoginItemsSettings(_:))
         )
         button.bezelStyle = .rounded
         return button
@@ -338,5 +372,13 @@ private extension ViewController {
         }
 
         return box
+    }
+}
+
+/// 위에서부터 콘텐츠가 쌓이도록 뒤집힌 좌표계를 쓰는 스크롤 문서 뷰.
+/// (기본 NSView는 원점이 좌하단이라 스크롤뷰 콘텐츠가 아래에서부터 쌓여 어색하다.)
+private final class FlippedView: NSView {
+    override var isFlipped: Bool {
+        true
     }
 }
