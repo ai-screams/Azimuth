@@ -133,9 +133,13 @@ rm -rf "$ICONSET"; mkdir -p "$ICONSET"
 cp "$ROOT_DIR/$APP_NAME/Assets.xcassets/AppIcon.appiconset/"icon_*.png "$ICONSET/"
 iconutil -c icns "$ICONSET" -o "$VOLICON"
 
-# DMG 창 배경(브랜드 다크 네이비 + 설치 화살표). background@2x.png가 같은 폴더에
-# 있으면 create-dmg가 retina용으로 자동 결합한다. 좌표는 540×380, 아이콘 100.
-BG="$ROOT_DIR/scripts/dmg/background.png"
+# DMG 창 배경(브랜드 다크 네이비 + 설치 화살표). 좌표는 540×380, 아이콘 100.
+# Retina 선명도: 1x+2x PNG를 hidpi multi-rep TIFF로 결합해 Finder가 화면 배율에
+# 맞는 rep을 고르게 한다(create-dmg 1.2.3은 @2x 파일을 자동 인식하지 않으므로
+# 단일 TIFF로 넘긴다). tiffutil은 Command Line Tools에 포함.
+BG_SRC="$ROOT_DIR/scripts/dmg"
+BG="$BUILD_DIR/background.tiff"
+tiffutil -cathidpicheck "$BG_SRC/background.png" "$BG_SRC/background@2x.png" -out "$BG" >/dev/null
 
 if command -v create-dmg >/dev/null 2>&1; then
     # create-dmg는 성공해도 종료코드가 비정상일 때가 있어 가드한다.
