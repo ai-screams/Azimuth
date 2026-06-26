@@ -15,13 +15,7 @@ final class ViewController: NSViewController {
         static let shortcutsContentWidth: CGFloat = 480
         static let contentInset: CGFloat = 24
         static let sectionSpacing: CGFloat = 16
-        static let sectionContentSpacing: CGFloat = 8
-        static let sectionPadding: CGFloat = 16
-        static let sectionCornerRadius: CGFloat = 10
-        static let sectionBorderWidth: CGFloat = 1
-        static let minSectionWidth: CGFloat = 512
         static let titleFontSize: CGFloat = 22
-        static let sectionTitleFontSize: CGFloat = 15
         static let statusFontSize: CGFloat = 13
     }
 
@@ -59,12 +53,12 @@ final class ViewController: NSViewController {
         wrappingLabelWithString: "Configure Azimuth's shortcuts, feedback, and launch behavior."
     )
 
-    private let permissionsTitleLabel = NSTextField(labelWithString: "Permissions")
+    private let statusIcon = NSImageView()
     private let statusLabel = NSTextField(labelWithString: "")
     private let detailLabel = NSTextField(wrappingLabelWithString: "")
     private lazy var actionButton = makeActionButton()
+    private lazy var permissionStatusRow = makePermissionStatusRow()
 
-    private let shortcutsTitleLabel = NSTextField(labelWithString: "Shortcuts")
     private lazy var shortcutsSectionView = ShortcutsSectionView(
         preferencesStore: preferencesStore,
         onHotkeysChanged: onHotkeysChanged,
@@ -72,7 +66,6 @@ final class ViewController: NSViewController {
         setHotkeysSuspended: setHotkeysSuspended
     )
 
-    private let behaviorTitleLabel = NSTextField(labelWithString: "Behavior")
     private lazy var soundFeedbackButton = makeSoundFeedbackButton()
     private lazy var launchAtLoginButton = makeLaunchAtLoginButton()
     private let launchApprovalLabel = NSTextField(wrappingLabelWithString: "")
@@ -82,16 +75,19 @@ final class ViewController: NSViewController {
         wrappingLabelWithString: "When hidden, relaunch Azimuth to reopen this settings window."
     )
 
-    private lazy var permissionsSection = makeSection(
-        titleLabel: permissionsTitleLabel,
-        bodyViews: [statusLabel, detailLabel, actionButton]
+    private lazy var permissionsSection = SettingsCard.make(
+        symbolName: "lock.shield",
+        title: "Permissions",
+        bodyViews: [permissionStatusRow, detailLabel, actionButton]
     )
-    private lazy var shortcutsSection = makeSection(
-        titleLabel: shortcutsTitleLabel,
+    private lazy var shortcutsSection = SettingsCard.make(
+        symbolName: "keyboard",
+        title: "Shortcuts",
         bodyViews: [shortcutsSectionView]
     )
-    private lazy var behaviorSection = makeSection(
-        titleLabel: behaviorTitleLabel,
+    private lazy var behaviorSection = SettingsCard.make(
+        symbolName: "gearshape",
+        title: "Behavior",
         bodyViews: [
             soundFeedbackButton,
             launchAtLoginButton,
@@ -234,15 +230,11 @@ final class ViewController: NSViewController {
         subtitleLabel.textColor = .secondaryLabelColor
         subtitleLabel.maximumNumberOfLines = 0
 
-        permissionsTitleLabel.font = .systemFont(ofSize: Layout.sectionTitleFontSize, weight: .semibold)
         statusLabel.font = .systemFont(ofSize: Layout.statusFontSize, weight: .medium)
         detailLabel.textColor = .secondaryLabelColor
         detailLabel.lineBreakMode = .byWordWrapping
         detailLabel.maximumNumberOfLines = 0
 
-        shortcutsTitleLabel.font = .systemFont(ofSize: Layout.sectionTitleFontSize, weight: .semibold)
-
-        behaviorTitleLabel.font = .systemFont(ofSize: Layout.sectionTitleFontSize, weight: .semibold)
         launchApprovalLabel.textColor = .systemOrange
         launchApprovalLabel.font = .systemFont(ofSize: Layout.statusFontSize)
         launchApprovalLabel.maximumNumberOfLines = 0
@@ -258,6 +250,10 @@ final class ViewController: NSViewController {
         statusLabel.textColor = status.isTrusted ? .systemGreen : .systemOrange
         detailLabel.stringValue = status.settingsDetailText
         actionButton.isHidden = status.isTrusted
+
+        let symbol = status.isTrusted ? "checkmark.circle.fill" : "exclamationmark.triangle.fill"
+        statusIcon.image = NSImage(systemSymbolName: symbol, accessibilityDescription: nil)
+        statusIcon.contentTintColor = status.isTrusted ? .systemGreen : .systemOrange
     }
 
     /// SMAppService는 상태 변경 알림(KVO/Notification)을 제공하지 않으므로, 로그인 항목 상태는
@@ -338,40 +334,20 @@ private extension ViewController {
         return stackView
     }
 
-    func makeSection(titleLabel: NSTextField, bodyViews: [NSView]) -> NSBox {
-        let stackView = NSStackView(views: [titleLabel] + bodyViews)
-        stackView.alignment = .leading
-        stackView.orientation = .vertical
-        stackView.spacing = Layout.sectionContentSpacing
-        stackView.translatesAutoresizingMaskIntoConstraints = false
-        stackView.edgeInsets = NSEdgeInsets(
-            top: Layout.sectionPadding,
-            left: Layout.sectionPadding,
-            bottom: Layout.sectionPadding,
-            right: Layout.sectionPadding
-        )
+    /// 권한 상태 아이콘(✓/⚠) + 상태 텍스트를 한 줄로 묶는다.
+    func makePermissionStatusRow() -> NSStackView {
+        statusIcon.imageScaling = .scaleProportionallyDown
+        statusIcon.translatesAutoresizingMaskIntoConstraints = false
 
-        let box = NSBox()
-        box.boxType = .custom
-        box.borderType = .lineBorder
-        box.cornerRadius = Layout.sectionCornerRadius
-        box.borderWidth = Layout.sectionBorderWidth
-        box.borderColor = .separatorColor
-        box.contentViewMargins = .zero
-        box.translatesAutoresizingMaskIntoConstraints = false
-        box.contentView?.addSubview(stackView)
-
-        if let contentView = box.contentView {
-            NSLayoutConstraint.activate([
-                stackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-                stackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-                stackView.topAnchor.constraint(equalTo: contentView.topAnchor),
-                stackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-                box.widthAnchor.constraint(greaterThanOrEqualToConstant: Layout.minSectionWidth)
-            ])
-        }
-
-        return box
+        let row = NSStackView(views: [statusIcon, statusLabel])
+        row.orientation = .horizontal
+        row.alignment = .centerY
+        row.spacing = 6
+        NSLayoutConstraint.activate([
+            statusIcon.widthAnchor.constraint(equalToConstant: 16),
+            statusIcon.heightAnchor.constraint(equalToConstant: 16)
+        ])
+        return row
     }
 }
 
