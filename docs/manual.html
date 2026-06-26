@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Azimuth Manual — Complete reference for requirements, shortcuts, command behavior, and roadmap." />
+  <title>Azimuth Manual — macOS Window Manager</title>
+
+  <style>
+    /* ─── Design tokens (identical to index.html) ───────────────── */
+    :root {
+      --navy:        #1a2a4a;
+      --navy-mid:    #243656;
+      --navy-light:  #2f4878;
+      --steel:       #3d6199;
+      --accent:      #4a7fc1;
+      --accent-soft: #6494cc;
+      --accent-glow: rgba(74,127,193,0.18);
+
+      --bg:          #f5f6f8;
+      --bg-card:     #ffffff;
+      --bg-hero:     #eef1f6;
+      --surface:     #f0f2f6;
+      --border:      rgba(0,0,0,0.09);
+      --border-card: rgba(0,0,0,0.07);
+
+      --text:        #1a1e2a;
+      --text-mid:    #3a4050;
+      --text-muted:  #6a717f;
+      --text-faint:  #9aa0ae;
+
+      --keycap-bg:   #ffffff;
+      --keycap-border: #c8cdd8;
+      --keycap-shadow: rgba(0,0,0,0.14);
+      --keycap-text: #1a1e2a;
+
+      --win-bg:      rgba(255,255,255,0.92);
+      --win-border:  rgba(0,0,0,0.12);
+      --menubar-bg:  rgba(240,242,248,0.95);
+
+      --radius-sm:   6px;
+      --radius:      10px;
+      --radius-lg:   16px;
+      --radius-xl:   22px;
+
+      --shadow-card: 0 1px 3px rgba(0,0,0,0.06), 0 4px 14px rgba(0,0,0,0.07);
+      --shadow-float: 0 2px 8px rgba(0,0,0,0.08), 0 8px 28px rgba(0,0,0,0.1);
+
+      --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+              "Helvetica Neue", Arial, sans-serif;
+      --font-mono: "SF Mono", ui-monospace, "Cascadia Code", "Fira Code",
+                   Menlo, Monaco, Consolas, monospace;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --navy:        #0e1929;
+        --navy-mid:    #162035;
+        --navy-light:  #1e2f4e;
+        --steel:       #3361a0;
+        --accent:      #5a8fd4;
+        --accent-soft: #7aaae0;
+        --accent-glow: rgba(90,143,212,0.2);
+
+        --bg:          #0d1117;
+        --bg-card:     #161b27;
+        --bg-hero:     #0f1520;
+        --surface:     #1a2135;
+        --border:      rgba(255,255,255,0.07);
+        --border-card: rgba(255,255,255,0.06);
+
+        --text:        #e8ecf4;
+        --text-mid:    #b8c0d0;
+        --text-muted:  #7a8499;
+        --text-faint:  #4a5268;
+
+        --keycap-bg:   #1e2640;
+        --keycap-border: #334266;
+        --keycap-shadow: rgba(0,0,0,0.4);
+        --keycap-text: #d0d8f0;
+
+        --win-bg:      rgba(22,28,48,0.9);
+        --win-border:  rgba(255,255,255,0.1);
+        --menubar-bg:  rgba(14,22,40,0.96);
+
+        --shadow-card: 0 1px 3px rgba(0,0,0,0.2), 0 4px 16px rgba(0,0,0,0.3);
+        --shadow-float: 0 2px 8px rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.4);
+      }
+    }
+
+    /* ─── Reset & base ───────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html {
+      scroll-behavior: smooth;
+      font-size: 16px;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    a:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+      border-radius: 3px;
+    }
+
+    /* ─── Nav bar ────────────────────────────────────────────────── */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 clamp(1rem, 5vw, 3rem);
+      height: 52px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .topbar-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 650;
+      font-size: 1rem;
+      color: var(--text);
+      letter-spacing: -0.01em;
+      text-decoration: none;
+    }
+    .topbar-logo:hover { text-decoration: none; }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .lang-toggle {
+      display: flex;
+      align-items: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 3px;
+      gap: 2px;
+      cursor: default;
+    }
+    .lang-btn {
+      padding: 3px 10px;
+      border-radius: 16px;
+      font-size: 0.78rem;
+      font-weight: 550;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      transition: background 0.15s, color 0.15s;
+      line-height: 1.4;
+    }
+    .lang-btn.active {
+      background: var(--bg-card);
+      color: var(--text);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .lang-btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+
+    /* ─── Layout helpers ─────────────────────────────────────────── */
+    .container {
+      width: 100%;
+      max-width: 1060px;
+      margin: 0 auto;
+      padding: 0 clamp(1rem, 5vw, 2.5rem);
+    }
+
+    section { padding: clamp(3rem, 7vw, 5.5rem) 0; }
+
+    .section-label {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 650;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+    }
+
+    h2.section-title {
+      font-size: clamp(1.5rem, 3.5vw, 2.1rem);
+      font-weight: 680;
+      letter-spacing: -0.03em;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+      line-height: 1.2;
+    }
+
+    .section-sub {
+      color: var(--text-muted);
+      font-size: 1rem;
+      margin-bottom: 2.5rem;
+      max-width: 52ch;
+    }
+
+    /* ─── Hero ───────────────────────────────────────────────────── */
+    .hero {
+      padding: clamp(3rem, 8vw, 5.5rem) 0 clamp(2.5rem, 6vw, 4.5rem);
+      background: var(--bg-hero);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      transition: color 0.15s;
+    }
+    .back-link:hover { color: var(--accent); text-decoration: none; }
+
+    .hero-wordmark {
+      font-size: clamp(2.4rem, 5vw, 3.6rem);
+      font-weight: 750;
+      letter-spacing: -0.05em;
+      line-height: 1;
+      color: var(--text);
+      background: linear-gradient(135deg, var(--text) 0%, var(--steel) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.6rem;
+    }
+
+    .hero-tagline {
+      font-size: clamp(1.05rem, 2.5vw, 1.2rem);
+      color: var(--text-mid);
+      margin-bottom: 0.6rem;
+      line-height: 1.4;
+      font-weight: 420;
+      max-width: 52ch;
+    }
+
+    .hero-sub {
+      font-size: 0.85rem;
+      color: var(--text-faint);
+      font-style: italic;
+      letter-spacing: 0.01em;
+    }
+
+    /* ─── Section divider ────────────────────────────────────────── */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 0;
+    }
+
+    /* ─── Requirements cards ─────────────────────────────────────── */
+    .req-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 14px;
+    }
+
+    .req-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-lg);
+      padding: 1.3rem 1.5rem;
+      box-shadow: var(--shadow-card);
+    }
+
+    .req-card-num {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--accent-glow);
+      border: 1px solid rgba(74,127,193,0.3);
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 700;
+      margin-bottom: 0.8rem;
+      flex-shrink: 0;
+    }
+
+    .req-card h3 {
+      font-size: 0.88rem;
+      font-weight: 650;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.01em;
+    }
+
+    .req-card p {
+      font-size: 0.83rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    .req-card code {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      background: var(--surface);
+      padding: 1px 5px;
+      border-radius: 3px;
+      color: var(--text-mid);
+    }
+
+    /* ─── Feature summary table ──────────────────────────────────── */
+    #features { background: var(--surface); }
+
+    .features-table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    table.features-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    .features-table th {
+      text-align: left;
+      padding: 0.55rem 0.9rem;
+      font-size: 0.72rem;
+      font-weight: 650;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .features-table td {
+      padding: 0.5rem 0.9rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+      line-height: 1.4;
+    }
+
+    .features-table tr:last-child td { border-bottom: none; }
+    .features-table tr:hover td { background: var(--accent-glow); }
+
+    .features-table td:first-child { color: var(--text-muted); font-size: 0.8rem; font-weight: 550; }
+    .features-table td:nth-child(2) { color: var(--text); }
+    .features-table td:nth-child(3) { text-align: center; font-size: 1rem; white-space: nowrap; }
+    .features-table td:nth-child(4) {
+      color: var(--text-faint);
+      font-size: 0.78rem;
+      font-family: var(--font-mono);
+      white-space: nowrap;
+    }
+
+    /* ─── Shortcuts section ──────────────────────────────────────── */
+    .modifier-legend {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 10px;
+      margin-bottom: 2.5rem;
+    }
+
+    .modifier-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius);
+      padding: 0.8rem 1rem;
+    }
+
+    .modifier-keys {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3px;
+      flex-shrink: 0;
+    }
+
+    .modifier-desc {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* keycap chip */
+    .key {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--keycap-bg);
+      border: 1px solid var(--keycap-border);
+      border-bottom: 2.5px solid var(--keycap-shadow);
+      border-radius: 5px;
+      padding: 2px 7px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--keycap-text);
+      line-height: 1.5;
+      white-space: nowrap;
+      vertical-align: middle;
+      box-shadow: 0 1px 2px var(--keycap-shadow);
+    }
+    .key.sym { font-family: var(--font); font-size: 0.88rem; padding: 1px 5px; }
+
+    .shortcuts-table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    table.shortcuts-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    .shortcuts-table th {
+      text-align: left;
+      padding: 0.55rem 0.9rem;
+      font-size: 0.72rem;
+      font-weight: 650;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .shortcuts-table td {
+      padding: 0.5rem 0.9rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    .shortcuts-table tr:last-child td { border-bottom: none; }
+    .shortcuts-table tr:hover td { background: var(--accent-glow); }
+
+    .shortcuts-table td:first-child { color: var(--text-muted); font-size: 0.8rem; }
+    .shortcuts-table td:nth-child(2) { color: var(--text); font-weight: 500; }
+    .shortcuts-table td:nth-child(3) { white-space: nowrap; }
+
+    .keys-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .vim-note {
+      margin-top: 1.5rem;
+      padding: 0.85rem 1.1rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-left: 3px solid var(--accent);
+      border-radius: var(--radius-sm);
+      font-size: 0.83rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    .vim-note code {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      background: var(--surface);
+      padding: 1px 5px;
+      border-radius: 3px;
+      color: var(--text-mid);
+    }
+
+    .shortcuts-meta {
+      margin-top: 1rem;
+      padding: 0.85rem 1.1rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-left: 3px solid var(--steel);
+      border-radius: var(--radius-sm);
+      font-size: 0.83rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    /* ─── Command behavior (definition list cards) ───────────────── */
+    .commands-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 14px;
+    }
+
+    .cmd-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-lg);
+      padding: 1.2rem 1.4rem;
+      box-shadow: var(--shadow-card);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .cmd-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-float);
+    }
+
+    .cmd-card-title {
+      font-size: 0.9rem;
+      font-weight: 650;
+      color: var(--text);
+      margin-bottom: 0.4rem;
+      letter-spacing: -0.01em;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .cmd-card-keys {
+      margin-bottom: 0.55rem;
+    }
+
+    .cmd-card-body {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .cmd-note {
+      margin-top: 1.5rem;
+      padding: 0.85rem 1.1rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-left: 3px solid var(--accent-soft);
+      border-radius: var(--radius-sm);
+      font-size: 0.83rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    /* ─── Roadmap table ──────────────────────────────────────────── */
+    #roadmap { background: var(--surface); }
+
+    table.roadmap-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    .roadmap-table th {
+      text-align: left;
+      padding: 0.55rem 0.9rem;
+      font-size: 0.72rem;
+      font-weight: 650;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .roadmap-table td {
+      padding: 0.55rem 0.9rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+      line-height: 1.5;
+    }
+
+    .roadmap-table tr:last-child td { border-bottom: none; }
+    .roadmap-table tr:hover td { background: var(--accent-glow); }
+
+    .roadmap-table td:first-child {
+      color: var(--text);
+      font-weight: 600;
+      white-space: nowrap;
+      font-size: 0.82rem;
+    }
+    .roadmap-table td:nth-child(2) { color: var(--text-mid); }
+    .roadmap-table td:nth-child(3) { text-align: center; font-size: 1rem; white-space: nowrap; }
+
+    .principle-note {
+      margin-top: 1.5rem;
+      padding: 0.85rem 1.1rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-left: 3px solid var(--accent);
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      color: var(--text-mid);
+      line-height: 1.55;
+      font-style: italic;
+    }
+
+    /* ─── Footer ─────────────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem 0;
+      background: var(--bg-hero);
+    }
+
+    .footer-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .footer-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .footer-text {
+      font-size: 0.8rem;
+      color: var(--text-faint);
+      line-height: 1.5;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .footer-links a {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    .footer-links a:hover { color: var(--accent); }
+
+    /* ─── Responsive tweaks ──────────────────────────────────────── */
+    @media (max-width: 720px) {
+      .commands-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 480px) {
+      .modifier-legend { grid-template-columns: 1fr; }
+      .req-grid { grid-template-columns: 1fr; }
+      .commands-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ── Sticky top bar ────────────────────────────────────────── -->
+  <header role="banner">
+    <nav class="topbar" aria-label="Main navigation">
+      <a class="topbar-logo" href="index.html" aria-label="Azimuth — home">
+        <!-- Compass inline SVG -->
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true"
+             xmlns="http://www.w3.org/2000/svg">
+          <circle cx="11" cy="11" r="10" stroke="var(--accent)" stroke-width="1.4"/>
+          <circle cx="11" cy="11" r="1.8" fill="var(--accent)"/>
+          <polygon points="11,11 9.3,11 11,3" fill="var(--accent)" opacity="0.9"/>
+          <polygon points="11,11 12.7,11 11,19" fill="var(--text-faint)" opacity="0.55"/>
+          <line x1="11" y1="1.5" x2="11" y2="3.5" stroke="var(--accent)" stroke-width="1.2"/>
+          <line x1="11" y1="18.5" x2="11" y2="20.5" stroke="var(--text-faint)" stroke-width="1" opacity="0.5"/>
+          <line x1="1.5" y1="11" x2="3.5" y2="11" stroke="var(--text-faint)" stroke-width="1" opacity="0.5"/>
+          <line x1="18.5" y1="11" x2="20.5" y2="11" stroke="var(--text-faint)" stroke-width="1" opacity="0.5"/>
+        </svg>
+        <span>Azimuth</span>
+      </a>
+
+      <div class="topbar-right">
+        <div class="lang-toggle" role="group" aria-label="Language selector">
+          <button class="lang-btn active" id="btn-en" onclick="setLang('en')" aria-pressed="true">EN</button>
+          <button class="lang-btn" id="btn-ko" onclick="setLang('ko')" aria-pressed="false">KO</button>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+
+    <!-- ── 1. Hero / Intro ───────────────────────────────────────── -->
+    <section class="hero" aria-labelledby="hero-heading">
+      <div class="container">
+        <a class="back-link" href="index.html" aria-label="Back to Azimuth home">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M9 2L4 7l5 5" stroke="currentColor" stroke-width="1.6"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span data-en="Back to home" data-ko="홈으로 돌아가기">Back to home</span>
+        </a>
+
+        <span class="section-label"
+              data-en="Reference" data-ko="레퍼런스">Reference</span>
+        <h1 id="hero-heading" class="hero-wordmark"
+            data-en="Manual" data-ko="매뉴얼">Manual</h1>
+        <p class="hero-tagline"
+           data-en="Azimuth is a menu-bar window manager for macOS. It places, transforms, and moves the focused standard window predictably — using the keyboard, without scenes or automation."
+           data-ko="Azimuth는 macOS 메뉴바 윈도우 매니저입니다. 포커스된 일반 창을 키보드로 예측 가능하게 배치하고 변형하며 이동합니다. 씬이나 자동화 없이.">
+          Azimuth is a menu-bar window manager for macOS. It places, transforms, and moves the focused standard window predictably — using the keyboard, without scenes or automation.
+        </p>
+        <p class="hero-sub"
+           data-en="Predictability over clever inference."
+           data-ko="똑똑한 추론보다 예측 가능성.">
+          Predictability over clever inference.
+        </p>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ── 2. Requirements ──────────────────────────────────────── -->
+    <section id="requirements" aria-labelledby="requirements-heading">
+      <div class="container">
+        <span class="section-label"
+              data-en="Before you start" data-ko="사용 전제">Before you start</span>
+        <h2 class="section-title" id="requirements-heading"
+            data-en="Requirements"
+            data-ko="요구사항">
+          Requirements
+        </h2>
+        <p class="section-sub"
+           data-en="Four things to know before using Azimuth."
+           data-ko="Azimuth 사용 전에 알아야 할 네 가지.">
+          Four things to know before using Azimuth.
+        </p>
+
+        <div class="req-grid">
+
+          <!-- Req 1 -->
+          <div class="req-card">
+            <div class="req-card-num" aria-hidden="true">1</div>
+            <h3 data-en="Accessibility permission"
+                data-ko="Accessibility 권한">Accessibility permission</h3>
+            <p data-en="Azimuth controls windows via the Accessibility API. Enable it in System Settings → Privacy &amp; Security → Accessibility → toggle Azimuth on. You will be prompted on first launch."
+               data-ko="Azimuth는 손쉬운 사용 API로 윈도우를 제어합니다. 시스템 설정 → 개인 정보 보호 및 보안 → 손쉬운 사용에서 Azimuth를 활성화하세요. 첫 실행 시 안내가 표시됩니다.">
+              Azimuth controls windows via the Accessibility API. Enable it in System Settings → Privacy &amp; Security → Accessibility → toggle Azimuth on. You will be prompted on first launch.
+            </p>
+          </div>
+
+          <!-- Req 2 -->
+          <div class="req-card">
+            <div class="req-card-num" aria-hidden="true">2</div>
+            <h3 data-en="Running Azimuth"
+                data-ko="Azimuth 실행">Running Azimuth</h3>
+            <p data-en="Download the DMG from the releases page and drag Azimuth to Applications — no build tools required. The release is Developer ID–signed and notarized, so it opens without Gatekeeper warnings."
+               data-ko="릴리스 페이지에서 DMG를 다운로드하고 Azimuth를 응용 프로그램 폴더로 드래그하세요. 빌드 도구가 필요 없습니다. 릴리스 빌드는 Developer ID 서명 + 공증을 거쳐 Gatekeeper 경고 없이 바로 열립니다.">
+              Download the DMG from the releases page and drag Azimuth to Applications — no build tools required. The release is Developer ID–signed and notarized, so it opens without Gatekeeper warnings.
+            </p>
+          </div>
+
+          <!-- Req 3 -->
+          <div class="req-card">
+            <div class="req-card-num" aria-hidden="true">3</div>
+            <h3 data-en="Target window"
+                data-ko="대상 창">Target window</h3>
+            <p data-en="Azimuth operates on the focused standard window (<code>AXStandardWindow</code>). Full-screen spaces and special windows such as sheets and panels are intentionally skipped with clear failure feedback."
+               data-ko="Azimuth는 포커스된 표준 창(<code>AXStandardWindow</code>)을 대상으로 합니다. 풀스크린 스페이스나 시트·패널 등 특수 창은 명확한 실패 피드백과 함께 의도적으로 건너뜁니다.">
+              Azimuth operates on the focused standard window (<code>AXStandardWindow</code>). Full-screen spaces and special windows such as sheets and panels are intentionally skipped with clear failure feedback.
+            </p>
+          </div>
+
+          <!-- Req 4 -->
+          <div class="req-card">
+            <div class="req-card-num" aria-hidden="true">4</div>
+            <h3 data-en="Target app policy"
+                data-ko="대상 앱 정책">Target app policy</h3>
+            <p data-en="Commands act on the most recently active non-Azimuth app's focused window. Opening Azimuth's own Settings window does not change the target — your previous working app remains the target."
+               data-ko="명령은 직전에 활성화된 non-Azimuth 앱의 포커스 창에 작용합니다. Azimuth 설정창을 열어도 대상은 바뀌지 않으며, 이전 작업 앱이 계속 대상으로 유지됩니다.">
+              Commands act on the most recently active non-Azimuth app's focused window. Opening Azimuth's own Settings window does not change the target — your previous working app remains the target.
+            </p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ── 3. Feature Summary ────────────────────────────────────── -->
+    <section id="features" aria-labelledby="features-heading">
+      <div class="container">
+        <span class="section-label"
+              data-en="Overview" data-ko="개요">Overview</span>
+        <h2 class="section-title" id="features-heading"
+            data-en="Feature summary"
+            data-ko="기능 요약">
+          Feature summary
+        </h2>
+        <p class="section-sub"
+           data-en="All implemented and planned capabilities, grouped by area."
+           data-ko="영역별로 정리한 구현 완료 및 예정 기능 전체 목록.">
+          All implemented and planned capabilities, grouped by area.
+        </p>
+
+        <div class="features-table-wrap">
+          <table class="features-table" aria-label="Feature summary table">
+            <thead>
+              <tr>
+                <th data-en="Area" data-ko="영역">Area</th>
+                <th data-en="Feature" data-ko="기능">Feature</th>
+                <th data-en="Status" data-ko="상태">Status</th>
+                <th data-en="Stage" data-ko="단계">Stage</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td data-en="App shell" data-ko="앱 셸">App shell</td>
+                <td data-en="Menu-bar app + Dock hidden (release) + Settings window" data-ko="메뉴바 앱 + Dock 숨김(릴리스) + 설정창">Menu-bar app + Dock hidden (release) + Settings window</td>
+                <td>✅</td>
+                <td>P1</td>
+              </tr>
+              <tr>
+                <td data-en="Permissions" data-ko="권한">Permissions</td>
+                <td data-en="Accessibility status display, request, and Settings navigation" data-ko="Accessibility 상태 표시·요청·설정 이동">Accessibility status display, request, and Settings navigation</td>
+                <td>✅</td>
+                <td>P2</td>
+              </tr>
+              <tr>
+                <td data-en="Window identification" data-ko="창 식별">Window identification</td>
+                <td data-en="Resolve focused standard window; skip special/full-screen/unfocused" data-ko="포커스 일반 창 해석, 특수/풀스크린/무포커스 구분 실패">Resolve focused standard window; skip special/full-screen/unfocused</td>
+                <td>✅</td>
+                <td>P3</td>
+              </tr>
+              <tr>
+                <td data-en="Command" data-ko="명령">Command</td>
+                <td data-en="Maximize to work area" data-ko="작업영역 최대화">Maximize to work area</td>
+                <td>✅</td>
+                <td>P4</td>
+              </tr>
+              <tr>
+                <td data-en="Command" data-ko="명령">Command</td>
+                <td data-en="Absolute thirds (1/3): horizontal left/center/right · vertical top/middle/bottom" data-ko="절대 배치 1/3 (가로 좌·중·우 / 세로 상·중·하)">Absolute thirds (1/3): horizontal left/center/right · vertical top/middle/bottom</td>
+                <td>✅</td>
+                <td>P5</td>
+              </tr>
+              <tr>
+                <td data-en="Command" data-ko="명령">Command</td>
+                <td data-en="Absolute two-thirds (2/3): horizontal left/right · vertical top/bottom" data-ko="절대 배치 2/3 (가로 좌·우 / 세로 상·하)">Absolute two-thirds (2/3): horizontal left/right · vertical top/bottom</td>
+                <td>✅</td>
+                <td>P5</td>
+              </tr>
+              <tr>
+                <td data-en="Command" data-ko="명령">Command</td>
+                <td data-en="Snap + throw to adjacent display (snapThrow, left/right/up/down)" data-ko="반분 + 인접 모니터 튕기기 (snapThrow, 좌·우·상·하)">Snap + throw to adjacent display (snapThrow, left/right/up/down)</td>
+                <td>✅</td>
+                <td>v1.5</td>
+              </tr>
+              <tr>
+                <td data-en="Command" data-ko="명령">Command</td>
+                <td data-en="Move keep-size (left/right/up/down) · center" data-ko="현재 크기 유지 이동 (좌·우·상·하) · 화면 중앙 이동">Move keep-size (left/right/up/down) · center</td>
+                <td>✅</td>
+                <td>P5</td>
+              </tr>
+              <tr>
+                <td data-en="Command" data-ko="명령">Command</td>
+                <td data-en="Relative shrink ½ (left/right/up/down edge pinned)" data-ko="상대 변형 1/2 (좌·우·상·하 edge 고정)">Relative shrink ½ (left/right/up/down edge pinned)</td>
+                <td>✅</td>
+                <td>P5</td>
+              </tr>
+              <tr>
+                <td data-en="Command" data-ko="명령">Command</td>
+                <td data-en="Move to next display (keep shape; moveToDisplay)" data-ko="다음 디스플레이로 이동 (moveToDisplay, 크기 유지)">Move to next display (keep shape; moveToDisplay)</td>
+                <td>✅</td>
+                <td>v1.5</td>
+              </tr>
+              <tr>
+                <td data-en="Command" data-ko="명령">Command</td>
+                <td data-en="Undo (1 step per window)" data-ko="1단계 되돌리기">Undo (1 step per window)</td>
+                <td>✅</td>
+                <td>P5</td>
+              </tr>
+              <tr>
+                <td data-en="Coordinates" data-ko="좌표">Coordinates</td>
+                <td data-en="Multi-monitor support + position-aware adjacent display selection" data-ko="멀티모니터 지원 + 위치 인식형 인접 디스플레이 선택">Multi-monitor support + position-aware adjacent display selection</td>
+                <td>✅</td>
+                <td>v1.5</td>
+              </tr>
+              <tr>
+                <td data-en="Input" data-ko="입력">Input</td>
+                <td data-en="Global hotkeys (Carbon) · Standard / Vim presets" data-ko="전역 단축키(Carbon) · Standard / Vim 프리셋">Global hotkeys (Carbon) · Standard / Vim presets</td>
+                <td>✅</td>
+                <td>P6·P7a</td>
+              </tr>
+              <tr>
+                <td data-en="Settings" data-ko="설정">Settings</td>
+                <td data-en="Preset selection / failure beep toggle / launch at login" data-ko="프리셋 선택 / 실패 비프 토글 / 로그인 자동 실행">Preset selection / failure beep toggle / launch at login</td>
+                <td>✅</td>
+                <td>P7b</td>
+              </tr>
+              <tr>
+                <td data-en="Settings" data-ko="설정">Settings</td>
+                <td data-en="Per-command shortcut customization + conflict warnings" data-ko="명령별 단축키 커스터마이즈 + 충돌 경고">Per-command shortcut customization + conflict warnings</td>
+                <td>✅</td>
+                <td>P7c</td>
+              </tr>
+              <tr>
+                <td data-en="Settings" data-ko="설정">Settings</td>
+                <td data-en="Command group on/off · per-command unbind · hide menu-bar icon" data-ko="명령 그룹 on/off · 개별 unbind · 메뉴바 아이콘 숨김">Command group on/off · per-command unbind · hide menu-bar icon</td>
+                <td>✅</td>
+                <td>P7d</td>
+              </tr>
+              <tr>
+                <td data-en="Stability" data-ko="안정성">Stability</td>
+                <td data-en="AX messaging timeout · transient failure skip · permission cache hardening" data-ko="AX 메시징 타임아웃·일시적 실패 스킵·권한 캐시 하드닝">AX messaging timeout · transient failure skip · permission cache hardening</td>
+                <td>✅</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td data-en="Planned" data-ko="예정">Planned</td>
+                <td data-en="Anchor: position current window relative to another window" data-ko="anchor: 다른 창 기준 상대 배치">Anchor: position current window relative to another window</td>
+                <td>🟡</td>
+                <td>v1.5+</td>
+              </tr>
+              <tr>
+                <td data-en="Planned" data-ko="예정">Planned</td>
+                <td data-en="Scene save/restore, per-app default positions" data-ko="scene 저장/복원, app별 기본 위치">Scene save/restore, per-app default positions</td>
+                <td>🟡</td>
+                <td>v2</td>
+              </tr>
+              <tr>
+                <td data-en="Planned" data-ko="예정">Planned</td>
+                <td data-en="URL scheme / Shortcuts / per-app rules" data-ko="URL scheme / Shortcuts / app별 규칙">URL scheme / Shortcuts / per-app rules</td>
+                <td>🟡</td>
+                <td>v3</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ── 4. Shortcuts ──────────────────────────────────────────── -->
+    <section id="shortcuts" aria-labelledby="shortcuts-heading">
+      <div class="container">
+        <span class="section-label"
+              data-en="Keyboard reference" data-ko="키보드 레퍼런스">Keyboard reference</span>
+        <h2 class="section-title" id="shortcuts-heading"
+            data-en="Shortcuts — all 29 commands"
+            data-ko="단축키 — 전체 29개 명령">
+          Shortcuts — all 29 commands
+        </h2>
+        <p class="section-sub"
+           data-en="Four modifier layers, each governing a distinct class of behavior. The layers never overlap."
+           data-ko="네 가지 수식키 레이어가 각각 독립된 동작 그룹을 담당합니다. 레이어는 절대 겹치지 않습니다.">
+          Four modifier layers, each governing a distinct class of behavior. The layers never overlap.
+        </p>
+
+        <!-- Modifier layer legend -->
+        <div class="modifier-legend" role="list">
+          <div class="modifier-row" role="listitem">
+            <div class="modifier-keys">
+              <span class="key sym">⌃</span><span class="key sym">⌥</span>
+            </div>
+            <div class="modifier-desc"
+                 data-en="Halves (snap/throw) · Maximize · Center · Undo · Thirds &amp; two-thirds (number keys)"
+                 data-ko="반분(스냅/튕기기) · 최대화 · 가운데 · 되돌리기 · 삼등분 &amp; 삼분의 이 (숫자 키)">
+              Halves (snap/throw) · Maximize · Center · Undo · Thirds &amp; two-thirds (number keys)
+            </div>
+          </div>
+          <div class="modifier-row" role="listitem">
+            <div class="modifier-keys">
+              <span class="key sym">⌃</span><span class="key sym">⌥</span><span class="key sym">⌘</span>
+            </div>
+            <div class="modifier-desc"
+                 data-en="Move (keep current size)"
+                 data-ko="이동 (현재 크기 유지)">
+              Move (keep current size)
+            </div>
+          </div>
+          <div class="modifier-row" role="listitem">
+            <div class="modifier-keys">
+              <span class="key sym">⌃</span><span class="key sym">⌥</span><span class="key sym">⇧</span>
+            </div>
+            <div class="modifier-desc"
+                 data-en="Relative shrink (½ against a pinned edge)"
+                 data-ko="상대 축소 (고정 엣지 기준 ½)">
+              Relative shrink (½ against a pinned edge)
+            </div>
+          </div>
+          <div class="modifier-row" role="listitem">
+            <div class="modifier-keys">
+              <span class="key sym">⌃</span><span class="key sym">⌥</span><span class="key sym">⌘</span><span class="key sym">⇧</span>
+            </div>
+            <div class="modifier-desc"
+                 data-en="Move to next display"
+                 data-ko="다음 디스플레이로 이동">
+              Move to next display
+            </div>
+          </div>
+        </div>
+
+        <!-- Standard preset table -->
+        <div class="shortcuts-table-wrap">
+          <table class="shortcuts-table" aria-label="Standard preset keyboard shortcuts">
+            <thead>
+              <tr>
+                <th data-en="Group" data-ko="그룹">Group</th>
+                <th data-en="Command" data-ko="명령">Command</th>
+                <th data-en="Shortcut (Standard)" data-ko="단축키 (Standard)">Shortcut (Standard)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Halves -->
+              <tr>
+                <td rowspan="4" data-en="Halves (snap + throw)" data-ko="반분 (snap+튕기기)">Halves (snap + throw)</td>
+                <td data-en="Left" data-ko="왼쪽">Left</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">←</span></div></td>
+              </tr>
+              <tr>
+                <td data-en="Right" data-ko="오른쪽">Right</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">→</span></div></td>
+              </tr>
+              <tr>
+                <td data-en="Top" data-ko="위">Top</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">↑</span></div></td>
+              </tr>
+              <tr>
+                <td data-en="Bottom" data-ko="아래">Bottom</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">↓</span></div></td>
+              </tr>
+              <!-- Maximize / Undo / Center -->
+              <tr>
+                <td rowspan="3" data-en="Maximize · Undo · Center" data-ko="최대화 · 되돌리기 · 가운데">Maximize · Undo · Center</td>
+                <td data-en="Maximize" data-ko="최대화">Maximize</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">↩</span></div></td>
+              </tr>
+              <tr>
+                <td data-en="Undo" data-ko="되돌리기">Undo</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">⌫</span></div></td>
+              </tr>
+              <tr>
+                <td data-en="Center" data-ko="가운데 배치">Center</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">C</span></div></td>
+              </tr>
+              <!-- Thirds horizontal -->
+              <tr>
+                <td rowspan="2" data-en="Thirds (1/3)" data-ko="삼등분 (1/3)">Thirds (1/3)</td>
+                <td data-en="Horizontal: left · center · right" data-ko="수평: 왼쪽 · 가운데 · 오른쪽">Horizontal: left · center · right</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">1</span><span class="key">2</span><span class="key">3</span></div></td>
+              </tr>
+              <tr>
+                <td data-en="Vertical: top · middle · bottom" data-ko="수직: 위 · 가운데 · 아래">Vertical: top · middle · bottom</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">4</span><span class="key">5</span><span class="key">6</span></div></td>
+              </tr>
+              <!-- Two-thirds -->
+              <tr>
+                <td rowspan="2" data-en="Two-thirds (2/3)" data-ko="삼분의 이 (2/3)">Two-thirds (2/3)</td>
+                <td data-en="Horizontal: left · right" data-ko="수평: 왼쪽 · 오른쪽">Horizontal: left · right</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">7</span><span class="key">8</span></div></td>
+              </tr>
+              <tr>
+                <td data-en="Vertical: top · bottom" data-ko="수직: 위 · 아래">Vertical: top · bottom</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">9</span><span class="key">0</span></div></td>
+              </tr>
+              <!-- Move -->
+              <tr>
+                <td data-en="Move (keep size)" data-ko="이동 (크기 유지)">Move (keep size)</td>
+                <td data-en="Left · Right · Up · Down" data-ko="좌 · 우 · 위 · 아래">Left · Right · Up · Down</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥⌘</span><span class="key">←</span><span class="key">→</span><span class="key">↑</span><span class="key">↓</span></div></td>
+              </tr>
+              <!-- Relative shrink -->
+              <tr>
+                <td data-en="Relative shrink" data-ko="상대 축소">Relative shrink</td>
+                <td data-en="Left · Right · Up · Down" data-ko="좌 · 우 · 위 · 아래">Left · Right · Up · Down</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥⇧</span><span class="key">←</span><span class="key">→</span><span class="key">↑</span><span class="key">↓</span></div></td>
+              </tr>
+              <!-- Move to next display -->
+              <tr>
+                <td data-en="Move to next display" data-ko="다음 디스플레이로 이동">Move to next display</td>
+                <td data-en="Left · Right · Up · Down" data-ko="좌 · 우 · 위 · 아래">Left · Right · Up · Down</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥⌘⇧</span><span class="key">←</span><span class="key">→</span><span class="key">↑</span><span class="key">↓</span></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Vim preset differences -->
+        <div class="vim-note" role="note">
+          <strong data-en="Vim preset:" data-ko="Vim 프리셋:">Vim preset:</strong>
+          <span data-en="Only directional keys and Undo change. Directions become "
+                data-ko="방향 키와 되돌리기만 변경됩니다. 방향은 ">Only directional keys and Undo change. Directions become </span>
+          <code>H</code> <span data-en="(left)" data-ko="(왼쪽)">(left)</span>&nbsp;·
+          <code>L</code> <span data-en="(right)" data-ko="(오른쪽)">(right)</span>&nbsp;·
+          <code>K</code> <span data-en="(up)" data-ko="(위)">(up)</span>&nbsp;·
+          <code>J</code> <span data-en="(down)" data-ko="(아래)">(down)</span><span data-en=", Undo → " data-ko="로 바뀌고, 되돌리기 → ">, Undo → </span><code>U</code>.
+          <span data-en="Maximize, Center, and number shortcuts are identical."
+                data-ko="최대화, 가운데, 숫자 단축키는 동일합니다.">Maximize, Center, and number shortcuts are identical.</span>
+          <br /><br />
+          <span data-en="Example: "
+                data-ko="예시: ">Example: </span>
+          <span class="key sym">⌃⌥H</span> <span data-en="(snap left) · " data-ko="(좌½) · ">(snap left) · </span>
+          <span class="key sym">⌃⌥⌘K</span> <span data-en="(move up) · " data-ko="(위로 이동) · ">(move up) · </span>
+          <span class="key sym">⌃⌥⇧J</span> <span data-en="(shrink down) · " data-ko="(아래 축소) · ">(shrink down) · </span>
+          <span class="key sym">⌃⌥⌘⇧L</span> <span data-en="(move to right display) · " data-ko="(오른쪽 모니터로) · ">(move to right display) · </span>
+          <span class="key sym">⌃⌥U</span> <span data-en="(undo)" data-ko="(되돌리기)">(undo)</span>.
+        </div>
+
+        <!-- 3.3 No-shortcut execution note -->
+        <div class="shortcuts-meta" role="note">
+          <strong data-en="Running commands without shortcuts:" data-ko="단축키 없이 실행:">Running commands without shortcuts:</strong>
+          <span data-en=" In DEBUG builds, use the menu-bar icon → Window Commands (Debug) submenu to trigger any command directly. In Settings (⌘,), switch presets, customize shortcuts, toggle command groups on/off, and configure feedback and login options."
+                data-ko=" DEBUG 빌드에서는 메뉴바 아이콘 → Window Commands (Debug) 서브메뉴로 각 명령을 직접 실행할 수 있습니다. 설정창(⌘,)에서 프리셋 전환·단축키 커스터마이즈·그룹 on/off·피드백 및 로그인 옵션을 설정합니다.">
+            In DEBUG builds, use the menu-bar icon → Window Commands (Debug) submenu to trigger any command directly. In Settings (⌘,), switch presets, customize shortcuts, toggle command groups on/off, and configure feedback and login options.
+          </span>
+          <br /><br />
+          <span data-en="All 29 unique key combinations are registered. Combinations already claimed by the system or another app are rejected and shown as "
+                data-ko="내부적으로 29개 키 조합이 등록됩니다. 시스템이나 다른 앱이 이미 점유한 조합은 등록이 거부되어 설정창에 ">All 29 unique key combinations are registered. Combinations already claimed by the system or another app are rejected and shown as </span>
+          <strong>"In use by system"</strong>
+          <span data-en=" in Settings. All shortcuts are fully customizable via the Settings recorder."
+                data-ko="로 표시됩니다. 모든 단축키는 설정창 레코더로 커스터마이즈 가능합니다.">
+             in Settings. All shortcuts are fully customizable via the Settings recorder.
+          </span>
+        </div>
+
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ── 5. Command behavior ───────────────────────────────────── -->
+    <section id="commands" aria-labelledby="commands-heading">
+      <div class="container">
+        <span class="section-label"
+              data-en="How each command works" data-ko="명령 동작 상세">How each command works</span>
+        <h2 class="section-title" id="commands-heading"
+            data-en="Command behavior"
+            data-ko="명령 동작 상세">
+          Command behavior
+        </h2>
+        <p class="section-sub"
+           data-en="Precise description of what each command does — what changes, what stays the same, and what the edge cases are."
+           data-ko="각 명령이 정확히 무엇을 하는지 — 무엇이 바뀌고, 무엇이 유지되며, 경계 조건이 어떻게 처리되는지.">
+          Precise description of what each command does — what changes, what stays the same, and what the edge cases are.
+        </p>
+
+        <div class="commands-grid">
+
+          <!-- Maximize -->
+          <div class="cmd-card">
+            <div class="cmd-card-title">
+              <span data-en="Maximize" data-ko="최대화">Maximize</span>
+            </div>
+            <div class="cmd-card-keys">
+              <div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">↩</span></div>
+            </div>
+            <p class="cmd-card-body"
+               data-en="Fills the work area — the visible region excluding the menu bar and Dock. The window expands to use every pixel available without overlapping system chrome."
+               data-ko="작업영역(메뉴바·Dock을 제외한 가시 영역)을 가득 채웁니다. 시스템 크롬과 겹치지 않는 모든 픽셀을 사용합니다.">
+              Fills the work area — the visible region excluding the menu bar and Dock. The window expands to use every pixel available without overlapping system chrome.
+            </p>
+          </div>
+
+          <!-- Absolute thirds / two-thirds -->
+          <div class="cmd-card">
+            <div class="cmd-card-title">
+              <span data-en="Absolute thirds &amp; two-thirds" data-ko="절대 배치 (1/3 · 2/3)">Absolute thirds &amp; two-thirds</span>
+            </div>
+            <div class="cmd-card-keys">
+              <div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">1</span>–<span class="key">0</span></div>
+            </div>
+            <p class="cmd-card-body"
+               data-en="Positions the window at an exact fraction of the work area. Axes are independent: a horizontal command only changes x/width; a vertical command only changes y/height. Compose freely — apply a horizontal third then a vertical third to land in any corner or center cell."
+               data-ko="창을 작업영역의 정확한 비율로 배치합니다. 축이 독립적입니다: 가로 명령은 x/너비만, 세로 명령은 y/높이만 변경합니다. 자유롭게 조합하세요 — 가로 1/3 후 세로 1/3을 적용하면 모서리나 중앙 셀에 배치됩니다.">
+              Positions the window at an exact fraction of the work area. Axes are independent: a horizontal command only changes x/width; a vertical command only changes y/height. Compose freely — apply a horizontal third then a vertical third to land in any corner or center cell.
+            </p>
+          </div>
+
+          <!-- Snap + throw -->
+          <div class="cmd-card">
+            <div class="cmd-card-title">
+              <span data-en="Snap + throw (halves)" data-ko="반분 + 튕기기 (snapThrow)">Snap + throw (halves)</span>
+            </div>
+            <div class="cmd-card-keys">
+              <div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">←</span><span class="key">→</span><span class="key">↑</span><span class="key">↓</span></div>
+            </div>
+            <p class="cmd-card-body"
+               data-en="Two-stage behavior: if the window is not already in that half, it snaps there. If it is already in that half, it is thrown to the adjacent display in the same direction, landing in the opposite half (throw right → lands in the left half of the right display). If there is no adjacent display in that direction, the window stays in its current half."
+               data-ko="두 단계 동작: 창이 아직 그 절반에 없으면 스냅합니다. 이미 그 절반에 있으면 같은 방향의 인접 디스플레이로 던져져 반대쪽 절반에 배치됩니다(오른쪽으로 던지면 오른쪽 디스플레이의 왼쪽 절반에 착지). 그 방향에 인접 디스플레이가 없으면 현재 절반을 유지합니다.">
+              Two-stage behavior: if the window is not already in that half, it snaps there. If it is already in that half, it is thrown to the adjacent display in the same direction, landing in the opposite half (throw right → lands in the left half of the right display). If there is no adjacent display in that direction, the window stays in its current half.
+            </p>
+          </div>
+
+          <!-- Move -->
+          <div class="cmd-card">
+            <div class="cmd-card-title">
+              <span data-en="Move (keep size)" data-ko="이동 (크기 유지)">Move (keep size)</span>
+            </div>
+            <div class="cmd-card-keys">
+              <div class="keys-group"><span class="key sym">⌃⌥⌘</span><span class="key">←</span><span class="key">→</span><span class="key">↑</span><span class="key">↓</span></div>
+            </div>
+            <p class="cmd-card-body"
+               data-en="Nudges the window by exactly its own width (horizontal) or height (vertical), with no resize and no display change. Clamped at the work-area boundary — repeat presses push the window to the edge and keep it flush. If the window is larger than the work area, it is pinned to the top-left corner."
+               data-ko="창을 자체 너비(수평) 또는 높이(수직)만큼 정확히 이동합니다. 크기 변경과 디스플레이 이동은 없습니다. 작업영역 경계에서 클램프 — 계속 누르면 끝까지 밀려 경계에 붙습니다. 창이 작업영역보다 크면 좌상단에 고정됩니다.">
+              Nudges the window by exactly its own width (horizontal) or height (vertical), with no resize and no display change. Clamped at the work-area boundary — repeat presses push the window to the edge and keep it flush. If the window is larger than the work area, it is pinned to the top-left corner.
+            </p>
+          </div>
+
+          <!-- Center -->
+          <div class="cmd-card">
+            <div class="cmd-card-title">
+              <span data-en="Center" data-ko="가운데 배치">Center</span>
+            </div>
+            <div class="cmd-card-keys">
+              <div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">C</span></div>
+            </div>
+            <p class="cmd-card-body"
+               data-en="Moves the window to the center of the work area without changing its size."
+               data-ko="창 크기를 변경하지 않고 작업영역 중앙으로 이동합니다.">
+              Moves the window to the center of the work area without changing its size.
+            </p>
+          </div>
+
+          <!-- Relative shrink -->
+          <div class="cmd-card">
+            <div class="cmd-card-title">
+              <span data-en="Relative shrink (½)" data-ko="상대 변형 (½ 축소)">Relative shrink (½)</span>
+            </div>
+            <div class="cmd-card-keys">
+              <div class="keys-group"><span class="key sym">⌃⌥⇧</span><span class="key">←</span><span class="key">→</span><span class="key">↑</span><span class="key">↓</span></div>
+            </div>
+            <p class="cmd-card-body"
+               data-en="Halves the window's current size relative to a pinned edge — not the screen. The edge in the given direction is fixed; the opposite edge moves inward. Left: left edge fixed, width halved. Right: right edge fixed, width halved. Exact and repeatable."
+               data-ko="현재 창 크기 기준(화면 기준 아님)으로 고정 엣지 방향을 기준으로 절반으로 줄입니다. 지정 방향의 엣지는 고정되고 반대쪽 엣지가 안쪽으로 이동합니다. 정확하고 반복 가능합니다.">
+              Halves the window's current size relative to a pinned edge — not the screen. The edge in the given direction is fixed; the opposite edge moves inward. Left: left edge fixed, width halved. Right: right edge fixed, width halved. Exact and repeatable.
+            </p>
+          </div>
+
+          <!-- Move to next display -->
+          <div class="cmd-card">
+            <div class="cmd-card-title">
+              <span data-en="Move to next display" data-ko="다음 디스플레이로 이동">Move to next display</span>
+            </div>
+            <div class="cmd-card-keys">
+              <div class="keys-group"><span class="key sym">⌃⌥⌘⇧</span><span class="key">←</span><span class="key">→</span><span class="key">↑</span><span class="key">↓</span></div>
+            </div>
+            <p class="cmd-card-body"
+               data-en="Sends the window to the adjacent display in the given direction while preserving its relative position and proportional size on the new screen. The size is capped so it never exceeds the target work area, and the position is clamped to fit. If there is no adjacent display in that direction, the window stays put."
+               data-ko="창을 지정 방향의 인접 디스플레이로 옮기면서 상대 위치와 비율적 크기를 유지합니다. 크기는 대상 작업영역을 초과하지 않도록 조정되며 위치는 클램프됩니다. 그 방향에 인접 디스플레이가 없으면 현 위치를 유지합니다.">
+              Sends the window to the adjacent display in the given direction while preserving its relative position and proportional size on the new screen. The size is capped so it never exceeds the target work area, and the position is clamped to fit. If there is no adjacent display in that direction, the window stays put.
+            </p>
+          </div>
+
+          <!-- Undo -->
+          <div class="cmd-card">
+            <div class="cmd-card-title">
+              <span data-en="Undo" data-ko="되돌리기">Undo</span>
+            </div>
+            <div class="cmd-card-keys">
+              <div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">⌫</span></div>
+            </div>
+            <p class="cmd-card-body"
+               data-en="Restores the window's previous frame — one step per window. History is discarded if the display configuration changes (e.g., a monitor is connected or disconnected), since absolute coordinates become invalid."
+               data-ko="창의 이전 프레임을 복원합니다 — 창당 1단계. 디스플레이 구성이 변경되면(모니터 연결·분리 등) 절대 좌표가 무효화되므로 이력은 폐기됩니다.">
+              Restores the window's previous frame — one step per window. History is discarded if the display configuration changes (e.g., a monitor is connected or disconnected), since absolute coordinates become invalid.
+            </p>
+          </div>
+
+          <!-- Failure feedback -->
+          <div class="cmd-card">
+            <div class="cmd-card-title">
+              <span data-en="Failure feedback" data-ko="실패 피드백">Failure feedback</span>
+            </div>
+            <p class="cmd-card-body"
+               data-en="When a command cannot complete, Azimuth plays a beep (configurable in Settings). Transient failures — such as those caused by a Space transition or a window animation in progress — are silently skipped without a beep, since they self-resolve immediately."
+               data-ko="명령이 완료될 수 없을 때 Azimuth는 비프음을 재생합니다(설정에서 끌 수 있음). Space 전환이나 윈도우 애니메이션 중 발생하는 일시적 실패는 즉시 자가 해결되므로 비프 없이 조용히 스킵됩니다.">
+              When a command cannot complete, Azimuth plays a beep (configurable in Settings). Transient failures — such as those caused by a Space transition or a window animation in progress — are silently skipped without a beep, since they self-resolve immediately.
+            </p>
+          </div>
+
+        </div>
+
+        <!-- Size-increment caveat -->
+        <div class="cmd-note" role="note">
+          <strong data-en="Note on size-increment apps (Terminal, etc.):"
+                  data-ko="크기 증분 앱 참고 (터미널 등):">Note on size-increment apps (Terminal, etc.):</strong>
+          <span data-en=" Some apps constrain their window size to a character-grid increment. When Azimuth applies a half or maximize command, the result is rounded down to the nearest character cell, which may leave a sub-row gap at the edge. This is an app-level constraint and expected behavior. Similarly, the work area excludes the menu bar and Dock, so a gap at the screen edge is normal."
+                data-ko=" 일부 앱은 윈도우 크기를 문자 격자 단위로 제한합니다. Azimuth가 반분 또는 최대화 명령을 적용하면 결과가 가장 가까운 문자 셀로 내림되어 경계에 한 줄 미만의 빈틈이 생길 수 있습니다. 이는 앱 수준의 제약이며 정상 동작입니다. 또한 작업영역은 메뉴바·Dock을 제외하므로 화면 끝과의 간격은 정상입니다.">
+            Some apps constrain their window size to a character-grid increment. When Azimuth applies a half or maximize command, the result is rounded down to the nearest character cell, which may leave a sub-row gap at the edge. This is an app-level constraint and expected behavior. Similarly, the work area excludes the menu bar and Dock, so a gap at the screen edge is normal.
+          </span>
+        </div>
+
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ── 6. Roadmap ────────────────────────────────────────────── -->
+    <section id="roadmap" aria-labelledby="roadmap-heading">
+      <div class="container">
+        <span class="section-label"
+              data-en="What's next" data-ko="로드맵">What's next</span>
+        <h2 class="section-title" id="roadmap-heading"
+            data-en="Roadmap"
+            data-ko="로드맵">
+          Roadmap
+        </h2>
+        <p class="section-sub"
+           data-en="Planned work, in order of priority."
+           data-ko="우선순위 순으로 정리한 예정 작업.">
+          Planned work, in order of priority.
+        </p>
+
+        <div class="features-table-wrap">
+          <table class="roadmap-table" aria-label="Roadmap table">
+            <thead>
+              <tr>
+                <th data-en="Stage" data-ko="단계">Stage</th>
+                <th data-en="Description" data-ko="내용">Description</th>
+                <th data-en="Status" data-ko="상태">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>P8</td>
+                <td data-en="Regression testing across representative apps (Finder / Safari / Terminal / VS Code / Xcode), failure case collection and stabilization — v1 release gate"
+                    data-ko="대표 앱(Finder/Safari/Terminal/VS Code/Xcode) 회귀 + 실패 케이스 수집·안정화 → v1 출시 기준">
+                  Regression testing across representative apps (Finder / Safari / Terminal / VS Code / Xcode), failure case collection and stabilization — v1 release gate
+                </td>
+                <td data-en="🔄 In progress" data-ko="🔄 진행 중">🔄 In progress</td>
+              </tr>
+              <tr>
+                <td data-en="Hardening" data-ko="후속 하드닝">Hardening</td>
+                <td data-en="DisplayResolver: edge-based adjacency detection for asymmetric monitor layouts"
+                    data-ko="DisplayResolver 인접 판정 엣지 기반화 (비대칭 레이아웃 대응)">
+                  DisplayResolver: edge-based adjacency detection for asymmetric monitor layouts
+                </td>
+                <td data-en="⏸ Deferred" data-ko="⏸ 보류">⏸ Deferred</td>
+              </tr>
+              <tr>
+                <td>v1.5+</td>
+                <td data-en="Anchor: snap or size-match the current window to another window on the same display"
+                    data-ko="anchor: 동일 모니터 내 다른 창을 기준으로 현재 창 붙이기/크기 맞추기">
+                  Anchor: snap or size-match the current window to another window on the same display
+                </td>
+                <td>🟡</td>
+              </tr>
+              <tr>
+                <td>v2</td>
+                <td data-en="Workspaces: per-app default positions, named scene save/restore, monitor-aware scenes"
+                    data-ko="워크스페이스: app별 기본 위치, named scene 저장/복원, monitor-aware scene">
+                  Workspaces: per-app default positions, named scene save/restore, monitor-aware scenes
+                </td>
+                <td>🟡</td>
+              </tr>
+              <tr>
+                <td>v3</td>
+                <td data-en="Automation: URL scheme, AppleScript/Shortcuts actions, per-app rules, edge stash/pin"
+                    data-ko="자동화: URL scheme, AppleScript/Shortcuts action, app별 규칙, edge stash/pin">
+                  Automation: URL scheme, AppleScript/Shortcuts actions, per-app rules, edge stash/pin
+                </td>
+                <td>🟡</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="principle-note" role="note">
+          <span data-en=""Predictability over clever inference. Any effect achievable by composing simple commands is not added as a separate feature.""
+                data-ko="&ldquo;예측 가능성 > 똑똑한 자동 추론. 단순 명령 조합으로 낼 수 있는 효과는 별도 기능으로 추가하지 않는다.&rdquo;">
+            "Predictability over clever inference. Any effect achievable by composing simple commands is not added as a separate feature."
+          </span>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── Footer ────────────────────────────────────────────────── -->
+  <footer role="contentinfo">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-left">
+          <!-- small compass -->
+          <svg width="16" height="16" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+            <circle cx="11" cy="11" r="10" stroke="var(--text-faint)" stroke-width="1.2"/>
+            <circle cx="11" cy="11" r="1.6" fill="var(--text-faint)"/>
+            <polygon points="11,11 9.5,11 11,3.5" fill="var(--accent)" opacity="0.7"/>
+            <polygon points="11,11 12.5,11 11,18.5" fill="var(--text-faint)" opacity="0.4"/>
+          </svg>
+          <div class="footer-text">
+            <div data-en="© 2026 AiScream · Apache-2.0 · Built with Swift + AppKit"
+                 data-ko="© 2026 AiScream · Apache-2.0 · Swift + AppKit으로 제작">
+              © 2026 AiScream · Apache-2.0 · Built with Swift + AppKit
+            </div>
+            <div data-en="No data collection · no telemetry · no network access."
+                 data-ko="데이터 수집 없음 · 텔레메트리 없음 · 네트워크 접속 없음.">
+              No data collection · no telemetry · no network access.
+            </div>
+          </div>
+        </div>
+        <div class="footer-links">
+          <a href="index.html"
+             data-en="← Home" data-ko="← 홈">← Home</a>
+          <a href="https://github.com/ai-screams/Azimuth/issues" target="_blank" rel="noopener"
+             data-en="Report an issue" data-ko="이슈 등록">Report an issue</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ── Language toggle JS (identical mechanism to index.html) ── -->
+  <script>
+    (function () {
+      'use strict';
+
+      var STORAGE_KEY = 'azimuth-lang';
+      var currentLang = localStorage.getItem(STORAGE_KEY) || 'en';
+
+      function applyLang(lang) {
+        currentLang = lang;
+        localStorage.setItem(STORAGE_KEY, lang);
+
+        // update all elements with data-en / data-ko
+        var els = document.querySelectorAll('[data-en], [data-ko]');
+        for (var i = 0; i < els.length; i++) {
+          var el = els[i];
+          var val = el.getAttribute('data-' + lang);
+          if (val === null) continue;
+
+          // elements that use HTML (bold, code tags) — use innerHTML
+          if (el.classList.contains('install-note') || el.classList.contains('principle-note')) {
+            el.innerHTML = val;
+          } else {
+            el.textContent = val;
+          }
+        }
+
+        // update html lang attribute
+        document.documentElement.lang = lang === 'ko' ? 'ko' : 'en';
+
+        // update button states
+        var btnEn = document.getElementById('btn-en');
+        var btnKo = document.getElementById('btn-ko');
+        if (btnEn && btnKo) {
+          btnEn.classList.toggle('active', lang === 'en');
+          btnKo.classList.toggle('active', lang === 'ko');
+          btnEn.setAttribute('aria-pressed', String(lang === 'en'));
+          btnKo.setAttribute('aria-pressed', String(lang === 'ko'));
+        }
+      }
+
+      // expose for onclick
+      window.setLang = applyLang;
+
+      // apply lang on page load
+      applyLang(currentLang);
+    })();
+  </script>
+
+</body>
+</html>
