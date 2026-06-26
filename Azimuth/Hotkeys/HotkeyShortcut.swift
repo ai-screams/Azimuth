@@ -6,7 +6,6 @@
 //  NSEvent → 이 값으로의 변환은 UI 계층(ShortcutRecorderButton)에 둔다(AppKit 비의존 유지).
 //
 
-import Carbon.HIToolbox
 import Foundation
 
 nonisolated struct HotkeyShortcut: Codable, Equatable {
@@ -18,16 +17,7 @@ nonisolated struct HotkeyShortcut: Codable, Equatable {
 
     /// 메뉴/표시용 사람이 읽는 조합 문자열 (예: "⌃⌥←", "⌃⌥⇧K").
     var displayString: String {
-        modifierGlyphs + Self.keyLabel(for: keyCode)
-    }
-
-    private var modifierGlyphs: String {
-        var glyphs = ""
-        if modifiers & UInt32(controlKey) != 0 { glyphs += "⌃" }
-        if modifiers & UInt32(optionKey) != 0 { glyphs += "⌥" }
-        if modifiers & UInt32(shiftKey) != 0 { glyphs += "⇧" }
-        if modifiers & UInt32(cmdKey) != 0 { glyphs += "⌘" }
-        return glyphs
+        CarbonModifier.glyphs(for: modifiers) + Self.keyLabel(for: keyCode)
     }
 
     /// Carbon 가상 키코드(kVK_*) → 표시 라벨. 알 수 없으면 "key(코드)".

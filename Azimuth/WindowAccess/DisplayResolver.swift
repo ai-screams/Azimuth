@@ -18,26 +18,12 @@ enum DisplayResolver {
     /// @MainActor: 열거형 전체가 @MainActor이므로 이 메서드도 메인 액터에서만 호출 가능 (`NSScreen.screens` 접근).
     static func adjacentWorkArea(forAXWindowFrame axFrame: CGRect, edge: SnapEdge) -> CGRect? {
         let cocoaWindow = CoordinateSpace.axToCocoa(axFrame)
-        guard let current = bestScreen(for: cocoaWindow),
+        guard let current = NSScreen.bestMatch(forCocoaRect: cocoaWindow),
               let neighbor = adjacentScreen(to: current, edge: edge, window: cocoaWindow)
         else {
             return nil
         }
         return CoordinateSpace.cocoaToAX(neighbor.visibleFrame)
-    }
-
-    private static func bestScreen(for cocoaRect: CGRect) -> NSScreen? {
-        var best: NSScreen?
-        var bestArea: CGFloat = 0
-        for screen in NSScreen.screens {
-            let rect = cocoaRect.intersection(screen.frame)
-            let area = rect.isNull ? 0 : rect.width * rect.height
-            if area > bestArea {
-                bestArea = area
-                best = screen
-            }
-        }
-        return best ?? NSScreen.main ?? NSScreen.screens.first
     }
 
     /// 방향에 맞고 현재 화면과 겹치는 후보 중, 창 위치에 수직/수평으로 가장 가까운 화면.

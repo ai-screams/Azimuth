@@ -76,7 +76,7 @@ final class ShortcutRecorderButton: NSButton {
             cancelRecording()
             return
         }
-        let carbonModifiers = Self.carbonModifierMask(from: event.modifierFlags)
+        let carbonModifiers = CarbonModifier.mask(from: event.modifierFlags)
         guard carbonModifiers != 0 else {
             // 전역 단축키는 수정자가 최소 하나 필요하다.
             NSSound.beep()
@@ -88,16 +88,5 @@ final class ShortcutRecorderButton: NSButton {
     override func resignFirstResponder() -> Bool {
         if isRecording { cancelRecording() }
         return super.resignFirstResponder()
-    }
-
-    /// NSEvent 수정자 플래그 → Carbon 수정자 마스크.
-    static func carbonModifierMask(from flags: NSEvent.ModifierFlags) -> UInt32 {
-        let device = flags.intersection(.deviceIndependentFlagsMask)
-        var mask: UInt32 = 0
-        if device.contains(.control) { mask |= UInt32(controlKey) }
-        if device.contains(.option) { mask |= UInt32(optionKey) }
-        if device.contains(.shift) { mask |= UInt32(shiftKey) }
-        if device.contains(.command) { mask |= UInt32(cmdKey) }
-        return mask
     }
 }

@@ -42,43 +42,36 @@ nonisolated enum HotkeyPreset: String, CaseIterable {
         // Undo: Vim uses U=0x20, Standard uses Delete=0x33
         let undoKey = UInt32(isVim ? 0x20 : 0x33)
 
-        return snapThrowBindings(left: left, right: right, up: up, down: down, base: base)
+        /// 방향 키코드[left,right,up,down]를 캡처해 호출부를 짧게 유지하는 로컬 래퍼.
+        func directional(_ commands: [WindowCommand], _ modifiers: UInt32) -> [HotkeyBinding] {
+            directionalBindings(commands, keyCodes: [left, right, up, down], modifiers: modifiers)
+        }
+
+        return directional([.snapThrow(.left), .snapThrow(.right), .snapThrow(.top), .snapThrow(.bottom)], base)
             + coreBindings(undoKey: undoKey, base: base)
-            + moveBindings(left: left, right: right, up: up, down: down, moveMods: moveMods)
-            + relativeHalfBindings(left: left, right: right, up: up, down: down, relMods: relMods)
-            + displayMoveBindings(left: left, right: right, up: up, down: down, displayMods: displayMods)
+            + directional([.move(.left), .move(.right), .move(.up), .move(.down)], moveMods)
+            + directional(
+                [.relativeHalf(.left), .relativeHalf(.right), .relativeHalf(.top), .relativeHalf(.bottom)],
+                relMods
+            )
+            + directional(
+                [.moveToDisplay(.left), .moveToDisplay(.right), .moveToDisplay(.top), .moveToDisplay(.bottom)],
+                displayMods
+            )
             + thirdBindings(base: base)
             + twoThirdBindings(base: base)
     }
 
-    private func displayMoveBindings(
-        left: UInt32,
-        right: UInt32,
-        up: UInt32,
-        down: UInt32,
-        displayMods: UInt32
+    /// `commands`와 `keyCodes`를 위치(left/right/up/down 순)로 짝지어 동일 수식키 바인딩으로 만든다.
+    /// snapThrow/move/relativeHalf/moveToDisplay가 공유하던 4방향 골격을 일반화한 것.
+    private func directionalBindings(
+        _ commands: [WindowCommand],
+        keyCodes: [UInt32],
+        modifiers: UInt32
     ) -> [HotkeyBinding] {
-        [
-            HotkeyBinding(command: .moveToDisplay(.left), keyCode: left, modifiers: displayMods),
-            HotkeyBinding(command: .moveToDisplay(.right), keyCode: right, modifiers: displayMods),
-            HotkeyBinding(command: .moveToDisplay(.top), keyCode: up, modifiers: displayMods),
-            HotkeyBinding(command: .moveToDisplay(.bottom), keyCode: down, modifiers: displayMods)
-        ]
-    }
-
-    private func snapThrowBindings(
-        left: UInt32,
-        right: UInt32,
-        up: UInt32,
-        down: UInt32,
-        base: UInt32
-    ) -> [HotkeyBinding] {
-        [
-            HotkeyBinding(command: .snapThrow(.left), keyCode: left, modifiers: base),
-            HotkeyBinding(command: .snapThrow(.right), keyCode: right, modifiers: base),
-            HotkeyBinding(command: .snapThrow(.top), keyCode: up, modifiers: base),
-            HotkeyBinding(command: .snapThrow(.bottom), keyCode: down, modifiers: base)
-        ]
+        zip(commands, keyCodes).map { command, keyCode in
+            HotkeyBinding(command: command, keyCode: keyCode, modifiers: modifiers)
+        }
     }
 
     private func coreBindings(undoKey: UInt32, base: UInt32) -> [HotkeyBinding] {
@@ -86,36 +79,6 @@ nonisolated enum HotkeyPreset: String, CaseIterable {
             HotkeyBinding(command: .maximize, keyCode: 0x24, modifiers: base),
             HotkeyBinding(command: .undo, keyCode: undoKey, modifiers: base),
             HotkeyBinding(command: .move(.center), keyCode: 0x08, modifiers: base)
-        ]
-    }
-
-    private func moveBindings(
-        left: UInt32,
-        right: UInt32,
-        up: UInt32,
-        down: UInt32,
-        moveMods: UInt32
-    ) -> [HotkeyBinding] {
-        [
-            HotkeyBinding(command: .move(.left), keyCode: left, modifiers: moveMods),
-            HotkeyBinding(command: .move(.right), keyCode: right, modifiers: moveMods),
-            HotkeyBinding(command: .move(.up), keyCode: up, modifiers: moveMods),
-            HotkeyBinding(command: .move(.down), keyCode: down, modifiers: moveMods)
-        ]
-    }
-
-    private func relativeHalfBindings(
-        left: UInt32,
-        right: UInt32,
-        up: UInt32,
-        down: UInt32,
-        relMods: UInt32
-    ) -> [HotkeyBinding] {
-        [
-            HotkeyBinding(command: .relativeHalf(.left), keyCode: left, modifiers: relMods),
-            HotkeyBinding(command: .relativeHalf(.right), keyCode: right, modifiers: relMods),
-            HotkeyBinding(command: .relativeHalf(.top), keyCode: up, modifiers: relMods),
-            HotkeyBinding(command: .relativeHalf(.bottom), keyCode: down, modifiers: relMods)
         ]
     }
 
