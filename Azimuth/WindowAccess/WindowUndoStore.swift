@@ -6,12 +6,16 @@ import ApplicationServices
 final class WindowUndoStore {
     private struct Key: Hashable {
         let element: AXUIElement
+        let pid: pid_t
 
+        /// pid를 키에 포함해, 서로 다른 프로세스가 AXUIElement 포인터 재사용으로
+        /// 같은 슬롯을 공유(다른 앱의 entry를 덮어씀)하는 것을 막는다.
         static func == (lhs: Key, rhs: Key) -> Bool {
-            CFEqual(lhs.element, rhs.element)
+            lhs.pid == rhs.pid && CFEqual(lhs.element, rhs.element)
         }
 
         func hash(into hasher: inout Hasher) {
+            hasher.combine(pid)
             hasher.combine(CFHash(element))
         }
     }
@@ -26,7 +30,7 @@ final class WindowUndoStore {
     private var order: [Key] = []
 
     func record(_ frame: CGRect, pid: pid_t, for element: AXUIElement) {
-        let key = Key(element: element)
+        let key = Key(element: element, pid: pid)
         if entries[key] == nil {
             order.append(key)
             if order.count > capacity {
@@ -39,13 +43,13 @@ final class WindowUndoStore {
 
     /// pid가 일치할 때만 직전 frame을 돌려준다(닫힌 창의 element 재사용으로 인한 오인 방지).
     func previousFrame(for element: AXUIElement, pid: pid_t) -> CGRect? {
-        let key = Key(element: element)
+        let key = Key(element: element, pid: pid)
         guard let entry = entries[key], entry.pid == pid else { return nil }
         return entry.frame
     }
 
-    func clear(for element: AXUIElement) {
-        let key = Key(element: element)
+    func clear(for element: AXUIElement, pid: pid_t) {
+        let key = Key(element: element, pid: pid)
         entries.removeValue(forKey: key)
         order.removeAll { $0 == key }
     }

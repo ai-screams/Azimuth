@@ -13,6 +13,10 @@ enum CoordinateSpace {
 
     static func flip(_ rect: CGRect) -> CGRect {
         let height = primaryHeight
+        // 화면 목록이 비는 순간(도킹/언도킹·전체 절전 등)엔 기준 높이가 0이 된다.
+        // 그대로 뒤집으면 음수 Y의 쓰레기 frame이 나와 창이 화면 밖으로 갈 수 있으므로,
+        // 변환 불가로 보고 입력을 그대로 돌려준다(상위 resolver가 화면 없음→nil로 명령을 중단).
+        guard height > 0 else { return rect }
         return CGRect(
             x: rect.origin.x,
             y: height - rect.origin.y - rect.height,

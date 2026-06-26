@@ -22,7 +22,7 @@ enum WindowCommandExecutor {
             let result = WindowFrameWriter.apply(previous, to: resolved.element)
             if case .success = result {
                 // 1단계 복원이므로 소비한 entry는 제거(반복 undo 방지 + 누적 방지).
-                undoStore.clear(for: resolved.element)
+                undoStore.clear(for: resolved.element, pid: resolved.pid)
             }
             return result
         }
