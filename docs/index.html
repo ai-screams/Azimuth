@@ -145,8 +145,16 @@
     .topbar-right {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 14px;
     }
+    .topbar-link {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: color 0.15s ease;
+    }
+    .topbar-link:hover { color: var(--accent); text-decoration: none; }
 
     .lang-toggle {
       display: flex;
@@ -869,6 +877,8 @@
       </div>
 
       <div class="topbar-right">
+        <a href="manual.html" class="topbar-link"
+           data-en="Manual" data-ko="매뉴얼">Manual</a>
         <div class="lang-toggle" role="group" aria-label="Language selector">
           <button class="lang-btn active" id="btn-en" onclick="setLang('en')" aria-pressed="true">EN</button>
           <button class="lang-btn" id="btn-ko" onclick="setLang('ko')" aria-pressed="false">KO</button>
