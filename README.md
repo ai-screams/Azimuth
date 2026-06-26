@@ -187,8 +187,17 @@ GitHub Actions runs the same lint checks and a macOS `xcodebuild` build on pushe
 
 Azimuth is free and open source — no paywall, no ads, no telemetry. If it earns a place in your workflow, you can support its development:
 
-- ☕ [**Buy Me a Coffee**](https://buymeacoffee.com/pignuante) — one-time tip
-- ♥ [**GitHub Sponsors**](https://github.com/sponsors/pignuante) — recurring support
+<p>
+  <a href="https://buymeacoffee.com/pignuante">
+    <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me a Coffee" height="40">
+  </a>
+  &nbsp;
+  <a href="https://github.com/sponsors/pignuante">
+    <img src="https://img.shields.io/badge/Sponsor-EA4AAA?style=for-the-badge&logo=githubsponsors&logoColor=white" alt="Sponsor on GitHub" height="40">
+  </a>
+</p>
+
+- ☕ **Buy Me a Coffee** — one-time tip · ♥ **GitHub Sponsors** — recurring support
 
 Entirely optional, always appreciated — there is no paywall and never will be.
 
