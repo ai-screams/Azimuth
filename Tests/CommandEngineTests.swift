@@ -145,6 +145,16 @@ enum CommandEngineTests {
         let nearlyRight = CGRect(x: 965, y: 30, width: 950, height: 1045)
         expectName("nearly-full right half still fills",
                    "\(FrameCalculator.fillsHalf(nearlyRight, edge: .right, workArea: workArea))", "true")
+        // 앱 최소 크기 탓에 절반보다 '커서' 바깥(화면 가장자리)으로 넘친 창도 그 절반에 고정돼 있으면 채움.
+        // (Safari가 아래 절반으로 줄 때 끝까지 안 줄어 화면 밖으로 넘치던 throw 미작동 버그 회귀 방지.)
+        let bottomHalfRect = FrameCalculator.halfRect(.bottom, workArea: workArea)
+        let tallerThanBottom = CGRect(x: bottomHalfRect.minX, y: bottomHalfRect.minY,
+                                      width: bottomHalfRect.width, height: bottomHalfRect.height + 80)
+        expectName("bottom window overshooting outer edge still fills",
+                   "\(FrameCalculator.fillsHalf(tallerThanBottom, edge: .bottom, workArea: workArea))", "true")
+        // 반대쪽 절반으로 침범하는 창(최대화 등)은 그 절반 '채움'이 아니다 → 던지지 않고 스냅.
+        expectName("maximized window does not fill bottom half",
+                   "\(FrameCalculator.fillsHalf(workArea, edge: .bottom, workArea: workArea))", "false")
 
         let from = CGRect(x: 0, y: 0, width: 1000, height: 1000)
         let to = CGRect(x: 2000, y: 0, width: 1000, height: 1000)

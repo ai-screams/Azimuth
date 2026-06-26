@@ -54,11 +54,22 @@ nonisolated enum FrameCalculator {
     ) -> Bool {
         let half = halfRect(edge, workArea: workArea)
         guard half.width > 0, half.height > 0 else { return false }
-        let contained = rect.minX >= half.minX - tolerance
-            && rect.maxX <= half.maxX + tolerance
-            && rect.minY >= half.minY - tolerance
-            && rect.maxY <= half.maxY + tolerance
-        guard contained else { return false }
+        // 분할선(안쪽 경계)만 검사한다: 창이 반대쪽 절반으로 tolerance 이상 넘어오면 "채움"이 아니다.
+        // 바깥(화면 가장자리) 쪽으로 넘치는 건 허용한다 — 앱 최소 크기 탓에 절반보다 커진 창(예: Safari가
+        // 절반보다 큰 모양에서 줄 때 끝까지 안 줄어 화면 밖으로 넘침)도 그 절반에 고정돼 있으면 채운 것으로 본다.
+        // (바깥까지 ±tolerance로 막으면, 넘친 만큼 담김 검사에서 탈락해 snapThrow가 영영 throw 안 되는 버그.)
+        let withinHalf: Bool
+        switch edge {
+        case .left:
+            withinHalf = rect.maxX <= half.maxX + tolerance
+        case .right:
+            withinHalf = rect.minX >= half.minX - tolerance
+        case .top:
+            withinHalf = rect.maxY <= half.maxY + tolerance
+        case .bottom:
+            withinHalf = rect.minY >= half.minY - tolerance
+        }
+        guard withinHalf else { return false }
         let inter = rect.intersection(half)
         guard !inter.isNull else { return false }
         let coverage = (inter.width * inter.height) / (half.width * half.height)
