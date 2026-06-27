@@ -61,6 +61,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             name: NSApplication.didChangeScreenParametersNotification,
             object: nil
         )
+        // 창 표시/닫힘에 따라 Dock 아이콘(활성화 정책)을 토글한다.
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleWindowVisibilityChanged(_:)),
+            name: NSWindow.didBecomeKeyNotification,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleWindowWillClose(_:)),
+            name: NSWindow.willCloseNotification,
+            object: nil
+        )
+        // DEBUG에서 설정창을 띄웠을 수 있으니 현재 창 상태에 맞춰 정책을 한 번 동기화한다.
+        updateActivationPolicy()
     }
 
     func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
@@ -148,11 +163,29 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         #endif
     }
 
+    /// 기본은 .accessory(Dock 아이콘 없음, 메뉴바 유틸). 창이 열리면 updateActivationPolicy가
+    /// .regular로 올려 Dock 아이콘을 보이고, 모두 닫히면 다시 .accessory로 내린다.
     private func configureActivationPolicy() {
-        #if DEBUG
-            NSApp.setActivationPolicy(.regular)
-        #else
-            NSApp.setActivationPolicy(.accessory)
-        #endif
+        NSApp.setActivationPolicy(.accessory)
+    }
+
+    @objc private func handleWindowVisibilityChanged(_ notification: Notification) {
+        updateActivationPolicy()
+    }
+
+    /// willClose는 창이 아직 visible 목록에 있을 때 오므로, 다음 런루프에 다시 계산한다.
+    @objc private func handleWindowWillClose(_ notification: Notification) {
+        DispatchQueue.main.async { [weak self] in self?.updateActivationPolicy() }
+    }
+
+    /// 우리 창(설정/소개)이 하나라도 떠 있으면 Dock 아이콘(.regular), 없으면 숨김(.accessory).
+    /// 메뉴바 상태 아이콘은 이와 무관하게 항상 유지된다(상시 접근 수단).
+    private func updateActivationPolicy() {
+        let hasWindow = NSApp.windows.contains { window in
+            (window.isVisible || window.isMiniaturized) && window.styleMask.contains(.titled)
+        }
+        let policy: NSApplication.ActivationPolicy = hasWindow ? .regular : .accessory
+        guard NSApp.activationPolicy() != policy else { return }
+        NSApp.setActivationPolicy(policy)
     }
 }
