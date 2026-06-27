@@ -41,6 +41,8 @@ extension ShortcutsSectionView {
             hint.widthAnchor.constraint(equalTo: outer.widthAnchor),
             rowsStack.widthAnchor.constraint(equalTo: outer.widthAnchor)
         ])
+
+        applyFilter("") // 첫 그룹 구분선 숨김 등 초기 상태 확정.
     }
 
     func makeHeader() -> NSStackView {
@@ -76,10 +78,13 @@ extension ShortcutsSectionView {
         rowsStack.alignment = .leading
         rowsStack.spacing = Metric.rowSpacing
         rowsStack.translatesAutoresizingMaskIntoConstraints = false
-        // 그룹 헤더 + 그 그룹에 속한 명령 행을 차례로 쌓는다(menuCommands 순서 유지).
+        // 그룹 사이엔 구분선 + 넓은 간격, 그룹 안 행은 들여쓰기로 위계를 만든다(menuCommands 순서 유지).
+        var isFirstGroup = true
         for group in CommandGroup.allCases {
             let commands = WindowCommand.menuCommands.filter { $0.group == group }
             guard !commands.isEmpty else { continue }
+            addGroupSeparator(for: group, isFirst: isFirstGroup)
+            isFirstGroup = false
             addGroupHeader(group)
             for command in commands {
                 rows.append(makeRow(for: command))
@@ -87,9 +92,23 @@ extension ShortcutsSectionView {
         }
     }
 
+    /// 그룹 경계 구분선. 첫 그룹 위에는 두지 않는다(필터링 시 applyFilter가 다시 계산).
+    func addGroupSeparator(for group: CommandGroup, isFirst: Bool) {
+        let separator = NSBox()
+        separator.boxType = .separator
+        separator.translatesAutoresizingMaskIntoConstraints = false
+        separator.isHidden = isFirst
+        let previous = rowsStack.arrangedSubviews.last
+        rowsStack.addArrangedSubview(separator)
+        separator.widthAnchor.constraint(equalTo: rowsStack.widthAnchor).isActive = true
+        if let previous { rowsStack.setCustomSpacing(Metric.groupGap, after: previous) }
+        rowsStack.setCustomSpacing(Metric.groupGap, after: separator)
+        groupSeparators[group.token] = separator
+    }
+
     func addGroupHeader(_ group: CommandGroup) {
         let toggle = NSButton(checkboxWithTitle: group.displayName, target: self, action: #selector(groupToggled(_:)))
-        toggle.font = .systemFont(ofSize: Metric.captionFontSize, weight: .semibold)
+        toggle.font = .systemFont(ofSize: Metric.captionFontSize, weight: .bold)
         groupToggles[group.token] = toggle
 
         let container = NSStackView(views: [toggle])
@@ -108,6 +127,7 @@ extension ShortcutsSectionView {
         name.lineBreakMode = .byTruncatingTail
 
         let dot = makeModifiedDot()
+        let gutter = makeIndentGutter(dot: dot)
         let recorder = makeRecorder(for: command)
 
         let reset = NSButton(title: "Reset", target: self, action: #selector(resetRow(_:)))
@@ -118,7 +138,8 @@ extension ShortcutsSectionView {
         badge.setContentHuggingPriority(.defaultLow, for: .horizontal)
         badge.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
 
-        let container = NSStackView(views: [enable, name, dot, recorder, reset, badge])
+        // 거터(들여쓰기) → 활성 체크 → 이름 → 단축키 → Reset → 배지. 앞 3개가 고정폭이라 단축키 컬럼이 정렬된다.
+        let container = NSStackView(views: [gutter, enable, name, recorder, reset, badge])
         container.orientation = .horizontal
         container.alignment = .centerY
         container.spacing = 8
@@ -162,6 +183,21 @@ extension ShortcutsSectionView {
         return dot
     }
 
+    /// 하위 행을 그룹 헤더 아래로 들여쓰는 고정폭 좌측 거터. 변경 점(•)을 그 안에 띄워
+    /// 점의 표시 여부와 무관하게 단축키 컬럼 정렬이 유지되게 한다.
+    private func makeIndentGutter(dot: NSView) -> NSView {
+        let gutter = NSView()
+        gutter.translatesAutoresizingMaskIntoConstraints = false
+        gutter.addSubview(dot)
+        NSLayoutConstraint.activate([
+            gutter.widthAnchor.constraint(equalToConstant: Metric.indent),
+            gutter.heightAnchor.constraint(equalToConstant: Metric.rowHeight),
+            dot.centerXAnchor.constraint(equalTo: gutter.centerXAnchor),
+            dot.centerYAnchor.constraint(equalTo: gutter.centerYAnchor)
+        ])
+        return gutter
+    }
+
     func makePresetControl() -> NSSegmentedControl {
         let control = NSSegmentedControl(
             labels: HotkeyPreset.allCases.map(\.displayName),
@@ -176,10 +212,12 @@ extension ShortcutsSectionView {
         return control
     }
 
-    /// 검색어로 행과 그룹 헤더 표시를 토글한다(빈 검색이면 모두 표시).
+    /// 검색어로 행·그룹 헤더·구분선 표시를 토글한다(빈 검색이면 모두 표시).
+    /// 구분선은 "보이는 그룹들 사이"에만 둔다 — 첫 보이는 그룹 위에는 두지 않는다.
     func applyFilter(_ rawQuery: String) {
         let query = rawQuery.trimmingCharacters(in: .whitespaces).lowercased()
         var anyVisible = false
+        var seenVisibleGroup = false
         for group in CommandGroup.allCases {
             let groupRows = rows.filter { $0.command.group == group }
             guard !groupRows.isEmpty else { continue }
@@ -194,7 +232,9 @@ extension ShortcutsSectionView {
                     anyVisible = true
                 }
             }
-            groupContainers[group.token]?.isHidden = !query.isEmpty && !groupVisible
+            groupContainers[group.token]?.isHidden = !groupVisible
+            groupSeparators[group.token]?.isHidden = !(groupVisible && seenVisibleGroup)
+            if groupVisible { seenVisibleGroup = true }
         }
         emptyLabel.isHidden = anyVisible || query.isEmpty
     }

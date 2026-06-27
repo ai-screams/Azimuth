@@ -18,6 +18,10 @@ final class ShortcutsSectionView: NSView {
         static let captionFontSize: CGFloat = 13
         static let rowSpacing: CGFloat = 6
         static let dotSize: CGFloat = 6
+        /// 하위 명령 행 들여쓰기 폭(겸 변경 점이 놓이는 좌측 거터). 고정폭이라 컬럼 정렬이 흔들리지 않는다.
+        static let indent: CGFloat = 22
+        /// 그룹 경계(구분선) 위아래 간격.
+        static let groupGap: CGFloat = 12
     }
 
     let preferencesStore: PreferencesStore
@@ -31,6 +35,7 @@ final class ShortcutsSectionView: NSView {
     var rows: [Row] = []
     var groupToggles: [String: NSButton] = [:]
     var groupContainers: [String: NSView] = [:]
+    var groupSeparators: [String: NSBox] = [:]
     let emptyLabel = NSTextField(labelWithString: "No shortcuts match your search.")
 
     struct Row {
