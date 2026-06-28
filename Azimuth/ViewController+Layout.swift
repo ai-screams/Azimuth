@@ -100,13 +100,7 @@ extension ViewController {
     }
 
     func makeActionButton() -> NSButton {
-        let button = NSButton(
-            title: "Open Accessibility Settings…",
-            target: self,
-            action: #selector(openAccessibilitySettings(_:))
-        )
-        button.bezelStyle = .rounded
-        return button
+        .rounded(title: "Open Accessibility Settings…", target: self, action: #selector(openAccessibilitySettings(_:)))
     }
 
     func makeSoundFeedbackButton() -> NSButton {
@@ -134,12 +128,6 @@ extension ViewController {
     }
 
     func makeLaunchApprovalButton() -> NSButton {
-        let button = NSButton(
-            title: "Open Login Items Settings…",
-            target: self,
-            action: #selector(openLoginItemsSettings(_:))
-        )
-        button.bezelStyle = .rounded
-        return button
+        .rounded(title: "Open Login Items Settings…", target: self, action: #selector(openLoginItemsSettings(_:)))
     }
 }
