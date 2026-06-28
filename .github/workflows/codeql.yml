@@ -1,0 +1,57 @@
+name: CodeQL
+
+# Swift 코드 정적 분석(SAST). 결과는 GitHub Security → Code scanning 탭에 보고된다.
+# 시크릿(gitleaks)과 별개로, 코드 자체의 취약 패턴(안전하지 않은 API 사용 등)을 잡는다.
+# 액션은 commit SHA로 핀(Dependabot이 버전 주석 갱신). 권한은 최소.
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  schedule:
+    - cron: "0 9 * * 1" # 매주 월요일 09:00 UTC 정기 스캔
+
+permissions:
+  contents: read
+  security-events: write # Code scanning 결과 업로드
+  actions: read
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  analyze:
+    name: Analyze (swift)
+    runs-on: macos-15 # Swift 분석은 macOS 필요. ci/release와 러너 통일.
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4
+        with:
+          languages: swift
+
+      # Swift는 컴파일 언어 → CodeQL이 실제 빌드를 관찰해야 분석 가능(ci.yml과 동일 빌드).
+      - name: Build for analysis
+        run: |
+          xcodebuild \
+            -project ./Azimuth.xcodeproj \
+            -scheme Azimuth \
+            -configuration Debug \
+            -destination 'platform=macOS' \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4
+        with:
+          category: "/language:swift"
