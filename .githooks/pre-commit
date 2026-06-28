@@ -17,6 +17,16 @@ if ! command -v swiftlint >/dev/null 2>&1; then
     exit 1
 fi
 
+if ! command -v gitleaks >/dev/null 2>&1; then
+    echo "error: Gitleaks is not installed." >&2
+    echo "hint: brew install gitleaks" >&2
+    exit 1
+fi
+
+# 시크릿이 커밋되기 전에 차단(shift-left). staged 변경만 검사 → 빠름. CI의 전체 히스토리 스캔과 상호보완.
+echo "Running Gitleaks (staged)..."
+gitleaks git --pre-commit --staged --redact --no-banner --config "$ROOT_DIR/.gitleaks.toml"
+
 echo "Running SwiftFormat --lint..."
 swiftformat "$ROOT_DIR/Azimuth" --config "$ROOT_DIR/.swiftformat" --lint
 
