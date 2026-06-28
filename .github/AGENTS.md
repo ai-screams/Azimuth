@@ -4,17 +4,21 @@
 # .github
 
 ## Purpose
-GitHub Actions CI 설정.
+GitHub Actions CI/CD 설정. **전체 개요·보안 레이어·활성화 설정은 [`CICD.md`](CICD.md) 참조.**
 
 ## Subdirectories
 | Directory | Purpose |
 |-----------|---------|
-| `workflows/` | CI 워크플로(`ci.yml`) |
+| `workflows/` | `ci.yml`(통합 검사) · `codeql.yml`(SAST) · `release.yml`(릴리스) |
 
 ## Key Files
 | File | Description |
 |------|-------------|
-| `workflows/ci.yml` | `push: main` + 모든 PR에서 실행. `macos-latest`. 잡: **secret-scan**(gitleaks, SARIF 업로드), **lint-and-build**(SwiftFormat `--lint` → SwiftLint strict → `xcodebuild ... CODE_SIGNING_ALLOWED=NO build` → `scripts/test.sh`) |
+| `CICD.md` | CI/CD 전체 문서(워크플로·방어 레이어·로컬 대응·저장소 설정·릴리스 방법) |
+| `workflows/ci.yml` | `push: main`+PR, `macos-15`. **secret-scan**(gitleaks+SARIF) · **lint-and-build**(SwiftFormat→SwiftLint strict→xcodebuild→`scripts/test.sh`→`make coverage` ≥90% 게이트). concurrency로 PR stale 취소 |
+| `workflows/codeql.yml` | CodeQL **Swift** SAST(push: main·PR·주간). init→빌드→analyze → Security/Code scanning |
+| `workflows/release.yml` | 태그 `v*` → `environment: release` 승인 게이트 → 빌드·서명·공증·**DMG 자가검증**·**SHA-256 체크섬**·Release 발행 |
+| `dependabot.yml` | github-actions 주간 업데이트(SHA 핀 갱신) |
 
 ## For AI Agents
 
