@@ -52,8 +52,7 @@ extension ShortcutsSectionView {
         let spacer = NSView()
         spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
 
-        let resetAll = NSButton(title: "Reset All", target: self, action: #selector(resetAll))
-        resetAll.bezelStyle = .rounded
+        let resetAll = NSButton.rounded(title: "Reset All", target: self, action: #selector(resetAll))
 
         let header = NSStackView(views: [caption, presetControl, spacer, resetAll])
         header.orientation = .horizontal
@@ -130,8 +129,7 @@ extension ShortcutsSectionView {
         let gutter = makeIndentGutter(dot: dot)
         let recorder = makeRecorder(for: command)
 
-        let reset = NSButton(title: "Reset", target: self, action: #selector(resetRow(_:)))
-        reset.bezelStyle = .rounded
+        let reset = NSButton.rounded(title: "Reset", target: self, action: #selector(resetRow(_:)))
 
         let badge = BadgeLabel()
         badge.isHidden = true

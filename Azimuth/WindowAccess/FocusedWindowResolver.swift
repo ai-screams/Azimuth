@@ -3,6 +3,9 @@ import Cocoa
 
 nonisolated struct ResolvedWindow: Equatable {
     let element: AXUIElement
+    /// 대상 앱 엘리먼트(창 아님). WindowFrameWriter가 쓰기 직전 AXEnhancedUserInterface 등을
+    /// 끄는 데 쓴다. resolve 시 이미 생성·2s 타임아웃을 건 것을 재사용한다(pid 재생성 금지).
+    let appElement: AXUIElement
     let subrole: String
     let pid: pid_t
     let frame: WindowFrame
@@ -61,6 +64,7 @@ enum FocusedWindowResolver {
 
         return .success(ResolvedWindow(
             element: window,
+            appElement: appElement,
             subrole: subrole ?? (kAXUnknownSubrole as String),
             pid: app.processIdentifier,
             frame: WindowFrame(origin: origin, size: size)

@@ -41,39 +41,78 @@ nonisolated enum FrameCalculator {
         }
     }
 
-    /// 창이 그 방향 절반을 (대체로) 채우고 있는가. snapThrow의 "이미 절반 → 튕기기" 트리거에 쓴다.
-    /// 판정: ① 그 절반 영역에 대체로 담겨 있고(반대쪽/화면 밖으로 tolerance 이상 넘치지 않음),
-    /// ② 절반 면적의 minCoverage 이상을 덮는다. 절반보다 작은 창은 ②에서 걸러져 "채움"이 아니다(→ 스냅).
-    /// 크기증분 앱(터미널 등)은 far edge가 한 셀 모자라도 커버리지가 높아 통과한다. 모든 방향 동일 규칙.
-    static func fillsHalf(
-        _ rect: CGRect,
-        edge: SnapEdge,
-        workArea: CGRect,
-        tolerance: CGFloat = 20,
-        minCoverage: CGFloat = 0.9
-    ) -> Bool {
-        let half = halfRect(edge, workArea: workArea)
-        guard half.width > 0, half.height > 0 else { return false }
-        // 분할선(안쪽 경계)만 검사한다: 창이 반대쪽 절반으로 tolerance 이상 넘어오면 "채움"이 아니다.
-        // 바깥(화면 가장자리) 쪽으로 넘치는 건 허용한다 — 앱 최소 크기 탓에 절반보다 커진 창(예: Safari가
-        // 절반보다 큰 모양에서 줄 때 끝까지 안 줄어 화면 밖으로 넘침)도 그 절반에 고정돼 있으면 채운 것으로 본다.
-        // (바깥까지 ±tolerance로 막으면, 넘친 만큼 담김 검사에서 탈락해 snapThrow가 영영 throw 안 되는 버그.)
-        let withinHalf: Bool
+    /// 창이 그 방향 절반에 "스냅된 상태"인가. snapThrow의 "이미 절반 → 튕기기" 트리거에 쓴다.
+    /// 판정(4변 대칭): ① 그 방향 바깥(화면) 모서리에 붙어 있고(단방향 — 화면 밖 overflow는 허용),
+    /// ② 반대쪽 바깥 모서리에는 닿지 않으며(최대화·양쪽 걸침 제외 → 그땐 스냅),
+    /// ③ 스냅 축과 수직인 축을 작업영역의 절반 이상 덮는다(모서리에 살짝 닿은 소형 부유창 오판 방지).
+    /// 주축(스냅 방향)은 flush만 보므로 고정폭·최소폭 앱도 한쪽에 붙어 있으면 "스냅됨"으로 인정된다
+    /// — 좌우/상하 대칭으로 throw가 가능해진다(면적 커버리지 기반의 좌우 비대칭 버그 제거).
+    static func isSnapped(_ rect: CGRect, to edge: SnapEdge, workArea: CGRect) -> Bool {
+        outerFlush(rect, edge: edge, workArea: workArea)
+            && !outerFlush(rect, edge: edge.opposite, workArea: workArea)
+            && spansPerpendicular(rect, edge: edge, workArea: workArea)
+    }
+
+    /// 스냅 축과 수직인 축(좌우 스냅이면 높이, 상하면 너비)을 작업영역의 절반 이상 덮는가.
+    /// 주축은 flush로만 판정하므로 고정폭/최소폭 앱은 통과하고, 모서리에 살짝 닿은 소형 부유창만 걸러진다.
+    private static func spansPerpendicular(_ rect: CGRect, edge: SnapEdge, workArea: CGRect) -> Bool {
+        let span: CGFloat
+        let extent: CGFloat
+        switch edge {
+        case .left, .right:
+            span = overlap(rect.minY, rect.maxY, workArea.minY, workArea.maxY)
+            extent = workArea.height
+        case .top, .bottom:
+            span = overlap(rect.minX, rect.maxX, workArea.minX, workArea.maxX)
+            extent = workArea.width
+        }
+        // 퇴화 작업영역(높이/너비 0 — 디스플레이 재구성 순간 등)에서 0 나눗셈(NaN) 방지.
+        guard extent > 0 else { return false }
+        return span / extent >= 0.5
+    }
+
+    /// 두 1차원 구간 [aMin,aMax]·[bMin,bMax]의 겹치는 길이(겹침 없으면 0).
+    private static func overlap(_ aMin: CGFloat, _ aMax: CGFloat, _ bMin: CGFloat, _ bMax: CGFloat) -> CGFloat {
+        Swift.max(0, Swift.min(aMax, bMax) - Swift.max(aMin, bMin))
+    }
+
+    /// 그 방향 바깥(화면) 모서리에 붙었는가. 단방향: 화면 밖으로 넘쳐도(앱 최소 크기 탓) 붙은 것으로 본다.
+    /// tolerance는 작업영역 크기에 비례(작은 모니터의 크기증분 앱 한 셀 오차 대응) — 최소 8pt.
+    private static func outerFlush(_ rect: CGRect, edge: SnapEdge, workArea: CGRect) -> Bool {
         switch edge {
         case .left:
-            withinHalf = rect.maxX <= half.maxX + tolerance
+            return rect.minX <= workArea.minX + tolerance(workArea.width)
         case .right:
-            withinHalf = rect.minX >= half.minX - tolerance
+            return rect.maxX >= workArea.maxX - tolerance(workArea.width)
         case .top:
-            withinHalf = rect.maxY <= half.maxY + tolerance
+            return rect.minY <= workArea.minY + tolerance(workArea.height)
         case .bottom:
-            withinHalf = rect.minY >= half.minY - tolerance
+            return rect.maxY >= workArea.maxY - tolerance(workArea.height)
         }
-        guard withinHalf else { return false }
-        let inter = rect.intersection(half)
-        guard !inter.isNull else { return false }
-        let coverage = (inter.width * inter.height) / (half.width * half.height)
-        return coverage >= minCoverage
+    }
+
+    /// 절대 픽셀 대신 작업영역 비례(1%) tolerance. 모니터가 작아도 한 셀(≈8pt) 이상은 보장.
+    private static func tolerance(_ extent: CGFloat) -> CGFloat {
+        Swift.max(8, extent * 0.01)
+    }
+
+    /// 제약 앱이 목표 크기에 못 미칠 때, target이 닿아 있던 작업영역 모서리를 실제 크기에 맞춰 유지하는 origin.
+    /// 위치를 두 번 쓰지 않고(KI-003 깜빡임 회피) 처음부터 이 anchored origin으로 단 한 번 쓰기 위해 사용.
+    /// touching 모서리는 target·workArea에서 내부 도출한다(호출자가 넘기지 않음).
+    static func anchorOrigin(
+        actualSize: CGSize,
+        requested target: CGRect,
+        workArea: CGRect,
+        epsilon: CGFloat = 2
+    ) -> CGPoint {
+        let touchesLeft = target.minX <= workArea.minX + epsilon
+        let touchesRight = target.maxX >= workArea.maxX - epsilon
+        let touchesTop = target.minY <= workArea.minY + epsilon
+        let touchesBottom = target.maxY >= workArea.maxY - epsilon
+        let x = (touchesRight && !touchesLeft) ? workArea.maxX - actualSize.width : target.minX
+        let y = (touchesBottom && !touchesTop) ? workArea.maxY - actualSize.height : target.minY
+        // 앱 최소 크기가 작업영역보다 큰 퇴화 케이스: origin이 화면 밖(음수)으로 가지 않게 좌상단으로 클램프.
+        return CGPoint(x: Swift.max(workArea.minX, x), y: Swift.max(workArea.minY, y))
     }
 
     /// 현재 창을 `from` 작업영역 기준 상대 위치·크기를 유지한 채 `to` 작업영역으로 옮긴다(다음 디스플레이 이동).
@@ -140,8 +179,9 @@ nonisolated enum FrameCalculator {
         case .down:
             origin.y = clamped(current.minY + current.height, lower: yLower, upper: yUpper)
         case .center:
-            origin.x = workArea.minX + (workArea.width - current.width) / 2
-            origin.y = workArea.minY + (workArea.height - current.height) / 2
+            // 방향 이동과 동일하게 clamp 경유 — 작업영역보다 큰 창이 음수 origin(화면 밖)으로 가지 않게.
+            origin.x = clamped(workArea.minX + (workArea.width - current.width) / 2, lower: xLower, upper: xUpper)
+            origin.y = clamped(workArea.minY + (workArea.height - current.height) / 2, lower: yLower, upper: yUpper)
         }
         return CGRect(origin: origin, size: current.size)
     }

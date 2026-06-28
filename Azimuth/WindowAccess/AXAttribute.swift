@@ -48,4 +48,25 @@ nonisolated enum AXAttribute {
         guard AXValueGetValue(axValue, .cgSize, &size) else { return nil }
         return size
     }
+
+    // MARK: - 쓰기 (읽기 래퍼와 대칭. AXValueCreate/CFTypeRef 보일러플레이트를 한곳에 모은다.)
+
+    @discardableResult
+    static func set(_ element: AXUIElement, _ attribute: String, _ value: Bool) -> AXError {
+        AXUIElementSetAttributeValue(element, attribute as CFString, value as CFTypeRef)
+    }
+
+    @discardableResult
+    static func set(_ element: AXUIElement, _ attribute: String, point: CGPoint) -> AXError {
+        var value = point
+        guard let axValue = AXValueCreate(.cgPoint, &value) else { return .failure }
+        return AXUIElementSetAttributeValue(element, attribute as CFString, axValue)
+    }
+
+    @discardableResult
+    static func set(_ element: AXUIElement, _ attribute: String, size: CGSize) -> AXError {
+        var value = size
+        guard let axValue = AXValueCreate(.cgSize, &value) else { return .failure }
+        return AXUIElementSetAttributeValue(element, attribute as CFString, axValue)
+    }
 }

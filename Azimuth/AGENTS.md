@@ -11,7 +11,8 @@
 |------|-------------|
 | `main.swift` | 스토리보드 없는 표준 진입점. `MainActor.assumeIsolated`로 `NSApplication`에 `AppDelegate`를 명시적으로 연결해 실행 |
 | `AppDelegate.swift` | 컴포지션 루트. 트래커/언두스토어/핫키서비스/프리퍼런스/설정창/상태바를 보유, `applicationDidFinishLaunching`에서 설치·핫키 reload·옵저버 등록. 단축키 명령 디스패치(`runHotkeyCommand`) |
-| `ViewController.swift` | 설정창 내용. Permissions/Shortcuts(프리셋 팝업)/Behavior(피드백·로그인 자동실행) 섹션 |
+| `ViewController.swift` | 설정창 내용(프로퍼티·생명주기·상태 갱신). Permissions/Shortcuts/Behavior 섹션. 레이아웃·서브뷰 팩토리는 `ViewController+Layout.swift`, `@objc` 액션은 `ViewController+Actions.swift`로 분리 |
+| `FlippedView.swift` / `NSButton+Rounded.swift` | 공용 보조: 뒤집힌 스크롤 문서 뷰, 둥근(.rounded) 버튼 팩토리 |
 
 ## Subdirectories
 | Directory | Purpose |

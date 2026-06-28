@@ -19,7 +19,8 @@ enum WindowCommandExecutor {
             guard let previous = undoStore.previousFrame(for: resolved.element, pid: resolved.pid) else {
                 return .failure(.noUndoState)
             }
-            let result = WindowFrameWriter.apply(previous, to: resolved.element)
+            // undo는 직전 실제 frame 복원이라 anchor 보정 불필요(workArea: nil).
+            let result = WindowFrameWriter.apply(previous, to: resolved, workArea: nil)
             if case .success = result {
                 // 1단계 복원이므로 소비한 entry는 제거(반복 undo 방지 + 누적 방지).
                 undoStore.clear(for: resolved.element, pid: resolved.pid)
@@ -34,7 +35,10 @@ enum WindowCommandExecutor {
         // 일반 명령은 적용 직전 현재 frame을 1단계 저장(되돌리기용).
         undoStore.record(resolved.frame.rect, pid: resolved.pid, for: resolved.element)
         let target = targetFrame(for: command, current: resolved.frame.rect, workArea: workArea)
-        return WindowFrameWriter.apply(target, to: resolved.element)
+        // anchor 보정은 "target이 놓일 화면"의 작업영역 기준이어야 한다(디스플레이 간 throw 시 목적지 화면).
+        // 같은 화면 명령이면 결과적으로 source와 동일. 못 구하면 source로 폴백.
+        let anchorArea = WorkAreaResolver.workArea(forAXWindowFrame: target) ?? workArea
+        return WindowFrameWriter.apply(target, to: resolved, workArea: anchorArea)
     }
 
     /// snapThrow·moveToDisplay만 인접 디스플레이를 알아야 하므로 여기서 분기하고, 나머지는 순수 FrameCalculator에 위임.
@@ -51,7 +55,7 @@ enum WindowCommandExecutor {
 
     /// 이미 그 방향 절반을 채우고 있으면 인접 디스플레이의 반대쪽 절반으로 던지고, 아니면 현재 화면의 그 절반으로 스냅.
     private static func snapThrowTarget(_ edge: SnapEdge, current: CGRect, workArea: CGRect) -> CGRect {
-        guard FrameCalculator.fillsHalf(current, edge: edge, workArea: workArea) else {
+        guard FrameCalculator.isSnapped(current, to: edge, workArea: workArea) else {
             return FrameCalculator.halfRect(edge, workArea: workArea)
         }
         let adjacent = DisplayResolver.adjacentWorkArea(forAXWindowFrame: current, edge: edge)
