@@ -16,6 +16,10 @@ run:
 test:
 	./scripts/test.sh
 
+# 순수 로직 커버리지(라인 ≥ 90% 목표). 미만이면 비0 종료.
+coverage:
+	./scripts/coverage.sh
+
 # 배포본(DMG) 생성: Developer ID 서명 + 공증 + DMG. 자격/사용법은 RELEASING.md 참조.
 release:
 	./scripts/release.sh

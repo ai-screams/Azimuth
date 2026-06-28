@@ -21,6 +21,9 @@ enum CommandEngineTests {
         testFixedAndMinWidthSnap()
         testCenterClamp()
         testAnchorOrigin()
+        testFallbackCommands()
+        testCommandGroups()
+        testPrimitiveStrings()
         testCommandModel()
         testCommandIdentifiers()
 
@@ -111,6 +114,10 @@ enum CommandEngineTests {
                CGRect(x: 760, y: 402.5, width: 400, height: 300))
         expect("oversize window pins to top-left, not negative", target(.move(.right), CGRect(x: 0, y: 25, width: 2000, height: 300)),
                CGRect(x: 0, y: 25, width: 2000, height: 300))
+        expect("move up clamps", target(.move(.up), CGRect(x: 100, y: 400, width: 400, height: 300)),
+               CGRect(x: 100, y: 100, width: 400, height: 300))
+        expect("move down clamps", target(.move(.down), CGRect(x: 100, y: 400, width: 400, height: 300)),
+               CGRect(x: 100, y: 700, width: 400, height: 300))
     }
 
     private static func testRelativeHalves() {
@@ -123,6 +130,8 @@ enum CommandEngineTests {
                CGRect(x: 400, y: 25, width: 400, height: 1055))
         expect("relative bottom keeps bottom edge", target(.relativeHalf(.bottom), CGRect(x: 0, y: 25, width: 800, height: 600)),
                CGRect(x: 0, y: 325, width: 800, height: 300))
+        expect("relative top keeps top edge", target(.relativeHalf(.top), CGRect(x: 0, y: 25, width: 800, height: 600)),
+               CGRect(x: 0, y: 25, width: 800, height: 300))
     }
 
     private static func testSnapHalves() {
@@ -236,6 +245,74 @@ enum CommandEngineTests {
                     FrameCalculator.anchorOrigin(actualSize: CGSize(width: 2000, height: 1055),
                                                  requested: rightHalf, workArea: workArea),
                     CGPoint(x: 0, y: 25))
+    }
+
+    // 순수 계층 폴백: undo·moveToDisplay는 현재 frame을 그대로 반환(실제 동작은 Executor).
+    private static func testFallbackCommands() {
+        let base = CGRect(x: 300, y: 200, width: 700, height: 500)
+        expect("undo returns current", target(.undo, base), base)
+        expect("moveToDisplay pure fallback returns current", target(.moveToDisplay(.left), base), base)
+    }
+
+    // CommandGroup 표시명·토큰과 command→group 매핑 전수.
+    private static func testCommandGroups() {
+        expectName("core displayName", CommandGroup.core.displayName, "Maximize · Undo · Center")
+        expectName("halves displayName", CommandGroup.halves.displayName, "Halves")
+        expectName("thirds displayName", CommandGroup.thirds.displayName, "Thirds")
+        expectName("twoThirds displayName", CommandGroup.twoThirds.displayName, "Two-Thirds")
+        expectName("move displayName", CommandGroup.move.displayName, "Move")
+        expectName("relative displayName", CommandGroup.relative.displayName, "Relative Resize")
+        expectName("display displayName", CommandGroup.display.displayName, "Displays")
+        expectName("core token", CommandGroup.core.token, "core")
+        expectName("halves token", CommandGroup.halves.token, "halves")
+        expectName("thirds token", CommandGroup.thirds.token, "thirds")
+        expectName("twoThirds token", CommandGroup.twoThirds.token, "twoThirds")
+        expectName("move token", CommandGroup.move.token, "move")
+        expectName("relative token", CommandGroup.relative.token, "relative")
+        expectName("display token", CommandGroup.display.token, "display")
+        expectName("maximize→core", "\(WindowCommand.maximize.group == .core)", "true")
+        expectName("undo→core", "\(WindowCommand.undo.group == .core)", "true")
+        expectName("move center→core", "\(WindowCommand.move(.center).group == .core)", "true")
+        expectName("snapThrow→halves", "\(WindowCommand.snapThrow(.left).group == .halves)", "true")
+        expectName("moveToDisplay→display", "\(WindowCommand.moveToDisplay(.top).group == .display)", "true")
+        expectName("move→move", "\(WindowCommand.move(.left).group == .move)", "true")
+        expectName("relativeHalf→relative", "\(WindowCommand.relativeHalf(.top).group == .relative)", "true")
+        expectName("absolute half→halves", "\(absolute(.horizontal, .half, .first).group == .halves)", "true")
+        expectName("absolute third→thirds", "\(absolute(.horizontal, .third, .first).group == .thirds)", "true")
+        expectName("absolute twoThird→twoThirds", "\(absolute(.horizontal, .twoThird, .first).group == .twoThirds)", "true")
+    }
+
+    // CommandPrimitives 표시 문자열·심볼·토큰 전수(switch 모든 arm).
+    private static func testPrimitiveStrings() {
+        expectName("frac half symbol", Fraction.half.symbol, "1/2")
+        expectName("frac third symbol", Fraction.third.symbol, "1/3")
+        expectName("frac twoThird symbol", Fraction.twoThird.symbol, "2/3")
+        expectName("frac half token", Fraction.half.token, "half")
+        expectName("frac third token", Fraction.third.token, "third")
+        expectName("frac twoThird token", Fraction.twoThird.token, "twoThird")
+        expectName("abs left 1/2", absolute(.horizontal, .half, .first).displayName, "Left 1/2")
+        expectName("abs center 1/3", absolute(.horizontal, .third, .center).displayName, "Center 1/3")
+        expectName("abs right 1/2", absolute(.horizontal, .half, .last).displayName, "Right 1/2")
+        expectName("abs top 1/2", absolute(.vertical, .half, .first).displayName, "Top 1/2")
+        expectName("abs middle 1/3", absolute(.vertical, .third, .center).displayName, "Middle 1/3")
+        expectName("abs bottom 1/2", absolute(.vertical, .half, .last).displayName, "Bottom 1/2")
+        expectName("movedir left", MoveDirection.left.displayName, "Left")
+        expectName("movedir right", MoveDirection.right.displayName, "Right")
+        expectName("movedir up", MoveDirection.up.displayName, "Up")
+        expectName("movedir down", MoveDirection.down.displayName, "Down")
+        expectName("movedir center", MoveDirection.center.displayName, "Center")
+        expectName("rel left", RelativeAnchor.left.displayName, "Left")
+        expectName("rel right", RelativeAnchor.right.displayName, "Right")
+        expectName("rel top", RelativeAnchor.top.displayName, "Top")
+        expectName("rel bottom", RelativeAnchor.bottom.displayName, "Bottom")
+        expectName("snap left name", SnapEdge.left.displayName, "Left 1/2")
+        expectName("snap right name", SnapEdge.right.displayName, "Right 1/2")
+        expectName("snap top name", SnapEdge.top.displayName, "Top 1/2")
+        expectName("snap bottom name", SnapEdge.bottom.displayName, "Bottom 1/2")
+        expectName("snap left dir", SnapEdge.left.displayDirection, "Left")
+        expectName("snap right dir", SnapEdge.right.displayDirection, "Right")
+        expectName("snap top dir", SnapEdge.top.displayDirection, "Up")
+        expectName("snap bottom dir", SnapEdge.bottom.displayDirection, "Down")
     }
 
     private static func testCommandModel() {
