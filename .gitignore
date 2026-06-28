@@ -12,6 +12,16 @@ build/
 *.dmg
 *.xcarchive
 ExportOptions.plist
+# Signing material / secrets — NEVER commit. The Developer ID .p12 lives OUTSIDE the
+# repo (~/.config/azimuth-signing/); these patterns are defense-in-depth in case any
+# cert/key/profile ever lands in the tree. CI uses GitHub environment secrets, not files.
+*.p12
+*.cer
+*.p8
+*.mobileprovision
+*.certSigningRequest
+.secrets/
+secrets/
 
 ### Emacs ###
 # -*- mode: gitignore; -*-
