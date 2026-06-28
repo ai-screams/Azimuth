@@ -10,9 +10,14 @@ permissions:
   contents: read
   security-events: write
 
+# PR에 연속 푸시 시 오래된 실행을 취소(러너 시간 절약). main 푸시는 취소하지 않는다.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   secret-scan:
-    runs-on: macos-latest
+    runs-on: macos-15 # release.yml과 러너 통일(재현성)
 
     steps:
       - name: Checkout
@@ -45,11 +50,16 @@ jobs:
           exit 1
 
   lint-and-build:
-    runs-on: macos-latest
+    runs-on: macos-15 # release.yml과 러너 통일(재현성)
 
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1
+        with:
+          xcode-version: latest-stable
 
       - name: Install Swift tooling
         run: brew install swiftlint swiftformat
@@ -72,3 +82,6 @@ jobs:
 
       - name: Command-engine tests
         run: ./scripts/test.sh
+
+      - name: Coverage gate (pure logic >= 90%)
+        run: make coverage

@@ -49,9 +49,25 @@ jobs:
           VERSION: ${{ github.ref_name }}
         run: ./scripts/release.sh
 
+      - name: Verify signed/notarized DMG (게시 전 자가검증)
+        run: |
+          set -euo pipefail
+          DMG="$(ls dist/*.dmg)"
+          echo "Verifying $DMG"
+          codesign --verify --deep --strict --verbose=2 "$DMG"
+          spctl -a -t open --context context:primary-signature -vv "$DMG"
+          xcrun stapler validate "$DMG"
+
+      - name: Generate SHA-256 checksum
+        run: |
+          set -euo pipefail
+          cd dist
+          for f in *.dmg; do shasum -a 256 "$f" > "$f.sha256"; done
+          cat ./*.sha256
+
       - name: Create GitHub Release with DMG
         uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b # v3
         with:
-          files: dist/*.dmg
+          files: dist/*.dmg* # .dmg + .dmg.sha256
           generate_release_notes: true
           fail_on_unmatched_files: true
