@@ -1,5 +1,5 @@
 <!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-06-19 | Updated: 2026-06-19 -->
+<!-- Generated: 2026-06-19 | Updated: 2026-06-29 -->
 
 # WindowAccess
 
@@ -16,6 +16,8 @@ Accessibility(AX) API와 직접 맞닿는 계층. "어느 앱/어느 창"을 해
 | `AnimationSuppressor.swift` | `@MainActor`. 대상 앱의 `AXEnhancedUserInterface`/`AXManualAccessibility`를 쓰기 동안 끄고 마지막 입력 +0.25s에 원복(PID별 디바운스, 엘리먼트 동일성으로 PID 재사용 방어). VoiceOver 중엔 미적용. 깜빡임 1차 원인 제거 |
 | `WindowUndoStore.swift` | `@MainActor`. 창별 1단계 직전 frame 저장(capacity 64, LRU). `AXUIElement`를 `CFEqual`/`CFHash`로 식별, pid 일치 확인(닫힌 창 element 재사용 오인 방지). `clearAll`은 디스플레이 재구성 시 호출 |
 | `WorkAreaResolver.swift` | `@MainActor`. AX 창 frame이 가장 많이 겹치는 화면의 `visibleFrame`을 AX 좌표로 반환(멀티모니터 대응) |
+| `DisplayResolver.swift` | `@MainActor`. snapThrow·moveToDisplay 명령의 인접 디스플레이 타깃을 해석. 창 frame과 edge 방향으로 "던질 화면"을 결정해 `WindowCommandExecutor`에 제공 |
+| `NSScreen+BestMatch.swift` | `NSScreen` 확장. 주어진 AX frame과 겹침이 가장 큰 화면을 반환하는 유틸리티(`bestMatch`). `DisplayResolver`·`WorkAreaResolver`가 공용으로 사용 |
 
 ## For AI Agents
 

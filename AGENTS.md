@@ -1,4 +1,4 @@
-<!-- Generated: 2026-06-19 | Updated: 2026-06-19 -->
+<!-- Generated: 2026-06-19 | Updated: 2026-06-29 -->
 
 # Azimuth
 
@@ -35,7 +35,7 @@ Azimuth는 macOS 메뉴바 **윈도우 매니저**다 (Magnet/Rectangle 류). Ac
 
 ### Testing Requirements
 - 변경 후 항상: `make build` → `make lint` → `make test`. 머지 전 통과 필수(CI가 동일하게 검사).
-- 순수 로직 변경은 `make test`(24+ 체크, swiftc 직접 컴파일)로 빠르게 회귀 확인.
+- 순수 로직 변경은 `make test`(swiftc 직접 컴파일, 통과 시 `PASS — all N checks` 출력)로 빠르게 회귀 확인.
 - launch/Info.plist/타깃 설정 변경은 "프로세스 생존"만 보지 말고 **창이 실제로 뜨는지** 확인(과거 storyboard 제거가 delegate 연결을 끊은 회귀 있었음).
 
 ### Common Patterns
@@ -49,6 +49,7 @@ Azimuth는 macOS 메뉴바 **윈도우 매니저**다 (Magnet/Rectangle 류). Ac
 - 명령 실행 데이터 흐름: 단축키/메뉴 → `Commands/WindowCommandExecutor` → `WindowAccess`(앱/창 해석·쓰기) + `Commands/FrameCalculator`(기하) + `WindowAccess/WindowUndoStore`(되돌리기).
 
 ### External
-- AppKit / Cocoa, ApplicationServices(AX), CoreGraphics, Carbon.HIToolbox(전역 단축키), ServiceManagement(로그인 자동 실행). 외부 패키지 의존 없음(SPM/CocoaPods 미사용).
+- AppKit / Cocoa, ApplicationServices(AX), CoreGraphics, Carbon.HIToolbox(전역 단축키), ServiceManagement(로그인 자동 실행).
+- **Sparkle 2** (SPM, 2.9.3, revision `d46d456`): 자동 업데이트 프레임워크. `AppDelegate`의 `SPUStandardUpdaterController`로 초기화; "Check for Updates…" 메뉴 항목(App 메뉴·상태바 메뉴·Settings Updates 카드)의 타깃이 된다.
 
 <!-- MANUAL: Any manually added notes below this line are preserved on regeneration -->

@@ -32,7 +32,7 @@ Design principle: **predictability over clever inference.** Every command does e
 
 ## Privacy
 
-Azimuth runs entirely on your Mac. It collects no data, has no telemetry or analytics, and makes no network connections. The Accessibility permission is used solely to move and resize the windows of the app you're using.
+Azimuth runs entirely on your Mac. It collects no data, has no telemetry or analytics, and makes no network connections other than checking for updates (Sparkle). The Accessibility permission is used solely to move and resize the windows of the app you're using.
 
 ## Install
 
@@ -76,7 +76,7 @@ Azimuth separates command groups by modifier layer:
 |-------|---------|
 | `⌃⌥` (Control+Option) | Halves (snap/throw) · Maximize · Center · Undo · Thirds & two-thirds (number keys) |
 | `⌃⌥⌘` | **Move** (keep current size) |
-| `⌃⌥⇧` | **Relative shrink** (½ against a pinned edge) |
+| `⌃⌥⇧` | **Relative shrink** — ½ on arrows, ⅔ on `M , . /` |
 | `⌃⌥⌘⇧` | **Move to next display** |
 
 ### Standard preset (default)
@@ -94,6 +94,7 @@ Azimuth separates command groups by modifier layer:
 | | Vertical top·bottom | `⌃⌥9` / `⌃⌥0` |
 | Move (keep size) | Left·Right·Up·Down | `⌃⌥⌘←` / `→` / `↑` / `↓` |
 | Relative shrink (½) | Left·Right·Up·Down | `⌃⌥⇧←` / `→` / `↑` / `↓` |
+| Relative shrink (⅔) | Left·Down·Up·Right | `⌃⌥⇧ M , . /` |
 | Move to next display | Left·Right·Up·Down | `⌃⌥⌘⇧←` / `→` / `↑` / `↓` |
 
 ### Vim preset
@@ -116,7 +117,7 @@ Example: `⌃⌥H` (left half) · `⌃⌥⌘K` (move up) · `⌃⌥⇧J` (shrink
 - **Halves + throw** — if the window isn't already in that half, it snaps there. If it *is*, Azimuth throws it to the adjacent display in that direction and places it in the opposite half (throwing right lands it in the target's left half). No adjacent display → it stays put.
 - **Move** — keeps the current size and nudges the window by its own width/height, clamping at the work-area edge. It never resizes or changes display; repeated presses push it to the edge.
 - **Center** — keeps size, centers in the work area.
-- **Relative shrink (½)** — based on the *current window*, not the screen: pins the chosen edge and halves toward it.
+- **Relative shrink (½ / ⅔)** — based on the *current window*, not the screen: pins the chosen edge and shrinks toward it. Arrow keys shrink to ½; `M , . /` shrink to ⅔ (M=left, ,=down, .=up, /=right). Effects compose: ⅔ then ½ lands on ⅓.
 - **Move to next display** — preserves shape, relative position, and size (capped/clamped so it never exceeds the target screen). No adjacent display → stays put.
 - **Undo** — restores the previous frame (one step per window). Display reconfiguration discards undo history.
 - **Failure feedback** — a beep on failure (toggleable in Settings) plus a log entry. Transient failures during Space switches or animations are skipped silently.
@@ -131,6 +132,7 @@ Open Settings from the menu bar item or with `⌘,`:
 - Record custom shortcuts per command, with conflict warnings and per-command Reset.
 - Enable/disable command groups, or unbind individual commands.
 - Toggle failure beep, launch-at-login, and hide the menu bar icon.
+- Automatic updates via Sparkle — current version + Check for Updates… in Settings (and the menu bar / App menu).
 
 If the menu bar icon is hidden, relaunching Azimuth reopens the Settings window so you always have a way back in.
 
@@ -138,7 +140,7 @@ If the menu bar icon is hidden, relaunching Azimuth reopens the Settings window 
 
 | Version | Theme |
 |---------|-------|
-| v1 | Stabilization across representative apps (current) |
+| v1 | Stabilization across representative apps — shipped / stable |
 | v1.5+ | Anchor placement: snap/size the window relative to another window (same display) |
 | v2 | Workspaces: per-app default positions, named scene save/restore |
 | v3 | Automation: URL scheme, Shortcuts action, per-app rules |

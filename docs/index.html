@@ -1225,6 +1225,26 @@
               Standard (arrow keys) and Vim (HJKL). Both fully customizable per-command, with conflict warnings and per-command Reset in Settings.
             </p>
           </div>
+
+          <!-- Card 10 -->
+          <div class="card">
+            <div class="card-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="10" cy="10" r="7.5" stroke="var(--accent)" stroke-width="1.4" opacity="0.5"/>
+                <path d="M10 6 L10 10 L13 13" stroke="var(--accent)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M7 3.5 C5 4.5 3.5 6.5 3.5 10" stroke="var(--accent)" stroke-width="1.2" stroke-linecap="round" opacity="0.6"/>
+                <path d="M3.5 10 L2 8.5 M3.5 10 L5 8.5" stroke="var(--accent)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>
+              </svg>
+            </div>
+            <div class="card-title"
+                 data-en="Automatic updates"
+                 data-ko="자동 업데이트">Automatic updates</div>
+            <p class="card-body"
+               data-en="Azimuth checks for new notarized, signature-verified releases and updates itself (Sparkle); or check on demand."
+               data-ko="공증·서명 검증된 새 릴리스를 확인해 스스로 업데이트(Sparkle)하거나, 원할 때 직접 확인.">
+              Azimuth checks for new notarized, signature-verified releases and updates itself (Sparkle); or check on demand.
+            </p>
+          </div>
         </div>
       </div>
     </section>
@@ -1273,9 +1293,9 @@
               <span class="key sym">⌃</span><span class="key sym">⌥</span><span class="key sym">⇧</span>
             </div>
             <div class="modifier-desc"
-                 data-en="Relative shrink (½ against a pinned edge)"
-                 data-ko="상대 축소 (고정 엣지 기준 ½)">
-              Relative shrink (½ against a pinned edge)
+                 data-en="Relative shrink — ½ on arrows, ⅔ on M , . /"
+                 data-ko="상대 축소 — 화살표로 ½, M , . /로 ⅔">
+              Relative shrink — ½ on arrows, ⅔ on M , . /
             </div>
           </div>
           <div class="modifier-row" role="listitem">
@@ -1361,9 +1381,14 @@
               </tr>
               <!-- Relative shrink -->
               <tr>
-                <td data-en="Relative shrink" data-ko="상대 축소">Relative shrink</td>
+                <td data-en="Relative shrink (½)" data-ko="상대 축소 (½)">Relative shrink (½)</td>
                 <td data-en="Left · Right · Up · Down" data-ko="좌 · 우 · 위 · 아래">Left · Right · Up · Down</td>
                 <td><div class="keys-group"><span class="key sym">⌃⌥⇧</span><span class="key">←</span><span class="key">→</span><span class="key">↑</span><span class="key">↓</span></div></td>
+              </tr>
+              <tr>
+                <td data-en="Relative shrink (⅔)" data-ko="상대 축소 (⅔)">Relative shrink (⅔)</td>
+                <td data-en="Left · Down · Up · Right" data-ko="좌 · 하 · 상 · 우">Left · Down · Up · Right</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥⇧</span><span class="key">M</span><span class="key">,</span><span class="key">.</span><span class="key">/</span></div></td>
               </tr>
               <!-- Move to next display -->
               <tr>
@@ -1660,9 +1685,9 @@
                  data-ko="© 2026 AiScream · Apache-2.0 · Swift + AppKit으로 제작">
               © 2026 AiScream · Apache-2.0 · Built with Swift + AppKit
             </div>
-            <div data-en="No data collection · no telemetry · no network access."
-                 data-ko="데이터 수집 없음 · 텔레메트리 없음 · 네트워크 접속 없음.">
-              No data collection · no telemetry · no network access.
+            <div data-en="No data collection · no telemetry · the only network access is the Sparkle update check."
+                 data-ko="데이터 수집 없음 · 텔레메트리 없음 · 네트워크 접속은 Sparkle 업데이트 확인뿐.">
+              No data collection · no telemetry · the only network access is the Sparkle update check.
             </div>
           </div>
         </div>

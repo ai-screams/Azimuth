@@ -1,5 +1,5 @@
 <!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-06-19 | Updated: 2026-06-19 -->
+<!-- Generated: 2026-06-19 | Updated: 2026-06-29 -->
 
 # Azimuth (app source)
 
@@ -10,8 +10,10 @@
 | File | Description |
 |------|-------------|
 | `main.swift` | 스토리보드 없는 표준 진입점. `MainActor.assumeIsolated`로 `NSApplication`에 `AppDelegate`를 명시적으로 연결해 실행 |
-| `AppDelegate.swift` | 컴포지션 루트. 트래커/언두스토어/핫키서비스/프리퍼런스/설정창/상태바를 보유, `applicationDidFinishLaunching`에서 설치·핫키 reload·옵저버 등록. 단축키 명령 디스패치(`runHotkeyCommand`) |
-| `ViewController.swift` | 설정창 내용(프로퍼티·생명주기·상태 갱신). Permissions/Shortcuts/Behavior 섹션. 레이아웃·서브뷰 팩토리는 `ViewController+Layout.swift`, `@objc` 액션은 `ViewController+Actions.swift`로 분리 |
+| `AppDelegate.swift` | 컴포지션 루트. 트래커/언두스토어/핫키서비스/프리퍼런스/설정창/상태바를 보유, `applicationDidFinishLaunching`에서 설치·핫키 reload·옵저버 등록. 단축키 명령 디스패치(`runHotkeyCommand`). Sparkle `SPUStandardUpdaterController`를 생성·보유하고 "Check for Updates…" 클로저를 설정창에 주입해 UI가 Sparkle을 직접 import하지 않도록 한다 |
+| `MainMenuBuilder.swift` | App·Edit·Window 메인 메뉴를 코드로 구성. "Check for Updates…" 항목은 Sparkle 업데이터 컨트롤러를 타깃/셀렉터로 받아 연결(MainMenuBuilder 자체는 AppKit만 import) |
+| `Info.plist` | 커스텀 Info.plist (`GENERATE_INFOPLIST_FILE=NO`). Sparkle 키(`SUFeedURL`, `SUPublicEDKey`)와 버전 변수(`MARKETING_VERSION`/`CURRENT_PROJECT_VERSION`/`AZIMUTH_LSUIELEMENT`)를 담는다. 자동 생성 plist 대신 이 파일이 번들에 복사됨 |
+| `ViewController.swift` | 설정창 내용(프로퍼티·생명주기·상태 갱신). Permissions/Shortcuts/Behavior/Updates 섹션. Updates 섹션: `versionLabel`(현재 버전 표시) + `checkForUpdatesButton`("Check for Updates…", Sparkle 클로저 호출). 레이아웃·서브뷰 팩토리는 `ViewController+Layout.swift`, `@objc` 액션은 `ViewController+Actions.swift`로 분리 |
 | `FlippedView.swift` / `NSButton+Rounded.swift` | 공용 보조: 뒤집힌 스크롤 문서 뷰, 둥근(.rounded) 버튼 팩토리 |
 
 ## Subdirectories
@@ -49,5 +51,16 @@
 
 ### External
 - AppKit, ApplicationServices, Carbon.HIToolbox, ServiceManagement, os(Logger).
+- **Sparkle 2** (SPM, 2.9.3): `AppDelegate`가 `SPUStandardUpdaterController`를 생성(`startingUpdater: true`)해 자동 피드 확인을 시작한다. "Check for Updates…" 메뉴 항목은 App 메뉴(`MainMenuBuilder`) · 상태바 메뉴(`StatusBarController`) · Settings Updates 카드(`ViewController`) 세 곳에 연결되며, 모두 `AppDelegate`가 클로저/타깃·셀렉터로 주입해 개별 컴포넌트는 Sparkle을 직접 import하지 않는다. 피드 URL과 EdDSA 공개키(`SUPublicEDKey`)는 `Azimuth/Info.plist`에 저장된다.
+
+## Sparkle Auto-Update
+
+| 구성 요소 | 역할 |
+|-----------|------|
+| `AppDelegate.updaterController` | `SPUStandardUpdaterController` 소유·시작. "Check for Updates…" 타깃 |
+| `MainMenuBuilder` | App 메뉴의 "Check for Updates…" 항목 — 타깃/셀렉터를 인자로 받아 연결 |
+| `StatusBarController.checkForUpdates` | 상태바 메뉴의 "Check for Updates…" — 타깃/셀렉터 쌍을 `AppDelegate`에서 주입 |
+| `ViewController.checkForUpdates` | Settings Updates 카드의 버튼 클로저 — `AppDelegate`에서 주입 |
+| `Azimuth/Info.plist` | `SUFeedURL`(appcast 고정 URL) + `SUPublicEDKey`(EdDSA 공개키) |
 
 <!-- MANUAL: -->
