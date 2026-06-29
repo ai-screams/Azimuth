@@ -61,8 +61,8 @@
 
       --text:        #1a1e2a;
       --text-mid:    #3a4050;
-      --text-muted:  #6a717f;
-      --text-faint:  #9aa0ae;
+      --text-muted:  #585f6e;
+      --text-faint:  #6e7580;
 
       --keycap-bg:   #ffffff;
       --keycap-border: #c8cdd8;
@@ -107,7 +107,7 @@
         --text:        #e8ecf4;
         --text-mid:    #b8c0d0;
         --text-muted:  #7a8499;
-        --text-faint:  #4a5268;
+        --text-faint:  #7c8597;
 
         --keycap-bg:   #1e2640;
         --keycap-border: #334266;
@@ -281,13 +281,6 @@
 
     .hero-content { max-width: 44ch; }
 
-    .hero-logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 1.2rem;
-    }
-
     .hero-wordmark {
       font-size: clamp(2.4rem, 5vw, 3.6rem);
       font-weight: 750;
@@ -301,17 +294,18 @@
     }
 
     .hero-tagline {
-      font-size: clamp(1.05rem, 2.5vw, 1.2rem);
-      color: var(--text-mid);
-      margin-bottom: 0.6rem;
+      font-size: clamp(0.9rem, 2vw, 1rem);
+      color: var(--text-muted);
+      margin-bottom: 0.4rem;
       line-height: 1.4;
       font-weight: 420;
     }
 
     .hero-sub {
-      font-size: 0.85rem;
-      color: var(--text-faint);
-      font-style: italic;
+      font-size: 1.05rem;
+      color: var(--text-mid);
+      font-style: normal;
+      font-weight: 520;
       margin-bottom: 2rem;
       letter-spacing: 0.01em;
     }
@@ -503,7 +497,7 @@
     /* ─── Highlights cards ───────────────────────────────────────── */
     .cards-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
       gap: 14px;
     }
 
@@ -884,10 +878,122 @@
       .how-grid { grid-template-columns: 1fr; }
       .cards-grid { grid-template-columns: 1fr; }
     }
+
+    /* ─── Skip link ─────────────────────────────────────────────── */
+    .skip-link {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      text-decoration: none;
+      background: var(--navy);
+      color: #e8f0ff;
+      padding: 0.55rem 1.1rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
+      font-weight: 600;
+      z-index: 9999;
+    }
+    .skip-link:focus {
+      position: fixed;
+      top: 0.75rem;
+      left: 50%;
+      transform: translateX(-50%);
+      width: auto;
+      height: auto;
+      clip: auto;
+      overflow: visible;
+      white-space: normal;
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    /* ─── Hero snap animation (reduced-motion safe) ──────────────── */
+    @media (prefers-reduced-motion: no-preference) {
+      @keyframes snap-land {
+        0%   { transform: scale(0.94) translateY(-5px); opacity: 0.45; }
+        65%  { transform: scale(1.01) translateY(1px);  opacity: 1; }
+        100% { transform: scale(1)    translateY(0);     opacity: 1; }
+      }
+      @keyframes hint-reveal {
+        from { opacity: 0; transform: translateY(5px) scale(0.95); }
+        to   { opacity: 1; transform: translateY(0)   scale(1); }
+      }
+      .mock-win-active {
+        animation: snap-land 0.32s ease-out 0.3s both;
+      }
+      .mock-snap-hint {
+        opacity: 0;
+        animation: hint-reveal 0.26s ease-out 0.68s both;
+      }
+    }
+
+    /* ─── FAQ section ────────────────────────────────────────────── */
+    .faq-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-width: 72ch;
+    }
+
+    .faq-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: border-color 0.15s;
+    }
+    .faq-item[open] {
+      border-color: rgba(74,127,193,0.3);
+    }
+
+    .faq-summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.9rem 1.1rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text);
+      cursor: pointer;
+      list-style: none;
+      user-select: none;
+      gap: 0.75rem;
+    }
+    .faq-summary::-webkit-details-marker { display: none; }
+    .faq-summary::after {
+      content: "+";
+      font-size: 1.15rem;
+      font-weight: 300;
+      color: var(--accent);
+      flex-shrink: 0;
+      line-height: 1;
+    }
+    .faq-item[open] .faq-summary::after {
+      content: "\2212";
+    }
+
+    .faq-answer {
+      padding: 0.75rem 1.1rem 1rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.65;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ─── Mobile shortcuts: hide Group column at 480px ──────────── */
+    @media (max-width: 480px) {
+      .col-group { display: none; }
+    }
   </style>
 </head>
 
 <body>
+
+  <a class="skip-link" href="#main-content"
+     data-en="Skip to main content" data-ko="본문으로 건너뛰기">Skip to main content</a>
 
   <!-- ── Sticky top bar ────────────────────────────────────────── -->
   <header role="banner">
@@ -914,6 +1020,11 @@
       <div class="topbar-right">
         <a href="manual.html" class="topbar-link"
            data-en="Manual" data-ko="매뉴얼">Manual</a>
+        <a href="https://github.com/ai-screams/Azimuth" target="_blank" rel="noopener"
+           aria-label="View Azimuth on GitHub" style="display:flex;align-items:center;">
+          <img src="https://img.shields.io/github/stars/ai-screams/Azimuth?style=flat&label=Stars&color=1a2a4a"
+               alt="GitHub stars" loading="lazy" height="20" />
+        </a>
         <div class="lang-toggle" role="group" aria-label="Language selector">
           <button class="lang-btn active" id="btn-en" onclick="setLang('en')" aria-pressed="true">EN</button>
           <button class="lang-btn" id="btn-ko" onclick="setLang('ko')" aria-pressed="false">KO</button>
@@ -922,33 +1033,12 @@
     </nav>
   </header>
 
-  <main>
+  <main id="main-content">
     <!-- ── 1. Hero ─────────────────────────────────────────────── -->
     <section class="hero" aria-labelledby="hero-heading">
       <div class="container">
         <div class="hero-inner">
           <div class="hero-content">
-            <div class="hero-logo" aria-hidden="true">
-              <svg class="compass-icon" width="52" height="52" viewBox="0 0 52 52" fill="none"
-                   xmlns="http://www.w3.org/2000/svg">
-                <circle cx="26" cy="26" r="24" stroke="var(--steel)" stroke-width="1.5" opacity="0.4"/>
-                <circle cx="26" cy="26" r="18" stroke="var(--accent)" stroke-width="1" opacity="0.25"/>
-                <circle cx="26" cy="26" r="3.5" fill="var(--accent)"/>
-                <!-- N needle (solid) -->
-                <polygon points="26,26 23,26 26,5" fill="var(--accent)" opacity="0.95"/>
-                <!-- S needle (ghost) -->
-                <polygon points="26,26 29,26 26,47" fill="var(--accent-soft)" opacity="0.3"/>
-                <!-- cardinal tick marks -->
-                <line x1="26" y1="2" x2="26" y2="6" stroke="var(--accent)" stroke-width="1.5"/>
-                <line x1="26" y1="46" x2="26" y2="50" stroke="var(--text-faint)" stroke-width="1" opacity="0.4"/>
-                <line x1="2" y1="26" x2="6" y2="26" stroke="var(--text-faint)" stroke-width="1" opacity="0.4"/>
-                <line x1="46" y1="26" x2="50" y2="26" stroke="var(--text-faint)" stroke-width="1" opacity="0.4"/>
-                <!-- N label -->
-                <text x="26" y="14" text-anchor="middle" font-family="-apple-system,sans-serif"
-                      font-size="5" font-weight="700" fill="var(--accent)" opacity="0.8">N</text>
-              </svg>
-            </div>
-
             <h1 id="hero-heading" class="hero-wordmark">Azimuth</h1>
             <p class="hero-tagline"
                data-en="A keyboard-driven window manager for macOS."
@@ -977,16 +1067,22 @@
                 </svg>
                 Download for macOS
               </a>
-              <!-- Secondary: Report an issue -->
-              <a href="https://github.com/ai-screams/Azimuth/issues/new" class="btn btn-secondary"
+              <!-- Secondary: View on GitHub -->
+              <a href="https://github.com/ai-screams/Azimuth" class="btn btn-secondary"
                  target="_blank" rel="noopener"
-                 aria-label="Report an issue (opens in new tab)">
+                 aria-label="View Azimuth on GitHub (opens in new tab)"
+                 data-en="View on GitHub" data-ko="GitHub에서 보기">
                 <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-                  <path d="M8 1C4.13 1 1 3.69 1 7c0 1.49.66 2.86 1.76 3.91-.06.87-.36 1.65-.87 2.29
-                           -.13.16-.02.4.18.42 1.2.1 2.3-.27 3.2-.96.5.14 1.05.21 1.63.21 3.87 0 7-2.69
-                           7-6.07S11.87 1 8 1zm-.75 3.25h1.5v3.5h-1.5v-3.5zm0 4.5h1.5v1.5h-1.5v-1.5z"/>
+                  <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
+                           0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13
+                           -.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66
+                           .07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15
+                           -.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27
+                           .68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12
+                           .51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48
+                           0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
                 </svg>
-                <span data-en="Report an issue" data-ko="이슈 등록">Report an issue</span>
+                View on GitHub
               </a>
               <!-- Tertiary: anchor -->
               <a href="#how-it-works" class="btn btn-secondary"
@@ -1311,7 +1407,7 @@
             <img src="assets/demo-snap.png" alt="Azimuth snapping a window to a screen region"
                  width="1600" height="1000" loading="lazy"
                  style="width:100%; height:auto; border-radius:12px; border:1px solid rgba(255,255,255,0.12);" />
-            <figcaption style="margin-top:.5rem; font-size:.9rem; opacity:.7;"
+            <figcaption style="margin-top:.5rem; font-size:.9rem; color:var(--text-muted);"
                         data-en="Snap & resize with one shortcut" data-ko="단축키 하나로 스냅·리사이즈">
               Snap &amp; resize with one shortcut
             </figcaption>
@@ -1320,7 +1416,7 @@
             <img src="assets/demo-throw.png" alt="Azimuth throwing a window to the adjacent display"
                  width="1600" height="1000" loading="lazy"
                  style="width:100%; height:auto; border-radius:12px; border:1px solid rgba(255,255,255,0.12);" />
-            <figcaption style="margin-top:.5rem; font-size:.9rem; opacity:.7;"
+            <figcaption style="margin-top:.5rem; font-size:.9rem; color:var(--text-muted);"
                         data-en="Throw across displays, keep the shape" data-ko="디스플레이 간 이동, 모양 유지">
               Throw across displays, keep the shape
             </figcaption>
@@ -1395,7 +1491,7 @@
           <table class="shortcuts-table" aria-label="Standard preset keyboard shortcuts">
             <thead>
               <tr>
-                <th data-en="Group" data-ko="그룹">Group</th>
+                <th class="col-group" data-en="Group" data-ko="그룹">Group</th>
                 <th data-en="Command" data-ko="명령">Command</th>
                 <th data-en="Shortcut" data-ko="단축키">Shortcut</th>
               </tr>
@@ -1403,7 +1499,7 @@
             <tbody>
               <!-- Halves -->
               <tr>
-                <td rowspan="4" data-en="Halves" data-ko="반분">Halves</td>
+                <td class="col-group" rowspan="4" data-en="Halves" data-ko="반분">Halves</td>
                 <td data-en="Left" data-ko="왼쪽">Left</td>
                 <td><div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">←</span></div></td>
               </tr>
@@ -1421,7 +1517,7 @@
               </tr>
               <!-- Maximize / Undo / Center -->
               <tr>
-                <td rowspan="3" data-en="Maximize · Undo · Center" data-ko="최대화 · 실행 취소 · 가운데">Maximize · Undo · Center</td>
+                <td class="col-group" rowspan="3" data-en="Maximize · Undo · Center" data-ko="최대화 · 실행 취소 · 가운데">Maximize · Undo · Center</td>
                 <td data-en="Maximize" data-ko="최대화">Maximize</td>
                 <td><div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">↩</span></div></td>
               </tr>
@@ -1433,9 +1529,9 @@
                 <td data-en="Center" data-ko="가운데 배치">Center</td>
                 <td><div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">C</span></div></td>
               </tr>
-              <!-- Thirds horizontal -->
+              <!-- Thirds (1/3): rowspan=2 — covers horizontal and vertical rows only -->
               <tr>
-                <td rowspan="5" data-en="Thirds (1/3)" data-ko="삼등분 (1/3)">Thirds (1/3)</td>
+                <td class="col-group" rowspan="2" data-en="Thirds (1/3)" data-ko="삼등분 (1/3)">Thirds (1/3)</td>
                 <td data-en="Horizontal: left · center · right" data-ko="수평: 왼쪽 · 가운데 · 오른쪽">Horizontal: left · center · right</td>
                 <td><div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">1</span><span class="key">2</span><span class="key">3</span></div></td>
               </tr>
@@ -1443,9 +1539,9 @@
                 <td data-en="Vertical: top · middle · bottom" data-ko="수직: 위 · 가운데 · 아래">Vertical: top · middle · bottom</td>
                 <td><div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">4</span><span class="key">5</span><span class="key">6</span></div></td>
               </tr>
-              <!-- Two-thirds -->
+              <!-- Two-thirds (2/3): own rowspan=2 group -->
               <tr>
-                <td rowspan="2" data-en="Two-thirds (2/3)" data-ko="삼분의 이 (2/3)">Two-thirds (2/3)</td>
+                <td class="col-group" rowspan="2" data-en="Two-thirds (2/3)" data-ko="삼분의 이 (2/3)">Two-thirds (2/3)</td>
                 <td data-en="Horizontal: left · right" data-ko="수평: 왼쪽 · 오른쪽">Horizontal: left · right</td>
                 <td><div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">7</span><span class="key">8</span></div></td>
               </tr>
@@ -1455,24 +1551,24 @@
               </tr>
               <!-- Move -->
               <tr>
-                <td data-en="Move (keep size)" data-ko="이동 (크기 유지)">Move (keep size)</td>
+                <td class="col-group" data-en="Move (keep size)" data-ko="이동 (크기 유지)">Move (keep size)</td>
                 <td data-en="Left · Right · Up · Down" data-ko="좌 · 우 · 위 · 아래">Left · Right · Up · Down</td>
                 <td><div class="keys-group"><span class="key sym">⌃⌥⌘</span><span class="key">←</span><span class="key">→</span><span class="key">↑</span><span class="key">↓</span></div></td>
               </tr>
               <!-- Relative shrink -->
               <tr>
-                <td data-en="Relative shrink (½)" data-ko="상대 축소 (½)">Relative shrink (½)</td>
+                <td class="col-group" data-en="Relative shrink (½)" data-ko="상대 축소 (½)">Relative shrink (½)</td>
                 <td data-en="Left · Right · Up · Down" data-ko="좌 · 우 · 위 · 아래">Left · Right · Up · Down</td>
                 <td><div class="keys-group"><span class="key sym">⌃⌥⇧</span><span class="key">←</span><span class="key">→</span><span class="key">↑</span><span class="key">↓</span></div></td>
               </tr>
               <tr>
-                <td data-en="Relative shrink (⅔)" data-ko="상대 축소 (⅔)">Relative shrink (⅔)</td>
+                <td class="col-group" data-en="Relative shrink (⅔)" data-ko="상대 축소 (⅔)">Relative shrink (⅔)</td>
                 <td data-en="Left · Down · Up · Right" data-ko="좌 · 하 · 상 · 우">Left · Down · Up · Right</td>
                 <td><div class="keys-group"><span class="key sym">⌃⌥⇧</span><span class="key">M</span><span class="key">,</span><span class="key">.</span><span class="key">/</span></div></td>
               </tr>
               <!-- Move to next display -->
               <tr>
-                <td data-en="Move to next display" data-ko="다음 디스플레이로 이동">Move to next display</td>
+                <td class="col-group" data-en="Move to next display" data-ko="다음 디스플레이로 이동">Move to next display</td>
                 <td data-en="Left · Right · Up · Down" data-ko="좌 · 우 · 위 · 아래">Left · Right · Up · Down</td>
                 <td><div class="keys-group"><span class="key sym">⌃⌥⌘⇧</span><span class="key">←</span><span class="key">→</span><span class="key">↑</span><span class="key">↓</span></div></td>
               </tr>
@@ -1561,7 +1657,8 @@
           <!-- Diagram B: Move + clamp -->
           <div class="how-card">
             <div class="how-diagram" aria-hidden="true">
-              <svg width="100%" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+              <svg width="100%" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg"
+                   role="img" aria-label="Move clamp diagram: window steps right and stops at the work-area edge">
                 <!-- Work area -->
                 <rect x="10" y="10" width="180" height="80" rx="4"
                       fill="rgba(255,255,255,0.04)" stroke="rgba(74,127,193,0.3)" stroke-width="1"/>
@@ -1606,7 +1703,8 @@
           <!-- Diagram C: Move to next display -->
           <div class="how-card">
             <div class="how-diagram" aria-hidden="true">
-              <svg width="100%" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+              <svg width="100%" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg"
+                   role="img" aria-label="Move to next display diagram: window transfers to adjacent monitor preserving relative position">
                 <!-- Display 1 -->
                 <rect x="4" y="8" width="88" height="84" rx="4" fill="rgba(255,255,255,0.05)" stroke="rgba(74,127,193,0.35)" stroke-width="1"/>
                 <!-- Display 2 -->
@@ -1718,7 +1816,7 @@
                data-en="Or with Homebrew:" data-ko="또는 Homebrew로:">
               Or with Homebrew:
             </p>
-            <pre style="margin:0; padding:.7rem 1rem; border-radius:8px; background:rgba(0,0,0,0.28); overflow:auto; font-size:.85rem;"><code>brew install --cask ai-screams/tap/azimuth</code></pre>
+            <pre class="code-block"><code>brew install --cask ai-screams/tap/azimuth</code></pre>
           </div>
         </div>
       </div>
@@ -1726,7 +1824,78 @@
 
     <div class="divider"></div>
 
-    <!-- ── 6. Support ─────────────────────────────────────────── -->
+    <!-- ── 6. FAQ ────────────────────────────────────────────── -->
+    <section id="faq" aria-labelledby="faq-heading">
+      <div class="container">
+        <span class="section-label"
+              data-en="FAQ" data-ko="FAQ">FAQ</span>
+        <h2 class="section-title" id="faq-heading"
+            data-en="Frequently asked questions"
+            data-ko="자주 묻는 질문">
+          Frequently asked questions
+        </h2>
+
+        <div class="faq-list">
+
+          <details class="faq-item">
+            <summary class="faq-summary"
+                     data-en="Why does Azimuth need Accessibility permission?"
+                     data-ko="Azimuth가 손쉬운 사용 권한이 필요한 이유는?">
+              Why does Azimuth need Accessibility permission?
+            </summary>
+            <p class="faq-answer"
+               data-en="It moves and resizes other apps' windows via the macOS Accessibility API — the standard mechanism for all window managers. Azimuth does no keylogging and makes no network connection except the Sparkle update check."
+               data-ko="macOS 손쉬운 사용 API를 통해 다른 앱의 윈도우를 이동·크기 조정합니다. 모든 윈도우 매니저의 표준 방식입니다. Azimuth는 키로깅을 하지 않으며 Sparkle 업데이트 확인 외에는 네트워크 연결을 하지 않습니다.">
+              It moves and resizes other apps' windows via the macOS Accessibility API — the standard mechanism for all window managers. Azimuth does no keylogging and makes no network connection except the Sparkle update check.
+            </p>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-summary"
+                     data-en="Does it work on older macOS?"
+                     data-ko="구형 macOS에서도 작동하나요?">
+              Does it work on older macOS?
+            </summary>
+            <p class="faq-answer"
+               data-en="Azimuth targets macOS 26.3 (Tahoe) and later, and uses APIs introduced in that release. Older macOS versions are not supported."
+               data-ko="Azimuth는 macOS 26.3 (Tahoe) 이상을 대상으로 하며, 해당 릴리스에서 도입된 API를 사용합니다. 이전 macOS 버전은 지원하지 않습니다.">
+              Azimuth targets macOS 26.3 (Tahoe) and later, and uses APIs introduced in that release. Older macOS versions are not supported.
+            </p>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-summary"
+                     data-en="Can I customize the shortcuts?"
+                     data-ko="단축키를 커스터마이징할 수 있나요?">
+              Can I customize the shortcuts?
+            </summary>
+            <p class="faq-answer"
+               data-en="Yes — open Settings → Shortcuts. You can set per-command bindings, view conflict warnings, toggle command groups on or off, and switch between Standard (arrow keys) and Vim (HJKL) presets."
+               data-ko="가능합니다. 설정 → 단축키를 여세요. 명령별 바인딩 설정, 충돌 경고 확인, 명령 그룹 활성화·비활성화, Standard(화살표 키) 및 Vim(HJKL) 프리셋 전환이 모두 지원됩니다.">
+              Yes — open Settings → Shortcuts. You can set per-command bindings, view conflict warnings, toggle command groups on or off, and switch between Standard (arrow keys) and Vim (HJKL) presets.
+            </p>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-summary"
+                     data-en="How are updates delivered?"
+                     data-ko="업데이트는 어떻게 제공되나요?">
+              How are updates delivered?
+            </summary>
+            <p class="faq-answer"
+               data-en="In-app via Sparkle — notarized and EdDSA-signature-verified. You can also check on demand from the menu bar icon. Alternatively, install and update via Homebrew: brew install --cask ai-screams/tap/azimuth"
+               data-ko="Sparkle를 통해 앱 내에서 자동 업데이트됩니다(공증 + EdDSA 서명 검증). 메뉴 바 아이콘에서 직접 확인도 가능합니다. 또는 Homebrew로 설치·업데이트: brew install --cask ai-screams/tap/azimuth">
+              In-app via Sparkle — notarized and EdDSA-signature-verified. You can also check on demand from the menu bar icon. Alternatively, install and update via Homebrew: brew install --cask ai-screams/tap/azimuth
+            </p>
+          </details>
+
+        </div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ── 7. Support ─────────────────────────────────────────── -->
     <section id="support" aria-labelledby="support-heading">
       <div class="container">
         <span class="section-label"
@@ -1780,6 +1949,8 @@
         <div class="footer-links">
           <a href="manual.html"
              data-en="Manual" data-ko="매뉴얼">Manual</a>
+          <a href="#faq"
+             data-en="FAQ" data-ko="FAQ">FAQ</a>
           <a href="#support"
              data-en="Support" data-ko="후원">Support</a>
           <a href="https://github.com/ai-screams/Azimuth/issues" target="_blank" rel="noopener"
