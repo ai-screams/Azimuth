@@ -82,9 +82,13 @@ final class PreferencesStore {
             }
         }
         set {
-            // UInt32 두 필드만 가진 Codable이라 인코딩은 사실상 실패하지 않는다(방어적 가드).
-            guard let data = try? JSONEncoder().encode(newValue) else { return }
-            defaults.set(data, forKey: customShortcutsKey)
+            // UInt32 두 필드만 가진 Codable이라 인코딩은 사실상 실패하지 않지만, 실패 시 조용히
+            // 삼키면 단축키 변경이 저장 안 된 이유를 진단할 수 없다 → 로그를 남긴다(방어적 가드).
+            do {
+                try defaults.set(JSONEncoder().encode(newValue), forKey: customShortcutsKey)
+            } catch {
+                Log.app.error("Failed to encode customShortcuts: \(error.localizedDescription, privacy: .public)")
+            }
         }
     }
 

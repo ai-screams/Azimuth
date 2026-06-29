@@ -50,6 +50,11 @@ if [[ -z "$VERSION" ]]; then
     VERSION="$(git describe --tags --abbrev=0 2>/dev/null || echo "0.0.0-dev")"
 fi
 VERSION="${VERSION#v}"  # 앞의 v 제거
+# 형식 방어: SemVer만 허용. CI에서 VERSION은 git 태그(github.ref_name)에서 오는데, 태그명에
+# 셸/경로/XML 특수문자가 들어가면 DMG 경로·ExportOptions.plist를 오염시킬 수 있다(모든 사용처는
+# 인용돼 인젝션은 불가하나, 방어적으로 형식을 강제한다).
+[[ "$VERSION" =~ '^[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.-]+)?$' ]] \
+    || die "예상치 못한 VERSION 거부: '$VERSION' (SemVer X.Y.Z 형식만 허용)"
 DMG="$DIST_DIR/$APP_NAME-$VERSION.dmg"
 
 # CFBundleVersion(=CURRENT_PROJECT_VERSION)은 Sparkle이 "더 최신인가"를 비교하는 값이라

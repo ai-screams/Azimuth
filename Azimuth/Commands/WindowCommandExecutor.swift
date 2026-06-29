@@ -32,13 +32,18 @@ enum WindowCommandExecutor {
             return .failure(.workAreaUnavailable)
         }
 
-        // 일반 명령은 적용 직전 현재 frame을 1단계 저장(되돌리기용).
-        undoStore.record(resolved.frame.rect, pid: resolved.pid, for: resolved.element)
-        let target = targetFrame(for: command, current: resolved.frame.rect, workArea: workArea)
+        let preMoveFrame = resolved.frame.rect
+        let target = targetFrame(for: command, current: preMoveFrame, workArea: workArea)
         // anchor 보정은 "target이 놓일 화면"의 작업영역 기준이어야 한다(디스플레이 간 throw 시 목적지 화면).
         // 같은 화면 명령이면 결과적으로 source와 동일. 못 구하면 source로 폴백.
         let anchorArea = WorkAreaResolver.workArea(forAXWindowFrame: target) ?? workArea
-        return WindowFrameWriter.apply(target, to: resolved, workArea: anchorArea)
+        let result = WindowFrameWriter.apply(target, to: resolved, workArea: anchorArea)
+        // 되돌리기용 직전 frame은 적용에 "성공했을 때만" 저장한다. 실패/transient면 창이 움직이지
+        // 않았으므로, 기록하면 직전 성공 명령의 undo 이력을 무의미한 현재 frame으로 덮어쓰게 된다.
+        if case .success = result {
+            undoStore.record(preMoveFrame, pid: resolved.pid, for: resolved.element)
+        }
+        return result
     }
 
     /// snapThrow·moveToDisplay만 인접 디스플레이를 알아야 하므로 여기서 분기하고, 나머지는 순수 FrameCalculator에 위임.
