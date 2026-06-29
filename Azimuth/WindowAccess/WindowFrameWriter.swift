@@ -53,16 +53,17 @@ enum WindowFrameWriter {
 
         // (2) 제약 앱이 목표보다 큰 크기에 머물면 실제 크기를 읽어 anchored origin을 "한 번만" 쓴다(위치 1회).
         let origin = originForConstrainedApp(element: element, target: target, workArea: workArea)
-        let positionError = AXAttribute.set(element, kAXPositionAttribute as String, point: origin)
+        var positionError = AXAttribute.set(element, kAXPositionAttribute as String, point: origin)
         // (3) 크기 재확정(모니터를 넘어가며 클램프됐을 수 있음).
-        let sizeError = AXAttribute.set(element, kAXSizeAttribute as String, size: target.size)
+        var sizeError = AXAttribute.set(element, kAXSizeAttribute as String, size: target.size)
 
         // (4) verify + 1회 재시도(비동기·부분수용 앱). size는 8pt 오차 허용(증분 앱 헛재시도 방지).
         // 재시도 origin은 방금 읽힌 실제 크기로 다시 anchor 계산(첫 추정이 어긋났을 때 보정).
+        // 재시도 결과를 최종 판정에 반영한다 — 재시도 중에만 생긴 일시적 실패를 success로 오분류하지 않게.
         if let achieved = readFrame(element), !frameMatches(achieved, origin: origin, size: target.size) {
             let retryOrigin = originForConstrainedApp(element: element, target: target, workArea: workArea)
-            AXAttribute.set(element, kAXPositionAttribute as String, point: retryOrigin)
-            AXAttribute.set(element, kAXSizeAttribute as String, size: target.size)
+            positionError = AXAttribute.set(element, kAXPositionAttribute as String, point: retryOrigin)
+            sizeError = AXAttribute.set(element, kAXSizeAttribute as String, size: target.size)
         }
 
         guard positionError == .success, sizeError == .success else {
