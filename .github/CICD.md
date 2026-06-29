@@ -34,6 +34,8 @@ Azimuth의 지속적 통합·배포 구성 전체 개요. 워크플로 정의는
 > - **단일-항목 피드**: appcast는 매 릴리스 새 DMG 1건만 담는다("항상 최신 제공" 모델). 고정 URL이 항상 최신 릴리스의 appcast로 연결되므로 "내 버전보다 새 게 있나" 판정에 충분하다(델타 업데이트·다채널은 미사용). 의도된 설계.
 > - **generate_appcast 출처**: 별도 tarball 다운로드(미검증) 대신 **SPM이 `Package.resolved`에 핀해 체크섬 검증으로 받아둔 Sparkle 아티팩트**의 도구를 쓴다(서명키 옆에서 도는 코드의 공급망 위험 제거).
 > - **CFBundleVersion**: Sparkle 버전 비교용으로 `release.sh`가 **git 커밋 수(단조 증가 정수)** 를 주입한다(SemVer 문자열은 `-rc`/`-dev`서 비교가 꼬일 수 있어 회피). 표시 버전은 `MARKETING_VERSION`(태그 SemVer). 그래서 release 체크아웃은 `fetch-depth: 0`.
+> - **릴리스 노트**: appcast `<item>`에 `sparkle:releaseNotesLink`(이 릴리스의 GitHub 태그 페이지)를 주입 → 업데이트 창에서 변경점을 본다.
+> - **prerelease 태그**: 하이픈 포함 태그(`v1.2.0-rc1`·`-beta`)는 `prerelease: true`로 발행 → GitHub "latest" 및 `releases/latest/download/appcast.xml` 피드에서 자동 제외(정식 `vX.Y.Z`만 사용자에게 노출).
 
 활성화·secret·환경 설정은 [`RELEASING.md`](../RELEASING.md) 참조.
 

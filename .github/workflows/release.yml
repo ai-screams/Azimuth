@@ -105,6 +105,9 @@ jobs:
             --download-url-prefix "https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/" \
             -o dist/appcast.xml \
             dist/
+          # 업데이트 창에 "무엇이 바뀌는지"를 보여주도록 이 릴리스의 GitHub 릴리스 노트 페이지를
+          # sparkle:releaseNotesLink로 주입한다(태그 페이지는 발행 후 존재 → 사용자 확인 시점엔 유효).
+          python3 -c 'import sys; p="dist/appcast.xml"; repo,tag=sys.argv[1],sys.argv[2]; link=f"https://github.com/{repo}/releases/tag/{tag}"; s=open(p).read(); s=(s if "<sparkle:releaseNotesLink>" in s else s.replace("<enclosure ", f"<sparkle:releaseNotesLink>{link}</sparkle:releaseNotesLink>\n            <enclosure ", 1)); open(p,"w").write(s)' "$GITHUB_REPOSITORY" "$GITHUB_REF_NAME"
           echo "appcast.xml generated ($(wc -l < dist/appcast.xml) lines)."
 
       - name: Create GitHub Release with DMG
@@ -116,3 +119,6 @@ jobs:
             dist/appcast.xml
           generate_release_notes: true
           fail_on_unmatched_files: true
+          # 하이픈 포함 태그(v1.2.0-rc1, -beta 등)는 프리릴리스로 표시 → GitHub "latest" 및
+          # releases/latest/download/appcast.xml(Sparkle 피드)에서 자동 제외. 정식 vX.Y.Z만 최신.
+          prerelease: ${{ contains(github.ref_name, '-') }}
