@@ -1,5 +1,5 @@
 <!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-06-19 | Updated: 2026-06-19 -->
+<!-- Generated: 2026-06-19 | Updated: 2026-06-29 -->
 
 # Commands
 
@@ -10,8 +10,8 @@
 | File | Description |
 |------|-------------|
 | `CommandPrimitives.swift` | `nonisolated` 빌딩블록 값 타입: `Axis`/`Fraction`/`Slot`/`AbsolutePlacement`/`MoveDirection`/`RelativeAnchor`/`SnapEdge`(표시명·안정 토큰). `WindowCommand.swift`에서 분리(파일 비대화 방지) |
-| `WindowCommand.swift` | `nonisolated` 명령 모델: `WindowCommand`(maximize/absolute/snapThrow/moveToDisplay/move/relativeHalf/undo) + `CommandGroup`(논리 그룹) + 식별자 역조회 + DEBUG `menuCommands` 목록(29개) |
-| `FrameCalculator.swift` | `nonisolated` 순수 기하. AX 좌표 입력(current, workArea)으로 목표 frame 계산. 절대 배치(축 독립), 이동(현재 크기 유지·작업영역 클램프), 상대 반분(현재 frame 기준 edge 고정) |
+| `WindowCommand.swift` | `nonisolated` 명령 모델: `WindowCommand`(maximize/absolute/snapThrow/moveToDisplay/move/relativeHalf/relativeTwoThird/undo) + `CommandGroup`(core/halves/thirds/twoThirds/move/relative/display) + 식별자 역조회 + `menuCommands` 목록(33개) |
+| `FrameCalculator.swift` | `nonisolated` 순수 기하. AX 좌표 입력(current, workArea)으로 목표 frame 계산. 절대 배치(축 독립), 이동(현재 크기 유지·작업영역 클램프), 상대 반분/2/3(현재 frame 기준 edge 고정), snapThrow/moveToDisplay 지원(`halfRect`·`isSnapped`·`displayMoveRect`) |
 | `WindowCommandExecutor.swift` | `@MainActor` 오케스트레이션. 창 해석 → (undo면 복원, 아니면 직전 frame 기록) → 작업영역 해석 → 목표 계산 → AX 쓰기. `Result<CGRect, WindowCommandError>` 반환 |
 
 ## For AI Agents
@@ -22,7 +22,7 @@
 - 모든 frame은 **AX 좌표(좌상단 원점)** 기준. Cocoa 변환은 호출부(`WorkAreaResolver`)에서 처리됨.
 
 ### Testing Requirements
-- `make test`(`Tests/CommandEngineTests.swift`)가 절대 배치/축 합성/이동/상대 반분/모델을 검증. 기하 변경 시 케이스 추가.
+- `make test`(`Tests/CommandEngineTests.swift`)가 절대 배치/축 합성/이동/상대 반분/상대 2/3/snapThrow·displayMove/명령 모델(33개)을 검증. 기하 변경 시 케이스 추가.
 
 ### Common Patterns
 - 이동 클램프: 창이 작업영역보다 크면(`upper < lower`) 좌상단(`lower`)에 고정.

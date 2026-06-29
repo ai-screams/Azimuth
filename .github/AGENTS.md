@@ -1,5 +1,5 @@
 <!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-06-19 | Updated: 2026-06-19 -->
+<!-- Generated: 2026-06-19 | Updated: 2026-06-29 -->
 
 # .github
 
@@ -17,7 +17,7 @@ GitHub Actions CI/CD 설정. **전체 개요·보안 레이어·활성화 설정
 | `CICD.md` | CI/CD 전체 문서(워크플로·방어 레이어·로컬 대응·저장소 설정·릴리스 방법) |
 | `workflows/ci.yml` | `push: main`+PR, `macos-15`. **secret-scan**(gitleaks+SARIF) · **lint-and-build**(SwiftFormat→SwiftLint strict→xcodebuild→`scripts/test.sh`→`make coverage` ≥90% 게이트). concurrency로 PR stale 취소 |
 | `workflows/codeql.yml` | CodeQL **Swift** SAST(push: main·주간). init→빌드→analyze → Security/Code scanning |
-| `workflows/release.yml` | 태그 `v*` → `environment: release` 승인 게이트 → 빌드·서명·공증·**DMG 자가검증**·**SHA-256 체크섬**·Release 발행 |
+| `workflows/release.yml` | 태그 `v*` → `environment: release` 승인 게이트 → 빌드·서명·공증·**DMG 자가검증**·**SHA-256 체크섬**·**EdDSA 서명키 일치 게이트**·**Sparkle appcast 서명·생성**·Release 발행 |
 | `dependabot.yml` | github-actions 주간 업데이트(SHA 핀 갱신) |
 
 ## For AI Agents

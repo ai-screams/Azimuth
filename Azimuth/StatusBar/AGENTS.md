@@ -1,5 +1,5 @@
 <!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-06-19 | Updated: 2026-06-19 -->
+<!-- Generated: 2026-06-19 | Updated: 2026-06-29 -->
 
 # StatusBar
 
@@ -9,7 +9,7 @@
 ## Key Files
 | File | Description |
 |------|-------------|
-| `StatusBarController.swift` | `@MainActor`, `NSMenuDelegate`. 컴팩트 SF Symbol 상태 아이콘(권한 시 `macwindow.on.rectangle`, 필요 시 `exclamationmark.triangle`). 메뉴: 권한 상태/Accessibility 설정 열기/Open Settings(`⌘,`)/Quit(`⌘q`). DEBUG: 포커스 창 식별 + 25개 명령 서브메뉴(`WindowCommand.menuCommands`) |
+| `StatusBarController.swift` | `@MainActor`, `NSMenuDelegate`. 컴팩트 SF Symbol 상태 아이콘(권한 시 `macwindow.on.rectangle`, 필요 시 `exclamationmark.triangle`). 메뉴: 권한 상태/Accessibility 설정 열기/Check for Updates…/Open Settings(`⌘,`)/Quit(`⌘q`). DEBUG: 포커스 창 식별 + 33개 명령 서브메뉴(`WindowCommand.menuCommands`) |
 
 ## For AI Agents
 
