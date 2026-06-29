@@ -852,7 +852,7 @@
               </tr>
               <tr>
                 <td data-en="Command" data-ko="명령">Command</td>
-                <td data-en="Relative shrink ½ (left/right/up/down edge pinned)" data-ko="상대 변형 1/2 (좌·우·상·하 edge 고정)">Relative shrink ½ (left/right/up/down edge pinned)</td>
+                <td data-en="Relative shrink 1/2 &amp; 2/3 (left/right/up/down edge pinned)" data-ko="상대 변형 1/2 · 2/3 (좌·우·상·하 edge 고정)">Relative shrink 1/2 &amp; 2/3 (left/right/up/down edge pinned)</td>
                 <td>✅</td>
               </tr>
               <tr>
@@ -961,9 +961,9 @@
               <span class="key sym">⌃</span><span class="key sym">⌥</span><span class="key sym">⇧</span>
             </div>
             <div class="modifier-desc"
-                 data-en="Relative shrink (½ against a pinned edge)"
-                 data-ko="상대 축소 (고정 엣지 기준 ½)">
-              Relative shrink (½ against a pinned edge)
+                 data-en="Relative shrink (1/2 against a pinned edge; 2/3 on ⌃⌥⇧ 7/8/9/0)"
+                 data-ko="상대 축소 (고정 엣지 기준 1/2; 2/3은 ⌃⌥⇧ 7/8/9/0)">
+              Relative shrink (1/2 against a pinned edge; 2/3 on ⌃⌥⇧ 7/8/9/0)
             </div>
           </div>
           <div class="modifier-row" role="listitem">
@@ -1047,11 +1047,17 @@
                 <td data-en="Left · Right · Up · Down" data-ko="좌 · 우 · 위 · 아래">Left · Right · Up · Down</td>
                 <td><div class="keys-group"><span class="key sym">⌃⌥⌘</span><span class="key">←</span><span class="key">→</span><span class="key">↑</span><span class="key">↓</span></div></td>
               </tr>
-              <!-- Relative shrink -->
+              <!-- Relative shrink 1/2 -->
               <tr>
-                <td data-en="Relative shrink" data-ko="상대 축소">Relative shrink</td>
+                <td data-en="Relative shrink (1/2)" data-ko="상대 축소 (1/2)">Relative shrink (1/2)</td>
                 <td data-en="Left · Right · Up · Down" data-ko="좌 · 우 · 위 · 아래">Left · Right · Up · Down</td>
                 <td><div class="keys-group"><span class="key sym">⌃⌥⇧</span><span class="key">←</span><span class="key">→</span><span class="key">↑</span><span class="key">↓</span></div></td>
+              </tr>
+              <!-- Relative shrink 2/3 -->
+              <tr>
+                <td data-en="Relative shrink (2/3)" data-ko="상대 축소 (2/3)">Relative shrink (2/3)</td>
+                <td data-en="Left · Right · Up · Down" data-ko="좌 · 우 · 위 · 아래">Left · Right · Up · Down</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥⇧</span><span class="key">7</span><span class="key">8</span><span class="key">9</span><span class="key">0</span></div></td>
               </tr>
               <!-- Move to next display -->
               <tr>
@@ -1202,15 +1208,16 @@
           <!-- Relative shrink -->
           <div class="cmd-card">
             <div class="cmd-card-title">
-              <span data-en="Relative shrink (½)" data-ko="상대 변형 (½ 축소)">Relative shrink (½)</span>
+              <span data-en="Relative shrink (1/2 · 2/3)" data-ko="상대 변형 (1/2 · 2/3 축소)">Relative shrink (1/2 · 2/3)</span>
             </div>
             <div class="cmd-card-keys">
               <div class="keys-group"><span class="key sym">⌃⌥⇧</span><span class="key">←</span><span class="key">→</span><span class="key">↑</span><span class="key">↓</span></div>
+              <div class="keys-group"><span class="key sym">⌃⌥⇧</span><span class="key">7</span><span class="key">8</span><span class="key">9</span><span class="key">0</span></div>
             </div>
             <p class="cmd-card-body"
-               data-en="Halves the window's current size relative to a pinned edge — not the screen. The edge in the given direction is fixed; the opposite edge moves inward. Left: left edge fixed, width halved. Right: right edge fixed, width halved. Exact and repeatable."
-               data-ko="현재 창 크기 기준(화면 기준 아님)으로 고정 엣지 방향을 기준으로 절반으로 줄입니다. 지정 방향의 엣지는 고정되고 반대쪽 엣지가 안쪽으로 이동합니다. 정확하고 반복 가능합니다.">
-              Halves the window's current size relative to a pinned edge — not the screen. The edge in the given direction is fixed; the opposite edge moves inward. Left: left edge fixed, width halved. Right: right edge fixed, width halved. Exact and repeatable.
+               data-en="Shrinks the window to 1/2 (arrows) or 2/3 (7/8/9/0 → left/right/top/bottom) of its current size relative to a pinned edge — not the screen. The edge in the given direction is fixed; the opposite edge moves inward. Exact, repeatable, and composable: 2/3 then 1/2 lands on 1/3."
+               data-ko="현재 창 크기 기준(화면 기준 아님)으로 고정 엣지 방향을 기준으로 1/2(화살표) 또는 2/3(7/8/9/0 → 좌/우/상/하)로 줄입니다. 지정 방향의 엣지는 고정되고 반대쪽 엣지가 안쪽으로 이동합니다. 정확·반복·조합 가능: 2/3 후 1/2 = 1/3.">
+              Shrinks the window to 1/2 (arrows) or 2/3 (7/8/9/0 → left/right/top/bottom) of its current size relative to a pinned edge — not the screen. The edge in the given direction is fixed; the opposite edge moves inward. Exact, repeatable, and composable: 2/3 then 1/2 lands on 1/3.
             </p>
           </div>
 

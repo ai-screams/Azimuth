@@ -17,7 +17,9 @@ nonisolated enum FrameCalculator {
         case let .move(direction):
             moveFrame(direction, current: current, workArea: workArea)
         case let .relativeHalf(anchor):
-            relativeHalfFrame(anchor, current: current)
+            relativeFrame(anchor, fraction: 1.0 / 2.0, current: current)
+        case let .relativeTwoThird(anchor):
+            relativeFrame(anchor, fraction: 2.0 / 3.0, current: current)
         case .undo:
             current
         }
@@ -194,18 +196,21 @@ nonisolated enum FrameCalculator {
 
     // MARK: - 상대 변형 (현재 frame 기준, 방향 edge 고정)
 
-    private static func relativeHalfFrame(_ anchor: RelativeAnchor, current: CGRect) -> CGRect {
-        let halfWidth = current.width / 2
-        let halfHeight = current.height / 2
+    /// 현재 창을 `fraction` 배율로 축소하되 `anchor` 모서리를 고정한다(나머지 축은 유지).
+    /// 좌우 anchor는 너비를, 상하 anchor는 높이를 줄인다. fraction을 바꿔 1/2·2/3 등을 공유한다.
+    /// 효과 조합 가능: 2/3 후 1/2 = 1/3 (절대 1/3 없이도 상대적으로 도달).
+    private static func relativeFrame(_ anchor: RelativeAnchor, fraction: CGFloat, current: CGRect) -> CGRect {
+        let newWidth = current.width * fraction
+        let newHeight = current.height * fraction
         switch anchor {
         case .left:
-            return CGRect(x: current.minX, y: current.minY, width: halfWidth, height: current.height)
+            return CGRect(x: current.minX, y: current.minY, width: newWidth, height: current.height)
         case .right:
-            return CGRect(x: current.maxX - halfWidth, y: current.minY, width: halfWidth, height: current.height)
+            return CGRect(x: current.maxX - newWidth, y: current.minY, width: newWidth, height: current.height)
         case .top:
-            return CGRect(x: current.minX, y: current.minY, width: current.width, height: halfHeight)
+            return CGRect(x: current.minX, y: current.minY, width: current.width, height: newHeight)
         case .bottom:
-            return CGRect(x: current.minX, y: current.maxY - halfHeight, width: current.width, height: halfHeight)
+            return CGRect(x: current.minX, y: current.maxY - newHeight, width: current.width, height: newHeight)
         }
     }
 }

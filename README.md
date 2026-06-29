@@ -18,7 +18,7 @@ Design principle: **predictability over clever inference.** Every command does e
 - **Thirds & two-thirds** — left/center/right and top/middle/bottom, horizontally or vertically.
 - **Maximize / center** — fill the work area or center at the current size.
 - **Move (keep size)** — nudge the window one step in any direction, clamped to the work area.
-- **Relative shrink** — halve the window against a pinned edge, based on its *current* size (not the screen).
+- **Relative shrink** — shrink the window to **1/2** or **2/3** of its *current* size against a pinned edge (not the screen). Effects compose: 2/3 then 1/2 lands on 1/3.
 - **Move to next display** — send the window to an adjacent monitor, preserving its shape and relative position.
 - **Undo** — restore the previous frame, one step per window.
 - **Multi-monitor aware** — position-aware adjacent-display selection (the window goes to the monitor that lines up with where it currently is).

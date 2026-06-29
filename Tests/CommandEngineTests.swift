@@ -16,6 +16,7 @@ enum CommandEngineTests {
         testAxisIndependentComposition()
         testMoves()
         testRelativeHalves()
+        testRelativeTwoThirds()
         testSnapHalves()
         testDisplayMove()
         testFixedAndMinWidthSnap()
@@ -132,6 +133,26 @@ enum CommandEngineTests {
                CGRect(x: 0, y: 325, width: 800, height: 300))
         expect("relative top keeps top edge", target(.relativeHalf(.top), CGRect(x: 0, y: 25, width: 800, height: 600)),
                CGRect(x: 0, y: 25, width: 800, height: 300))
+    }
+
+    private static func testRelativeTwoThirds() {
+        expect("relative 2/3 left keeps left edge, width×2/3",
+               target(.relativeTwoThird(.left), CGRect(x: 0, y: 25, width: 900, height: 1055)),
+               CGRect(x: 0, y: 25, width: 600, height: 1055))
+        expect("relative 2/3 right keeps right edge",
+               target(.relativeTwoThird(.right), CGRect(x: 0, y: 25, width: 900, height: 1055)),
+               CGRect(x: 300, y: 25, width: 600, height: 1055))
+        expect("relative 2/3 top keeps top edge, height×2/3",
+               target(.relativeTwoThird(.top), CGRect(x: 0, y: 25, width: 800, height: 900)),
+               CGRect(x: 0, y: 25, width: 800, height: 600))
+        expect("relative 2/3 bottom keeps bottom edge",
+               target(.relativeTwoThird(.bottom), CGRect(x: 0, y: 25, width: 800, height: 900)),
+               CGRect(x: 0, y: 325, width: 800, height: 600))
+        // 효과 조합: 2/3 후 1/2 = 1/3 (절대 1/3 명령 없이도 상대적으로 도달).
+        var frame = CGRect(x: 0, y: 25, width: 900, height: 1055)
+        frame = target(.relativeTwoThird(.left), frame)
+        frame = target(.relativeHalf(.left), frame)
+        expect("2/3 then 1/2 composes to 1/3 width", frame, CGRect(x: 0, y: 25, width: 300, height: 1055))
     }
 
     private static func testSnapHalves() {
@@ -316,12 +337,14 @@ enum CommandEngineTests {
     }
 
     private static func testCommandModel() {
-        expectName("menuCommands count", "\(WindowCommand.menuCommands.count)", "29")
+        expectName("menuCommands count", "\(WindowCommand.menuCommands.count)", "33")
         expectName("maximize name", WindowCommand.maximize.displayName, "Maximize")
         expectName("right 1/2 name", absolute(.horizontal, .half, .last).displayName, "Right 1/2")
         expectName("vertical middle 1/3 name", absolute(.vertical, .third, .center).displayName, "Middle 1/3")
         expectName("move name", WindowCommand.move(.left).displayName, "Move Left")
         expectName("relative name", WindowCommand.relativeHalf(.top).displayName, "Shrink Top 1/2")
+        expectName("relative 2/3 name", WindowCommand.relativeTwoThird(.left).displayName, "Shrink Left 2/3")
+        expectName("relative 2/3 in relative group", "\(WindowCommand.relativeTwoThird(.left).group == .relative)", "true")
         expectName("undo name", WindowCommand.undo.displayName, "Undo")
     }
 
@@ -331,12 +354,14 @@ enum CommandEngineTests {
         for command in commands where WindowCommand.command(forIdentifier: command.identifier) == command {
             roundTripped += 1
         }
-        expectName("identifier round-trip count", "\(roundTripped)", "29")
-        expectName("unique identifier count", "\(Set(commands.map { $0.identifier }).count)", "29")
+        expectName("identifier round-trip count", "\(roundTripped)", "33")
+        expectName("unique identifier count", "\(Set(commands.map { $0.identifier }).count)", "33")
         expectName("absolute identifier", absolute(.horizontal, .third, .center).identifier,
                    "absolute.horizontal.third.center")
         expectName("move identifier", WindowCommand.move(.center).identifier, "move.center")
         expectName("relative identifier", WindowCommand.relativeHalf(.top).identifier, "relativeHalf.top")
+        expectName("relative 2/3 identifier", WindowCommand.relativeTwoThird(.bottom).identifier,
+                   "relativeTwoThird.bottom")
         expectName("undo identifier", WindowCommand.undo.identifier, "undo")
         expectName("unknown identifier is nil", "\(WindowCommand.command(forIdentifier: "nope") == nil)", "true")
     }

@@ -60,6 +60,7 @@ nonisolated enum HotkeyPreset: String, CaseIterable {
             )
             + thirdBindings(base: base)
             + twoThirdBindings(base: base)
+            + relativeTwoThirdBindings(relMods: relMods)
     }
 
     /// `commands`와 `keyCodes`를 위치(left/right/up/down 순)로 짝지어 동일 수식키 바인딩으로 만든다.
@@ -103,6 +104,18 @@ nonisolated enum HotkeyPreset: String, CaseIterable {
             // Vertical 2/3: ⌃⌥ 9/0
             makeAbsolute(.vertical, .twoThird, .first, 0x19, base),
             makeAbsolute(.vertical, .twoThird, .last, 0x1D, base)
+        ]
+    }
+
+    /// 상대 2/3 축소: ⌃⌥⇧ + 7/8/9/0 (left/right/top/bottom). 절대 2/3가 ⌃⌥+7/8/9/0이라
+    /// ⇧를 더한 같은 숫자열로 니모닉을 맞추고, relativeHalf(⌃⌥⇧+방향키)와 충돌하지 않는다.
+    /// 숫자 키라 Standard·Vim 두 프리셋에서 동일하다.
+    private func relativeTwoThirdBindings(relMods: UInt32) -> [HotkeyBinding] {
+        [
+            HotkeyBinding(command: .relativeTwoThird(.left), keyCode: 0x1A, modifiers: relMods),
+            HotkeyBinding(command: .relativeTwoThird(.right), keyCode: 0x1C, modifiers: relMods),
+            HotkeyBinding(command: .relativeTwoThird(.top), keyCode: 0x19, modifiers: relMods),
+            HotkeyBinding(command: .relativeTwoThird(.bottom), keyCode: 0x1D, modifiers: relMods)
         ]
     }
 

@@ -69,6 +69,7 @@ nonisolated enum WindowCommand: Equatable {
     case moveToDisplay(SnapEdge)
     case move(MoveDirection)
     case relativeHalf(RelativeAnchor)
+    case relativeTwoThird(RelativeAnchor)
     case undo
 
     var displayName: String {
@@ -85,6 +86,8 @@ nonisolated enum WindowCommand: Equatable {
             "Move \(direction.displayName)"
         case let .relativeHalf(anchor):
             "Shrink \(anchor.displayName) 1/2"
+        case let .relativeTwoThird(anchor):
+            "Shrink \(anchor.displayName) 2/3"
         case .undo:
             "Undo"
         }
@@ -107,11 +110,13 @@ nonisolated enum WindowCommand: Equatable {
             "move.\(direction.token)"
         case let .relativeHalf(anchor):
             "relativeHalf.\(anchor.token)"
+        case let .relativeTwoThird(anchor):
+            "relativeTwoThird.\(anchor.token)"
         }
     }
 
     /// 식별자로 명령을 역조회한다(커스텀 단축키 디코딩용). 알 수 없으면 nil.
-    /// 불변식: 역조회 대상은 `menuCommands`(29개)뿐. 여기에 없는 명령의 식별자는 복원되지 않는다.
+    /// 불변식: 역조회 대상은 `menuCommands`(33개)뿐. 여기에 없는 명령의 식별자는 복원되지 않는다.
     static func command(forIdentifier identifier: String) -> WindowCommand? {
         menuCommands.first { $0.identifier == identifier }
     }
@@ -128,7 +133,7 @@ nonisolated enum WindowCommand: Equatable {
             .display
         case .move:
             .move
-        case .relativeHalf:
+        case .relativeHalf, .relativeTwoThird:
             .relative
         case let .absolute(placement):
             switch placement.fraction {
@@ -169,6 +174,10 @@ nonisolated enum WindowCommand: Equatable {
         .relativeHalf(.right),
         .relativeHalf(.top),
         .relativeHalf(.bottom),
+        .relativeTwoThird(.left),
+        .relativeTwoThird(.right),
+        .relativeTwoThird(.top),
+        .relativeTwoThird(.bottom),
         .moveToDisplay(.left),
         .moveToDisplay(.right),
         .moveToDisplay(.top),
