@@ -23,6 +23,7 @@ Design principle: **predictability over clever inference.** Every command does e
 - **Undo** — restore the previous frame, one step per window.
 - **Multi-monitor aware** — position-aware adjacent-display selection (the window goes to the monitor that lines up with where it currently is).
 - **Two presets** — Standard (arrow keys) and Vim (HJKL), each fully customizable with conflict warnings.
+- **Automatic updates** — Azimuth checks for new releases and updates in place (via Sparkle), or check on demand from the menu. Updates are Apple-notarized **and** EdDSA-signature verified.
 
 ## Requirements
 

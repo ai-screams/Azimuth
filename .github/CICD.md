@@ -26,7 +26,9 @@ Azimuth의 지속적 통합·배포 구성 전체 개요. 워크플로 정의는
 ### 3. `release.yml` — 릴리스 (태그 `v*` 푸시)
 러너 `macos-15`, **`environment: release`(승인 게이트)**, concurrency(진행 중 릴리스 비취소).
 
-흐름: Developer ID 인증서 임포트 → `scripts/release.sh`(빌드·서명·공증·DMG) → **DMG 자가검증**(`codesign --verify`, `spctl -a -t open`, `stapler validate`) → **SHA-256 체크섬 생성** → GitHub Release 생성(DMG + `.sha256` 첨부, 노트 자동 생성).
+흐름: Developer ID 인증서 임포트 → `scripts/release.sh`(빌드·서명·공증·DMG) → **DMG 자가검증**(`codesign --verify`, `spctl -a -t open`, `stapler validate`) → **SHA-256 체크섬 생성** → **Sparkle appcast 서명·생성**(EdDSA 개인키로 DMG 서명 + `appcast.xml`) → GitHub Release 생성(DMG + `.sha256` + `appcast.xml` 첨부, 노트 자동 생성).
+
+> 자동 업데이트: 앱은 Sparkle로 `releases/latest/download/appcast.xml`(고정 URL)을 확인해 새 버전을 설치한다. Apple 공증 + Sparkle EdDSA 서명 2중 검증. 키/설정 상세는 [`RELEASING.md`](../RELEASING.md#auto-update-sparkle).
 
 활성화·secret·환경 설정은 [`RELEASING.md`](../RELEASING.md) 참조.
 
@@ -54,7 +56,7 @@ Azimuth의 지속적 통합·배포 구성 전체 개요. 워크플로 정의는
 
 ## 활성화에 필요한 저장소 설정 (코드 아님 — 관리자 수행)
 1. **브랜치 보호**(Settings → Branches → `main`): 직접 푸시 금지, PR 필수, 필수 상태 체크(`lint-and-build`, `secret-scan`) 통과 강제, (선택)리뷰 1+·linear history. (CodeQL은 PR이 아닌 main 머지 후·주간 실행이라 PR 필수 체크에 넣지 않는다.)
-2. **`release` 환경**(Settings → Environments): required reviewer + 환경 scoped secret 5개(`DEVELOPER_ID_CERT_P12`, `DEVELOPER_ID_CERT_PASSWORD`, `APPLE_TEAM_ID`, `APPLE_ID`, `APPLE_APP_PASSWORD`).
+2. **`release` 환경**(Settings → Environments): required reviewer + 환경 scoped secret 6개(`DEVELOPER_ID_CERT_P12`, `DEVELOPER_ID_CERT_PASSWORD`, `APPLE_TEAM_ID`, `APPLE_ID`, `APPLE_APP_PASSWORD`, `SPARKLE_ED_PRIVATE_KEY`).
 3. (선택) **Tags 보호**(`v*`), **GitHub native Secret scanning + Push protection** 토글.
 
 ## 릴리스 방법

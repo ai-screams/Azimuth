@@ -20,6 +20,10 @@ ExportOptions.plist
 *.p8
 *.mobileprovision
 *.certSigningRequest
+# Sparkle EdDSA 업데이트 서명 개인키 — 절대 커밋 금지. 키는 저장소 밖
+# (~/.config/azimuth-signing/)에 보관하고 CI는 환경 secret(SPARKLE_ED_PRIVATE_KEY)으로 주입.
+sparkle_ed_private_key
+*_ed_private_key
 .secrets/
 secrets/
 

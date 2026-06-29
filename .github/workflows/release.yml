@@ -65,9 +65,32 @@ jobs:
           for f in *.dmg; do shasum -a 256 "$f" > "$f.sha256"; done
           cat ./*.sha256
 
+      # Sparkle 자동 업데이트 피드. DMG를 EdDSA 개인키(release 환경 secret)로 서명하고
+      # appcast.xml을 생성한다. enclosure URL은 이 릴리스의 자산 다운로드 경로로 지정.
+      # 피드는 release 자산으로 올라가며, 앱은 releases/latest/download/appcast.xml(고정 URL)로 받는다.
+      - name: Generate signed Sparkle appcast
+        env:
+          SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          SPARKLE_VERSION=2.9.3
+          curl -fsSL "https://github.com/sparkle-project/Sparkle/releases/download/${SPARKLE_VERSION}/Sparkle-${SPARKLE_VERSION}.tar.xz" -o /tmp/sparkle.tar.xz
+          mkdir -p /tmp/sparkle && tar -xJf /tmp/sparkle.tar.xz -C /tmp/sparkle
+          GEN="$(find /tmp/sparkle -type f -name generate_appcast | head -1)"
+          [ -n "$GEN" ] || { echo "generate_appcast not found in Sparkle tools"; exit 1; }
+          printf '%s' "$SPARKLE_ED_PRIVATE_KEY" | "$GEN" \
+            --ed-key-file - \
+            --download-url-prefix "https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/" \
+            -o dist/appcast.xml \
+            dist/
+          echo "── appcast.xml ──"; cat dist/appcast.xml
+
       - name: Create GitHub Release with DMG
         uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b # v3
         with:
-          files: dist/*.dmg* # .dmg + .dmg.sha256
+          files: | # .dmg + .dmg.sha256 + Sparkle 피드
+            dist/*.dmg
+            dist/*.dmg.sha256
+            dist/appcast.xml
           generate_release_notes: true
           fail_on_unmatched_files: true
