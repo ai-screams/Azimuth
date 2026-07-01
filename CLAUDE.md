@@ -11,6 +11,16 @@ Azimuth is a menu-bar **window manager for macOS** (Swift + AppKit, programmatic
 apps' focused windows via global hotkeys (Carbon) and menu commands. It auto-updates via
 Sparkle 2 and ships Developer ID–signed, Apple-notarized, and EdDSA-verified.
 
+## Layout
+
+| Path | What |
+|------|------|
+| `Azimuth/` | App source (per-dir `AGENTS.md`); flow: hotkey/menu → `Commands/WindowCommandExecutor` → `WindowAccess` + `Commands/FrameCalculator` + `WindowAccess/WindowUndoStore` |
+| `Tests/` | Pure-logic command-engine regression tests (single-file swiftc harness) |
+| `scripts/` | `build`/`run`/`lint`/`format`/`test`/`coverage`/`secrets` shell scripts |
+| `docs/` | GitHub Pages source (landing + manual) |
+| `.github/` | CI workflows, `FUNDING.yml`, PR template, `CODEOWNERS` |
+
 ## Build / test / lint
 
 | Command | Use |
@@ -49,6 +59,9 @@ Before opening a PR: `make build && make lint && make test` (CI runs the same, p
   lines, function/type body-length limits. Match surrounding comment density and idiom.
 - **Conventional Commits** (`feat(scope): …`, `fix: …`, `docs: …`, `refactor: …`, `chore: …`).
   Branch off `main`, keep PRs focused, **squash-merge**.
+- New source files under `Azimuth/` are auto-included via the Xcode **file-system synchronized
+  group** — no `.pbxproj` edit needed. Adding a new target or SPM dependency still needs the
+  pbxproj / Xcode GUI. Deployment target: macOS **26.3**.
 
 ## Docs (`docs/` is the GitHub Pages source)
 
