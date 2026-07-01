@@ -1383,12 +1383,12 @@
     <div class="divider"></div>
 
     <!-- ── 2.5 See it in action (screenshots / GIF) ──────────────────
-         REPLACE the placeholder images in docs/assets/ with real captures:
-           • demo-snap.png  — a window snapping to a half/third (before → after)
-           • demo-throw.png — snap-throw to the adjacent display, or relative 2/3
-         Recommended ~1600×1000, PNG (or an animated GIF / looping .mp4).
-         Keep the same filenames and this section renders them automatically. -->
-    <section id="screenshots" aria-labelledby="screenshots-heading">
+         TEMPORARILY HIDDEN (the `hidden` attribute below) until real captures land —
+         the images in docs/assets/ are branded placeholders, not real screenshots.
+         TO RE-ENABLE: replace assets/demo-snap.png + assets/demo-throw.png with real
+         captures (~1600×1000 PNG, or an animated GIF / looping .mp4, same filenames),
+         then delete `hidden` here AND on the matching divider right after this section. -->
+    <section id="screenshots" aria-labelledby="screenshots-heading" hidden>
       <div class="container">
         <span class="section-label"
               data-en="In action" data-ko="실제 동작">In action</span>
@@ -1425,7 +1425,7 @@
       </div>
     </section>
 
-    <div class="divider"></div>
+    <div class="divider" hidden></div><!-- paired with the hidden #screenshots section above; un-hide together -->
 
     <!-- ── 3. Shortcuts ───────────────────────────────────────── -->
     <section id="shortcuts" aria-labelledby="shortcuts-heading">
