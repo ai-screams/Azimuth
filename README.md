@@ -1,12 +1,24 @@
 # Azimuth
 
+<!-- Release & install -->
 [![Download](https://img.shields.io/badge/Download-.dmg-1a2a4a?logo=apple&logoColor=white)](https://github.com/ai-screams/Azimuth/releases/latest)
 [![Latest release](https://img.shields.io/github/v/release/ai-screams/Azimuth?sort=semver&color=1a2a4a)](https://github.com/ai-screams/Azimuth/releases/latest)
-[![Platform](https://img.shields.io/badge/macOS-26.3%2B-555555)](#requirements)
+[![Downloads](https://img.shields.io/github/downloads/ai-screams/Azimuth/total?color=1a2a4a&label=downloads)](https://github.com/ai-screams/Azimuth/releases)
+[![Homebrew](https://img.shields.io/badge/Homebrew-ai--screams%2Ftap-F9AB00?logo=homebrew&logoColor=white)](#homebrew)
+
+<!-- Built with -->
+[![Platform](https://img.shields.io/badge/macOS-26.3%2B-555555?logo=apple&logoColor=white)](#requirements)
 [![Swift](https://img.shields.io/badge/Swift-5-F05138?logo=swift&logoColor=white)](https://swift.org)
+[![AppKit](https://img.shields.io/badge/AppKit-1a2a4a?logo=apple&logoColor=white)](https://developer.apple.com/documentation/appkit)
+[![Auto-update](https://img.shields.io/badge/Auto--update-Sparkle-8A4FFF)](https://sparkle-project.org)
+[![Notarized](https://img.shields.io/badge/Notarized-Apple-000000?logo=apple&logoColor=white)](#install)
+
+<!-- Project & support -->
 [![CI](https://github.com/ai-screams/Azimuth/actions/workflows/ci.yml/badge.svg)](https://github.com/ai-screams/Azimuth/actions/workflows/ci.yml)
-[![Downloads](https://img.shields.io/github/downloads/ai-screams/Azimuth/total?color=1a2a4a)](https://github.com/ai-screams/Azimuth/releases)
 [![License](https://img.shields.io/github/license/ai-screams/Azimuth?color=1a2a4a)](LICENSE)
+[![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](https://github.com/ai-screams/Azimuth/pulls)
+[![Stars](https://img.shields.io/github/stars/ai-screams/Azimuth?style=flat&color=1a2a4a)](https://github.com/ai-screams/Azimuth/stargazers)
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-support-FF5E5B?logo=kofi&logoColor=white)](https://ko-fi.com/pignuante)
 
 Azimuth is a keyboard-driven window manager for macOS, built with Swift and AppKit. It lives in the menu bar and lets you place, resize, move, and throw the focused window across your screens with predictable shortcuts — no mouse, no guesswork.
 
