@@ -10,7 +10,7 @@ import Foundation
 
 nonisolated enum BindingResolver {
     /// 프리셋 기본값에 override를 적용한 실효 바인딩. override는 명령 identifier로 매칭한다.
-    /// 불변식: 프리셋 바인딩에 없는 identifier의 override는 무시된다(현재 두 프리셋은 33개 명령을
+    /// 불변식: 프리셋 바인딩에 없는 identifier의 override는 무시된다(현재 두 프리셋은 34개 명령을
     /// 모두 포함하므로 무해). 프리셋이 명령 집합을 달리하게 되면 고아 override 처리 정책을 추가할 것.
     static func resolve(preset: HotkeyPreset, overrides: [String: HotkeyShortcut]) -> [HotkeyBinding] {
         preset.bindings.map { binding in

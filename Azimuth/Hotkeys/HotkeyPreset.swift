@@ -48,7 +48,7 @@ nonisolated enum HotkeyPreset: String, CaseIterable {
         }
 
         return directional([.snapThrow(.left), .snapThrow(.right), .snapThrow(.top), .snapThrow(.bottom)], base)
-            + coreBindings(undoKey: undoKey, base: base)
+            + coreBindings(undoKey: undoKey, base: base, relMods: relMods)
             + directional([.move(.left), .move(.right), .move(.up), .move(.down)], moveMods)
             + directional(
                 [.relativeHalf(.left), .relativeHalf(.right), .relativeHalf(.top), .relativeHalf(.bottom)],
@@ -75,9 +75,12 @@ nonisolated enum HotkeyPreset: String, CaseIterable {
         }
     }
 
-    private func coreBindings(undoKey: UInt32, base: UInt32) -> [HotkeyBinding] {
+    private func coreBindings(undoKey: UInt32, base: UInt32, relMods: UInt32) -> [HotkeyBinding] {
         [
             HotkeyBinding(command: .maximize, keyCode: 0x24, modifiers: base),
+            // 여백 최대화: ⌃⌥⇧↩ — Maximize(⌃⌥↩)에 ⇧만 더한 "여백 버전" 니모닉. Return(0x24)은
+            // base 레이어에만 묶여 있어 relMods(⌃⌥⇧) 레이어에선 두 프리셋 모두 비어 충돌 없음.
+            HotkeyBinding(command: .maximizeGaps, keyCode: 0x24, modifiers: relMods),
             HotkeyBinding(command: .undo, keyCode: undoKey, modifiers: base),
             HotkeyBinding(command: .move(.center), keyCode: 0x08, modifiers: base)
         ]

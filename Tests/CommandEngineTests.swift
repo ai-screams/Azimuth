@@ -24,6 +24,8 @@ enum CommandEngineTests {
         testCenterClamp()
         testAnchorOrigin()
         testFallbackCommands()
+        testGapMaximize()
+        testGapMaximizeDegenerate()
         testCommandGroups()
         testPrimitiveStrings()
         testCommandModel()
@@ -290,6 +292,24 @@ enum CommandEngineTests {
         expect("moveToDisplay pure fallback returns current", target(.moveToDisplay(.left), base), base)
     }
 
+    private static func testGapMaximize() {
+        let base = CGRect(x: 300, y: 200, width: 700, height: 500)
+        // 정상: 작업영역(0,25,1920,1055)을 사방 12pt 안쪽으로.
+        expect("gap maximize insets workArea by 12 on all sides", target(.maximizeGaps, base),
+               CGRect(x: 12, y: 37, width: 1896, height: 1031))
+        // gap 유지: 현재 창과 무관하게 작업영역 기준(절대 배치).
+        expect("gap maximize ignores current frame", target(.maximizeGaps, CGRect(x: 0, y: 25, width: 100, height: 100)),
+               CGRect(x: 12, y: 37, width: 1896, height: 1031))
+    }
+
+    private static func testGapMaximizeDegenerate() {
+        // 퇴화 작업영역: inset 결과 한 변이 100pt 미만 → 평범한 maximize(workArea)로 폴백(0/음수 크기 방지).
+        let tiny = CGRect(x: 0, y: 0, width: 120, height: 400)
+        let got = FrameCalculator.targetFrame(for: .maximizeGaps, current: CGRect(x: 10, y: 10, width: 50, height: 50),
+                                              workArea: tiny)
+        expectName("degenerate gap maximize falls back to full workArea", "\(got == tiny)", "true")
+    }
+
     // CommandGroup 표시명·토큰과 command→group 매핑 전수.
     private static func testCommandGroups() {
         expectName("core displayName", CommandGroup.core.displayName, "Maximize · Undo · Center")
@@ -307,6 +327,7 @@ enum CommandEngineTests {
         expectName("relative token", CommandGroup.relative.token, "relative")
         expectName("display token", CommandGroup.display.token, "display")
         expectName("maximize→core", "\(WindowCommand.maximize.group == .core)", "true")
+        expectName("maximizeGaps→core", "\(WindowCommand.maximizeGaps.group == .core)", "true")
         expectName("undo→core", "\(WindowCommand.undo.group == .core)", "true")
         expectName("move center→core", "\(WindowCommand.move(.center).group == .core)", "true")
         expectName("snapThrow→halves", "\(WindowCommand.snapThrow(.left).group == .halves)", "true")
@@ -352,8 +373,9 @@ enum CommandEngineTests {
     }
 
     private static func testCommandModel() {
-        expectName("menuCommands count", "\(WindowCommand.menuCommands.count)", "33")
+        expectName("menuCommands count", "\(WindowCommand.menuCommands.count)", "34")
         expectName("maximize name", WindowCommand.maximize.displayName, "Maximize")
+        expectName("maximizeGaps name", WindowCommand.maximizeGaps.displayName, "Maximize with Gaps")
         expectName("right 1/2 name", absolute(.horizontal, .half, .last).displayName, "Right 1/2")
         expectName("vertical middle 1/3 name", absolute(.vertical, .third, .center).displayName, "Middle 1/3")
         expectName("move name", WindowCommand.move(.left).displayName, "Move Left")
@@ -369,8 +391,9 @@ enum CommandEngineTests {
         for command in commands where WindowCommand.command(forIdentifier: command.identifier) == command {
             roundTripped += 1
         }
-        expectName("identifier round-trip count", "\(roundTripped)", "33")
-        expectName("unique identifier count", "\(Set(commands.map { $0.identifier }).count)", "33")
+        expectName("identifier round-trip count", "\(roundTripped)", "34")
+        expectName("unique identifier count", "\(Set(commands.map { $0.identifier }).count)", "34")
+        expectName("maximizeGaps identifier", WindowCommand.maximizeGaps.identifier, "maximizeGaps")
         expectName("absolute identifier", absolute(.horizontal, .third, .center).identifier,
                    "absolute.horizontal.third.center")
         expectName("move identifier", WindowCommand.move(.center).identifier, "move.center")

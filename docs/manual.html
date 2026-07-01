@@ -840,7 +840,7 @@
               </tr>
               <tr>
                 <td data-en="Command" data-ko="명령">Command</td>
-                <td data-en="Maximize to work area" data-ko="작업영역 최대화">Maximize to work area</td>
+                <td data-en="Maximize to work area (or with uniform gaps)" data-ko="작업영역 최대화 (또는 균일 여백)">Maximize to work area (or with uniform gaps)</td>
                 <td>✅</td>
               </tr>
               <tr>
@@ -1032,9 +1032,13 @@
               </tr>
               <!-- Maximize / Undo / Center -->
               <tr>
-                <td rowspan="3" data-en="Maximize · Undo · Center" data-ko="최대화 · 되돌리기 · 가운데">Maximize · Undo · Center</td>
+                <td rowspan="4" data-en="Maximize · Undo · Center" data-ko="최대화 · 되돌리기 · 가운데">Maximize · Undo · Center</td>
                 <td data-en="Maximize" data-ko="최대화">Maximize</td>
                 <td><div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">↩</span></div></td>
+              </tr>
+              <tr>
+                <td data-en="Maximize with gaps" data-ko="여백 최대화">Maximize with gaps</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥⇧</span><span class="key">↩</span></div></td>
               </tr>
               <tr>
                 <td data-en="Undo" data-ko="되돌리기">Undo</td>
@@ -1165,6 +1169,21 @@
                data-en="Fills the work area — the visible region excluding the menu bar and Dock. The window expands to use every pixel available without overlapping system chrome."
                data-ko="작업영역(메뉴바·Dock을 제외한 가시 영역)을 가득 채웁니다. 시스템 크롬과 겹치지 않는 모든 픽셀을 사용합니다.">
               Fills the work area — the visible region excluding the menu bar and Dock. The window expands to use every pixel available without overlapping system chrome.
+            </p>
+          </div>
+
+          <!-- Maximize with gaps -->
+          <div class="cmd-card">
+            <div class="cmd-card-title">
+              <span data-en="Maximize with gaps" data-ko="여백 최대화">Maximize with gaps</span>
+            </div>
+            <div class="cmd-card-keys">
+              <div class="keys-group"><span class="key sym">⌃⌥⇧</span><span class="key">↩</span></div>
+            </div>
+            <p class="cmd-card-body"
+               data-en="Like Maximize, but leaves a uniform 12pt inset on all four sides so the window doesn't touch the screen edges — visual breathing room, tiling-friendly. Falls back to a plain maximize if the work area is too small for the gap."
+               data-ko="최대화와 같지만 사방에 균일한 12pt 여백을 남겨 창이 화면 가장자리에 닿지 않습니다 — 시각적 여유, 타일링 친화적. 작업영역이 여백보다 작으면 평범한 최대화로 대체됩니다.">
+              Like Maximize, but leaves a uniform 12pt inset on all four sides so the window doesn't touch the screen edges — visual breathing room, tiling-friendly. Falls back to a plain maximize if the work area is too small for the gap.
             </p>
           </div>
 

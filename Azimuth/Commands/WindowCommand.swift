@@ -64,6 +64,7 @@ nonisolated enum CommandGroup: String, CaseIterable {
 
 nonisolated enum WindowCommand: Equatable {
     case maximize
+    case maximizeGaps
     case absolute(AbsolutePlacement)
     case snapThrow(SnapEdge)
     case moveToDisplay(SnapEdge)
@@ -76,6 +77,8 @@ nonisolated enum WindowCommand: Equatable {
         switch self {
         case .maximize:
             "Maximize"
+        case .maximizeGaps:
+            "Maximize with Gaps"
         case let .absolute(placement):
             placement.displayName
         case let .snapThrow(edge):
@@ -98,6 +101,8 @@ nonisolated enum WindowCommand: Equatable {
         switch self {
         case .maximize:
             "maximize"
+        case .maximizeGaps:
+            "maximizeGaps"
         case .undo:
             "undo"
         case let .absolute(placement):
@@ -116,7 +121,7 @@ nonisolated enum WindowCommand: Equatable {
     }
 
     /// 식별자로 명령을 역조회한다(커스텀 단축키 디코딩용). 알 수 없으면 nil.
-    /// 불변식: 역조회 대상은 `menuCommands`(33개)뿐. 여기에 없는 명령의 식별자는 복원되지 않는다.
+    /// 불변식: 역조회 대상은 `menuCommands`(34개)뿐. 여기에 없는 명령의 식별자는 복원되지 않는다.
     static func command(forIdentifier identifier: String) -> WindowCommand? {
         menuCommands.first { $0.identifier == identifier }
     }
@@ -125,7 +130,7 @@ nonisolated enum WindowCommand: Equatable {
     /// 순서 의존: `.move(.center)`가 `.move`보다 앞서야 중앙 이동이 `.core`로 분류된다.
     var group: CommandGroup {
         switch self {
-        case .maximize, .undo, .move(.center):
+        case .maximize, .maximizeGaps, .undo, .move(.center):
             .core
         case .snapThrow:
             .halves
@@ -151,6 +156,7 @@ nonisolated enum WindowCommand: Equatable {
     /// (move(.center)는 별개의 이동 명령).
     static let menuCommands: [WindowCommand] = [
         .maximize,
+        .maximizeGaps,
         .snapThrow(.left),
         .snapThrow(.right),
         .absolute(AbsolutePlacement(axis: .horizontal, fraction: .third, slot: .first)),

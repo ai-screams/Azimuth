@@ -6,6 +6,8 @@ nonisolated enum FrameCalculator {
         switch command {
         case .maximize:
             workArea
+        case .maximizeGaps:
+            gappedWorkArea(workArea)
         case let .absolute(placement):
             absoluteFrame(placement, current: current, workArea: workArea)
         case let .snapThrow(edge):
@@ -23,6 +25,19 @@ nonisolated enum FrameCalculator {
         case .undo:
             current
         }
+    }
+
+    // MARK: - 여백 최대화 (작업영역을 사방 gap만큼 안쪽으로)
+
+    /// Maximize와 달리 화면 가장자리에 붙지 않고 사방 gap을 남기고 채운다.
+    private static let maximizeGapInset: CGFloat = 12
+
+    /// 작업영역을 사방 `maximizeGapInset`만큼 축소한 사각형. 단, 작은 작업영역·과도한 gap으로
+    /// 결과 한 변이 minRelativeExtent(100pt) 미만이 되면(0/음수 크기 방지) 평범한 maximize(workArea)로 폴백.
+    private static func gappedWorkArea(_ workArea: CGRect) -> CGRect {
+        let inset = workArea.insetBy(dx: maximizeGapInset, dy: maximizeGapInset)
+        guard inset.width >= minRelativeExtent, inset.height >= minRelativeExtent else { return workArea }
+        return inset
     }
 
     // MARK: - 절반 (snap/throw 공용; AX 좌표 — 상단 원점)

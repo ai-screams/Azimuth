@@ -53,7 +53,7 @@ enum WindowCommandExecutor {
             return snapThrowTarget(edge, current: current, workArea: workArea)
         case let .moveToDisplay(edge):
             return moveToDisplayTarget(edge, current: current, workArea: workArea)
-        case .maximize, .absolute, .move, .relativeHalf, .relativeTwoThird, .undo:
+        case .maximize, .maximizeGaps, .absolute, .move, .relativeHalf, .relativeTwoThird, .undo:
             return FrameCalculator.targetFrame(for: command, current: current, workArea: workArea)
         }
     }

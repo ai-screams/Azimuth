@@ -17,6 +17,7 @@ Design principle: **predictability over clever inference.** Every command does e
 - **Halves & snap-throw** — snap the window to a screen half; press again toward the same edge to throw it to the adjacent display.
 - **Thirds & two-thirds** — left/center/right and top/middle/bottom, horizontally or vertically.
 - **Maximize / center** — fill the work area or center at the current size.
+- **Maximize with gaps** — fill the work area but leave a uniform inset on all sides (`⌃⌥⇧↩`).
 - **Move (keep size)** — nudge the window one step in any direction, clamped to the work area.
 - **Relative shrink** — shrink the window to **1/2** or **2/3** of its *current* size against a pinned edge (not the screen). Effects compose: 2/3 then 1/2 lands on 1/3.
 - **Move to next display** — send the window to an adjacent monitor, preserving its shape and relative position.
@@ -94,6 +95,7 @@ Azimuth separates command groups by modifier layer:
 | Halves (snap + throw) | Left / Right | `⌃⌥←` / `⌃⌥→` |
 | | Top / Bottom | `⌃⌥↑` / `⌃⌥↓` |
 | Maximize · Undo · Center | Maximize | `⌃⌥↩` (Return) |
+| Maximize · Undo · Center | Maximize with gaps | `⌃⌥⇧↩` (Return) |
 | | Undo | `⌃⌥⌫` (Delete) |
 | | Center | `⌃⌥C` |
 | Thirds (1/3) | Horizontal left·center·right | `⌃⌥1` / `⌃⌥2` / `⌃⌥3` |
@@ -121,6 +123,7 @@ Example: `⌃⌥H` (left half) · `⌃⌥⌘K` (move up) · `⌃⌥⇧J` (shrink
 ## Command behavior
 
 - **Maximize** — fills the work area (visible area minus menu bar and Dock).
+- **Maximize with gaps** — like Maximize, but leaves a uniform 12pt inset on all four sides so the window doesn't touch the screen edges. Falls back to a plain maximize if the work area is too small for the gap.
 - **Thirds / two-thirds** — axis-independent: horizontal commands change only x/width, vertical only y/height, so they compose (e.g. horizontal-third then vertical-third → a corner cell).
 - **Halves + throw** — if the window isn't already in that half, it snaps there. If it *is*, Azimuth throws it to the adjacent display in that direction and places it in the opposite half (throwing right lands it in the target's left half). No adjacent display → it stays put.
 - **Move** — keeps the current size and nudges the window by its own width/height, clamping at the work-area edge. It never resizes or changes display; repeated presses push it to the edge.
