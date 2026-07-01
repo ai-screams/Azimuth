@@ -32,4 +32,13 @@ enum CoordinateSpace {
     static func axToCocoa(_ rect: CGRect) -> CGRect {
         flip(rect)
     }
+
+    /// 화면의 작업영역(visibleFrame)을 AX 좌표로 변환한다. 디스플레이 재구성 순간 visibleFrame이
+    /// 0크기로 읽힐 수 있어, 0크기면 nil을 반환한다(0크기 작업영역이 halfRect/maximize로 흘러가
+    /// 0크기 프레임 쓰기를 유발하는 것을 막는다). WorkAreaResolver·DisplayResolver 공용.
+    static func axWorkArea(of screen: NSScreen) -> CGRect? {
+        let visible = screen.visibleFrame
+        guard visible.width > 0, visible.height > 0 else { return nil }
+        return cocoaToAX(visible)
+    }
 }

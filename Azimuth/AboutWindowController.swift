@@ -157,11 +157,7 @@ final class AboutWindowController: NSWindowController {
     }
 
     private func versionString() -> String {
-        let info = Bundle.main.infoDictionary
-        let short = info?["CFBundleShortVersionString"] as? String ?? "—"
-        let build = info?["CFBundleVersion"] as? String ?? ""
-        if build.isEmpty || build == short { return "Version \(short)" }
-        return "Version \(short) (\(build))"
+        Bundle.main.displayVersion(prefix: "Version")
     }
 
     private func copyrightString() -> String {

@@ -72,13 +72,9 @@ extension ViewController {
         versionLabel.stringValue = bundleVersionString()
     }
 
-    /// 번들에서 표시 버전을 읽는다(About 창과 동일 규칙). build가 short와 다르면 괄호로 덧붙인다.
+    /// 번들에서 표시 버전을 읽는다(About 창과 동일 규칙 — Bundle.displayVersion 공용).
     private func bundleVersionString() -> String {
-        let info = Bundle.main.infoDictionary
-        let short = info?["CFBundleShortVersionString"] as? String ?? "—"
-        let build = info?["CFBundleVersion"] as? String ?? ""
-        if build.isEmpty || build == short { return "Azimuth \(short)" }
-        return "Azimuth \(short) (\(build))"
+        Bundle.main.displayVersion(prefix: "Azimuth")
     }
 
     func makeContentStackView() -> NSStackView {

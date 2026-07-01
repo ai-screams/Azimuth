@@ -23,12 +23,8 @@ enum DisplayResolver {
         else {
             return nil
         }
-        // 디스플레이 재구성 순간 인접 화면 visibleFrame이 0크기로 읽힐 수 있다. 0크기 작업영역을
-        // 그대로 넘기면 halfRect가 0크기 프레임을 만들어 창에 쓰게 되므로 nil(명령 중단)한다.
-        // (WorkAreaResolver와 동일 가드.)
-        let visible = neighbor.visibleFrame
-        guard visible.width > 0, visible.height > 0 else { return nil }
-        return CoordinateSpace.cocoaToAX(visible)
+        // 0크기 가드 포함(디스플레이 재구성 순간) — WorkAreaResolver와 공용 헬퍼.
+        return CoordinateSpace.axWorkArea(of: neighbor)
     }
 
     /// 방향에 맞고 현재 화면과 겹치는 후보 중, 창 위치에 수직/수평으로 가장 가까운 화면.
