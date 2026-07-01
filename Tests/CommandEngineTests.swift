@@ -31,6 +31,7 @@ enum CommandEngineTests {
         testCommandGroups()
         testPrimitiveStrings()
         testCommandModel()
+        testCommandHelpText()
         testCommandIdentifiers()
 
         if failures == 0 {
@@ -471,6 +472,18 @@ enum CommandEngineTests {
         expectName("relative 2/3 name", WindowCommand.relativeTwoThird(.left).displayName, "Shrink Left 2/3")
         expectName("relative 2/3 in relative group", "\(WindowCommand.relativeTwoThird(.left).group == .relative)", "true")
         expectName("undo name", WindowCommand.undo.displayName, "Undo")
+    }
+
+    // helpText(Settings tooltip): 모든 명령이 비어있지 않아야 하고, 대표 계열 문구를 확인.
+    private static func testCommandHelpText() {
+        var allNonEmpty = true
+        for command in WindowCommand.menuCommands where command.helpText.isEmpty { allNonEmpty = false }
+        expectName("every command has non-empty helpText", "\(allNonEmpty)", "true")
+        expectName("maximizeGaps helpText",
+                   WindowCommand.maximizeGaps.helpText, "Fill the work area, leaving a uniform gap on all sides.")
+        expectName("move center helpText",
+                   WindowCommand.move(.center).helpText, "Center the window at its current size.")
+        expectName("undo helpText", WindowCommand.undo.helpText, "Restore the window's previous frame.")
     }
 
     private static func testCommandIdentifiers() {

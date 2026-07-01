@@ -78,7 +78,7 @@ final class ViewController: NSViewController {
     lazy var launchApprovalButton = makeLaunchApprovalButton()
     lazy var menuBarIconButton = makeMenuBarIconButton()
     let menuBarIconHintLabel = NSTextField(
-        wrappingLabelWithString: "When hidden, relaunch Azimuth to reopen this settings window."
+        wrappingLabelWithString: "When hidden, open Azimuth again from Finder or Spotlight to reopen this window."
     )
 
     let versionLabel = NSTextField(labelWithString: "")

@@ -124,6 +124,7 @@ extension ShortcutsSectionView {
 
         let name = NSTextField(labelWithString: command.displayName)
         name.lineBreakMode = .byTruncatingTail
+        name.toolTip = command.helpText // 무엇을 하는 명령인지 hover로 설명(학습성).
 
         let dot = makeModifiedDot()
         let gutter = makeIndentGutter(dot: dot)

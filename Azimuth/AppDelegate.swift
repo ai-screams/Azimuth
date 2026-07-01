@@ -25,6 +25,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let preferencesStore = PreferencesStore()
     private let launchAtLoginService = LaunchAtLoginService()
     private var registrationFailureIdentifiers: Set<String> = []
+    /// 권한 미부여로 단축키가 실패했을 때 이번 세션에 이미 안내(Settings 유도)를 했는지.
+    /// 매 실패마다 창을 띄우면 성가시므로 세션당 1회만.
+    private var didNudgeForPermissionThisSession = false
     private lazy var settingsWindowController = SettingsWindowController(
         preferencesStore: preferencesStore,
         launchService: launchAtLoginService,
@@ -63,7 +66,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusBarController.install()
         statusBarController.setVisible(!preferencesStore.menuBarIconHidden)
         reloadHotkeys()
-        debugShowSettingsOnLaunchIfNeeded()
+        showSettingsOnFirstRunIfNeeded()
 
         NotificationCenter.default.addObserver(
             self,
@@ -157,7 +160,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             Log.windows.debug(
                 "Hotkey \(command.displayName, privacy: .public) -> FAIL \(error.userFacingMessage, privacy: .public)"
             )
+            nudgeForPermissionIfNeeded()
         }
+    }
+
+    /// 단축키가 "권한 미부여" 때문에 실패한 상황이면, 침묵의 beep 루프에 갇히지 않도록 세션당 1회
+    /// Settings를 띄워 권한 안내로 연결한다(권한이 이미 있으면 다른 원인이므로 건드리지 않는다).
+    private func nudgeForPermissionIfNeeded() {
+        guard !didNudgeForPermissionThisSession,
+              !AccessibilityPermissionService.currentStatus().isTrusted
+        else { return }
+        didNudgeForPermissionThisSession = true
+        settingsWindowController.show()
+        Log.app.debug("Hotkey failed without Accessibility permission — nudged to settings (once/session).")
     }
 
     @objc private func handleDidBecomeActive(_ notification: Notification) {
@@ -172,10 +187,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Log.windows.debug("Screen parameters changed; cleared window undo history.")
     }
 
-    private func debugShowSettingsOnLaunchIfNeeded() {
+    /// 첫 실행 온보딩: 권한 미부여 상태로 처음 켜지면 Settings 창을 자동으로 띄워 권한 안내
+    /// (Permissions 카드 + "Open Accessibility Settings…")로 유도한다. 윈도우 매니저는 Accessibility
+    /// 권한이 곧 제품 전체라, 메뉴바 아이콘만으로는 신규 사용자가 "작동 안 함"에 방치되기 쉽다.
+    /// 이미 권한이 있으면 조용히 지나가고, 어느 경우든 1회만 수행한다(사용자가 끈 뒤 계속 뜨지 않게).
+    /// DEBUG 빌드는 매 실행 Settings를 띄워 개발 편의를 유지한다.
+    private func showSettingsOnFirstRunIfNeeded() {
         #if DEBUG
             settingsWindowController.show()
             Log.app.debug("Azimuth debug launch opened settings window.")
+        #else
+            guard !preferencesStore.didCompleteFirstRun else { return }
+            preferencesStore.didCompleteFirstRun = true
+            guard !AccessibilityPermissionService.currentStatus().isTrusted else { return }
+            settingsWindowController.show()
+            Log.app.debug("First run without Accessibility permission — opened settings for onboarding.")
         #endif
     }
 

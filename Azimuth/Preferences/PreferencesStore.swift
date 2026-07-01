@@ -15,6 +15,7 @@ final class PreferencesStore {
     private let disabledCommandsKey = "disabledCommandIdentifiers"
     private let disabledGroupsKey = "disabledGroupTokens"
     private let menuBarIconHiddenKey = "menuBarIconHidden"
+    private let didCompleteFirstRunKey = "didCompleteFirstRun"
     private let migratedAbsoluteHalfRemovedKey = "migration.absoluteHalfRemoved.v1"
 
     /// feat/snap-throw-display: absolute half 명령 4개가 menuCommands에서 제거됨.
@@ -127,6 +128,12 @@ final class PreferencesStore {
     var menuBarIconHidden: Bool {
         get { defaults.bool(forKey: menuBarIconHiddenKey) }
         set { defaults.set(newValue, forKey: menuBarIconHiddenKey) }
+    }
+
+    /// 첫 실행 온보딩(권한 안내 창)을 이미 띄웠는지. 미설정(false)=아직 안 띄움 → 첫 실행에서만 1회 노출.
+    var didCompleteFirstRun: Bool {
+        get { defaults.bool(forKey: didCompleteFirstRunKey) }
+        set { defaults.set(newValue, forKey: didCompleteFirstRunKey) }
     }
 
     /// 그룹이 켜져 있고 개별 비활성도 아니어야 명령이 활성이다.

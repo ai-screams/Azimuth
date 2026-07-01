@@ -96,6 +96,32 @@ nonisolated enum WindowCommand: Equatable {
         }
     }
 
+    /// 명령이 하는 일을 한 줄로 설명한다(Settings 목록의 tooltip — 학습성). 계열 단위로 간결하게.
+    var helpText: String {
+        switch self {
+        case .maximize:
+            "Fill the work area (minus menu bar and Dock)."
+        case .maximizeGaps:
+            "Fill the work area, leaving a uniform gap on all sides."
+        case let .absolute(placement):
+            "Place the window in the \(placement.displayName.lowercased()) of the screen."
+        case let .snapThrow(edge):
+            "Snap to the \(edge.displayDirection.lowercased()) half; press again to throw to the adjacent display."
+        case let .moveToDisplay(edge):
+            "Move the window to the \(edge.displayDirection.lowercased()) display, keeping its shape."
+        case let .move(direction):
+            direction == .center
+                ? "Center the window at its current size."
+                : "Nudge the window one step \(direction.displayName.lowercased()), keeping its size."
+        case let .relativeHalf(anchor):
+            "Shrink to half the current size, pinned to the \(anchor.displayName.lowercased()) edge."
+        case let .relativeTwoThird(anchor):
+            "Shrink to two-thirds the current size, pinned to the \(anchor.displayName.lowercased()) edge."
+        case .undo:
+            "Restore the window's previous frame."
+        }
+    }
+
     /// 저장·조회용 안정 식별자. 커스텀 단축키 override의 키로 쓴다.
     var identifier: String {
         switch self {
