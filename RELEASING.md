@@ -79,6 +79,12 @@ repo-wide secrets, so only the approved release job can read them):
    release tags.
 4. Push a tag (`git tag vX.Y.Z && git push origin vX.Y.Z`) → approve the run when prompted.
 
+> **Never tag a final release on the same commit as its pre-release.** `CFBundleVersion` is derived
+> from the commit count (`git rev-list --count HEAD`), which Sparkle uses to decide "is this newer?".
+> Two tags on the same commit (e.g. `v1.3.0-rc1` then `v1.3.0` with no commit in between) get the
+> **same** build number, so an RC tester would never be offered the final build. Always let the final
+> release ride at least one new commit (the version-bump commit already does this in the normal flow).
+
 > Future hardening (optional): switch notarization to an **App Store Connect API key**
 > (`notarytool --key/--key-id/--issuer`) to avoid exposing the Apple ID + app password; this needs a
 > `(C)` branch in `scripts/release.sh`.

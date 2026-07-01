@@ -38,9 +38,10 @@ enum WindowCommandExecutor {
         // 같은 화면 명령이면 결과적으로 source와 동일. 못 구하면 source로 폴백.
         let anchorArea = WorkAreaResolver.workArea(forAXWindowFrame: target) ?? workArea
         let result = WindowFrameWriter.apply(target, to: resolved, workArea: anchorArea)
-        // 되돌리기용 직전 frame은 적용에 "성공했을 때만" 저장한다. 실패/transient면 창이 움직이지
-        // 않았으므로, 기록하면 직전 성공 명령의 undo 이력을 무의미한 현재 frame으로 덮어쓰게 된다.
-        if case .success = result {
+        // 되돌리기용 직전 frame은 적용에 "성공했고 실제로 이동했을 때만" 저장한다. 실패/transient는
+        // 창이 안 움직였고(기록하면 직전 성공 명령의 undo를 무의미하게 덮음), target==현재 프레임인
+        // no-op(예: 인접 디스플레이 없는 moveToDisplay를 벽 방향으로 실행)도 마찬가지로 스킵한다.
+        if case .success = result, target != preMoveFrame {
             undoStore.record(preMoveFrame, pid: resolved.pid, for: resolved.element)
         }
         return result

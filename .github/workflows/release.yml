@@ -77,7 +77,8 @@ jobs:
           set -euo pipefail
           APP_PUB="$(/usr/libexec/PlistBuddy -c 'Print :SUPublicEDKey' build/export/Azimuth.app/Contents/Info.plist)"
           python3 -m venv "$RUNNER_TEMP/edvenv"
-          "$RUNNER_TEMP/edvenv/bin/pip" install --quiet cryptography
+          # 서명키가 env에 있는 잡이라 도구 공급망을 좁힌다: 버전 핀(정확 일치).
+          "$RUNNER_TEMP/edvenv/bin/pip" install --quiet 'cryptography==44.0.0'
           DERIVED_PUB="$("$RUNNER_TEMP/edvenv/bin/python" -c 'import os,base64;from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey as K;from cryptography.hazmat.primitives import serialization as S;s=base64.b64decode(os.environ["SPARKLE_ED_PRIVATE_KEY"]);s=s[:32] if len(s)==64 else s;print(base64.b64encode(K.from_private_bytes(s).public_key().public_bytes(S.Encoding.Raw,S.PublicFormat.Raw)).decode())')"
           rm -rf "$RUNNER_TEMP/edvenv"
           if [ "$APP_PUB" != "$DERIVED_PUB" ]; then
@@ -95,6 +96,12 @@ jobs:
           SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
         run: |
           set -euo pipefail
+          # 방어적: 이 스텝이 스텝 순서에 의존하지 않도록 태그 형식을 여기서도 검증한다
+          # (release.sh의 SemVer 게이트가 앞 스텝에서 이미 막지만, 재정렬/약화에도 안전하게).
+          case "$GITHUB_REF_NAME" in
+            v[0-9]*.[0-9]*.[0-9]*) : ;;
+            *) echo "::error::Refusing non-SemVer tag for appcast: $GITHUB_REF_NAME"; exit 1 ;;
+          esac
           xcodebuild -resolvePackageDependencies \
             -project ./Azimuth.xcodeproj -scheme Azimuth \
             -derivedDataPath "$RUNNER_TEMP/spm" >/dev/null
@@ -107,7 +114,7 @@ jobs:
             dist/
           # 업데이트 창에 "무엇이 바뀌는지"를 보여주도록 이 릴리스의 GitHub 릴리스 노트 페이지를
           # sparkle:releaseNotesLink로 주입한다(태그 페이지는 발행 후 존재 → 사용자 확인 시점엔 유효).
-          python3 -c 'import sys; p="dist/appcast.xml"; repo,tag=sys.argv[1],sys.argv[2]; link=f"https://github.com/{repo}/releases/tag/{tag}"; s=open(p).read(); s=(s if "<sparkle:releaseNotesLink>" in s else s.replace("<enclosure ", f"<sparkle:releaseNotesLink>{link}</sparkle:releaseNotesLink>\n            <enclosure ", 1)); open(p,"w").write(s)' "$GITHUB_REPOSITORY" "$GITHUB_REF_NAME"
+          python3 -c 'import sys,xml.sax.saxutils as x; p="dist/appcast.xml"; repo,tag=sys.argv[1],sys.argv[2]; link=x.escape(f"https://github.com/{repo}/releases/tag/{tag}"); s=open(p).read(); s=(s if "<sparkle:releaseNotesLink>" in s else s.replace("<enclosure ", f"<sparkle:releaseNotesLink>{link}</sparkle:releaseNotesLink>\n            <enclosure ", 1)); open(p,"w").write(s)' "$GITHUB_REPOSITORY" "$GITHUB_REF_NAME"
           echo "appcast.xml generated ($(wc -l < dist/appcast.xml) lines)."
 
       - name: Create GitHub Release with DMG
