@@ -308,6 +308,10 @@ enum CommandEngineTests {
         let got = FrameCalculator.targetFrame(for: .maximizeGaps, current: CGRect(x: 10, y: 10, width: 50, height: 50),
                                               workArea: tiny)
         expectName("degenerate gap maximize falls back to full workArea", "\(got == tiny)", "true")
+        // 극단: 작업영역 폭이 2*gap(24) 미만 → insetBy가 음수 폭(또는 CGRectNull)을 만든다 → 가드가 잡아 폴백.
+        let sliver = CGRect(x: 0, y: 0, width: 20, height: 400)
+        let sliverGot = FrameCalculator.targetFrame(for: .maximizeGaps, current: sliver, workArea: sliver)
+        expectName("sub-2*gap width falls back (no negative-width rect)", "\(sliverGot == sliver)", "true")
     }
 
     // CommandGroup 표시명·토큰과 command→group 매핑 전수.

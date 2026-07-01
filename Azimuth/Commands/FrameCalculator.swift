@@ -31,12 +31,15 @@ nonisolated enum FrameCalculator {
 
     /// Maximize와 달리 화면 가장자리에 붙지 않고 사방 gap을 남기고 채운다.
     private static let maximizeGapInset: CGFloat = 12
+    /// 여백 최대화 폴백 하한(전용). 상대축소의 minRelativeExtent와 값은 같지만 관심사가 달라
+    /// 따로 둔다 — 한쪽 튜닝이 다른 쪽 동작을 흔들지 않게 한다.
+    private static let maximizeGapMinExtent: CGFloat = 100
 
     /// 작업영역을 사방 `maximizeGapInset`만큼 축소한 사각형. 단, 작은 작업영역·과도한 gap으로
-    /// 결과 한 변이 minRelativeExtent(100pt) 미만이 되면(0/음수 크기 방지) 평범한 maximize(workArea)로 폴백.
+    /// 결과 한 변이 maximizeGapMinExtent(100pt) 미만이 되면(0/음수 크기 방지) 평범한 maximize(workArea)로 폴백.
     private static func gappedWorkArea(_ workArea: CGRect) -> CGRect {
         let inset = workArea.insetBy(dx: maximizeGapInset, dy: maximizeGapInset)
-        guard inset.width >= minRelativeExtent, inset.height >= minRelativeExtent else { return workArea }
+        guard inset.width >= maximizeGapMinExtent, inset.height >= maximizeGapMinExtent else { return workArea }
         return inset
     }
 
