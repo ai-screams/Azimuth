@@ -61,7 +61,7 @@ Before opening a PR: `make build && make lint && make test` (CI runs the same, p
   Branch off `main`, keep PRs focused, **squash-merge**.
 - New source files under `Azimuth/` are auto-included via the Xcode **file-system synchronized
   group** — no `.pbxproj` edit needed. Adding a new target or SPM dependency still needs the
-  pbxproj / Xcode GUI. Deployment target: macOS **15.0**.
+  pbxproj / Xcode GUI. Deployment target: macOS **14.0**.
 
 ## Docs (`docs/` is the GitHub Pages source)
 

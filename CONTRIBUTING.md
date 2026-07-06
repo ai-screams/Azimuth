@@ -15,7 +15,7 @@ architecture and directory-level conventions, see [`AGENTS.md`](AGENTS.md) and t
 
 ## Prerequisites
 
-- macOS **15 (Sequoia)** or later, with Xcode.
+- macOS **14 (Sonoma)** or later, with Xcode.
 - Command-line tools used by the hooks and CI:
 
   ```bash
