@@ -7,7 +7,7 @@
 [![Homebrew](https://img.shields.io/badge/Homebrew-ai--screams%2Ftap-F9AB00?logo=homebrew&logoColor=white)](#homebrew)
 
 <!-- Built with -->
-[![Platform](https://img.shields.io/badge/macOS-26.3%2B-555555?logo=apple&logoColor=white)](#requirements)
+[![Platform](https://img.shields.io/badge/macOS-14%2B-555555?logo=apple&logoColor=white)](#requirements)
 [![Swift](https://img.shields.io/badge/Swift-5-F05138?logo=swift&logoColor=white)](https://swift.org)
 [![AppKit](https://img.shields.io/badge/AppKit-1a2a4a?logo=apple&logoColor=white)](https://developer.apple.com/documentation/appkit)
 [![Auto-update](https://img.shields.io/badge/Auto--update-Sparkle-8A4FFF)](https://sparkle-project.org)
@@ -40,7 +40,7 @@ Design principle: **predictability over clever inference.** Every command does e
 
 ## Requirements
 
-- macOS 26.3 (Tahoe) or later.
+- macOS 14 (Sonoma) or later.
 - **Accessibility permission** (Azimuth controls other apps' windows through the Accessibility API).
 
 ## Privacy

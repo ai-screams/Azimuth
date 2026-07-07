@@ -14,7 +14,7 @@ Azimuth는 macOS 메뉴바 **윈도우 매니저**다 (Magnet/Rectangle 류). Ac
 | `SECURITY.md` · `CONTRIBUTING.md` · `SUPPORT.md` · `CODE_OF_CONDUCT.md` | GitHub 커뮤니티 헬스 파일(보안 신고·기여 가이드·지원 안내·행동 강령) |
 | `RELEASING.md` | 릴리스 절차 문서 |
 | `LICENSE` · `NOTICE` | Apache-2.0 라이선스 + 고지 |
-| `Azimuth.xcodeproj` | Xcode 프로젝트. 비샌드박스, `DEVELOPMENT_TEAM=7K6MK3KP9K`, `SWIFT_DEFAULT_ACTOR_ISOLATION=MainActor`, deployment target macOS 26.3 |
+| `Azimuth.xcodeproj` | Xcode 프로젝트. 비샌드박스, `DEVELOPMENT_TEAM=7K6MK3KP9K`, `SWIFT_DEFAULT_ACTOR_ISOLATION=MainActor`, deployment target macOS 14.0 |
 | `.swiftlint.yml` | SwiftLint strict 설정 |
 | `.swiftformat` | SwiftFormat 설정 (pre-commit + CI에서 `--lint`) |
 | `.gitleaks.toml` | 시크릿 스캔 규칙 |
