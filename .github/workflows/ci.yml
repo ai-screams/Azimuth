@@ -61,8 +61,27 @@ jobs:
         with:
           xcode-version: latest-stable
 
-      - name: Install Swift tooling
-        run: brew install swiftlint swiftformat
+      - name: Install Swift tooling (pinned)
+        # brew(항상 최신)는 룰 드리프트로 CI를 깨뜨릴 수 있어 릴리스 바이너리를 버전+SHA-256으로 고정.
+        # 업그레이드는 의도적 변경으로: 버전과 체크섬을 함께 갱신하고 로컬 brew 버전과 맞춘다.
+        env:
+          SWIFTFORMAT_VERSION: 0.62.1
+          SWIFTFORMAT_SHA256: 7cb1cb1fae04932047c7015441c543848e8e60e1572d808d080e0a1f1661114a
+          SWIFTLINT_VERSION: 0.65.0
+          SWIFTLINT_SHA256: d6cb0aa7a2f5f1ef306fc9e37bcb54dc9a26facc8f7784ac0c3dd3eccf5c6ba6
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/swiftformat.zip" \
+            "https://github.com/nicklockwood/SwiftFormat/releases/download/${SWIFTFORMAT_VERSION}/swiftformat.zip"
+          echo "${SWIFTFORMAT_SHA256}  ${RUNNER_TEMP}/swiftformat.zip" | shasum -a 256 -c -
+          curl -fsSL -o "$RUNNER_TEMP/swiftlint.zip" \
+            "https://github.com/realm/SwiftLint/releases/download/${SWIFTLINT_VERSION}/portable_swiftlint.zip"
+          echo "${SWIFTLINT_SHA256}  ${RUNNER_TEMP}/swiftlint.zip" | shasum -a 256 -c -
+          mkdir -p "$RUNNER_TEMP/swift-tools"
+          unzip -oq "$RUNNER_TEMP/swiftformat.zip" -d "$RUNNER_TEMP/swift-tools"
+          unzip -oq "$RUNNER_TEMP/swiftlint.zip" -d "$RUNNER_TEMP/swift-tools"
+          echo "$RUNNER_TEMP/swift-tools" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/swift-tools/swiftformat" --version
+          "$RUNNER_TEMP/swift-tools/swiftlint" --version
 
       - name: SwiftFormat
         run: swiftformat ./Azimuth --config ./.swiftformat --lint
