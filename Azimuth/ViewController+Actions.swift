@@ -28,6 +28,25 @@ extension ViewController {
         preferencesStore.soundFeedbackEnabled = sender.state == .on
     }
 
+    /// 알림 권한은 토글을 켜는 순간에만 요청한다(opt-in). 거부되면(최초 거부든 시스템 설정의
+    /// 기존 거부든) 토글을 되돌려 "켜져 보이는데 알림이 안 오는" 상태를 만들지 않는다.
+    @objc func notifyOnFailureChanged(_ sender: NSButton) {
+        guard sender.state == .on else {
+            preferencesStore.notifyOnCommandFailure = false
+            return
+        }
+        Task { @MainActor in
+            if await requestNotificationAuthorization() {
+                preferencesStore.notifyOnCommandFailure = true
+            } else {
+                sender.state = .off
+                preferencesStore.notifyOnCommandFailure = false
+                NSSound.beep()
+                Log.app.info("Notification permission denied — notify-on-failure toggle reverted.")
+            }
+        }
+    }
+
     @objc func menuBarIconChanged(_ sender: NSButton) {
         let hidden = sender.state == .on
         preferencesStore.menuBarIconHidden = hidden

@@ -29,6 +29,9 @@ final class ViewController: NSViewController {
     let setMenuBarIconHidden: (Bool) -> Void
     /// "Check for Updates…" 버튼 액션. Sparkle 업데이터를 모르도록(결합 회피) 클로저로 받는다.
     let checkForUpdates: () -> Void
+    /// 알림 권한 요청(true = 허용). UserNotifications를 모르도록 클로저로 받는다 —
+    /// "Notify when a command fails" 토글을 켜는 순간에만 불린다(opt-in).
+    let requestNotificationAuthorization: () async -> Bool
 
     init(
         preferencesStore: PreferencesStore,
@@ -37,7 +40,8 @@ final class ViewController: NSViewController {
         registrationFailures: @escaping () -> Set<String>,
         setHotkeysSuspended: @escaping (Bool) -> Void,
         setMenuBarIconHidden: @escaping (Bool) -> Void,
-        checkForUpdates: @escaping () -> Void
+        checkForUpdates: @escaping () -> Void,
+        requestNotificationAuthorization: @escaping () async -> Bool
     ) {
         self.preferencesStore = preferencesStore
         self.launchService = launchService
@@ -46,6 +50,7 @@ final class ViewController: NSViewController {
         self.setHotkeysSuspended = setHotkeysSuspended
         self.setMenuBarIconHidden = setMenuBarIconHidden
         self.checkForUpdates = checkForUpdates
+        self.requestNotificationAuthorization = requestNotificationAuthorization
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -73,6 +78,7 @@ final class ViewController: NSViewController {
     )
 
     lazy var soundFeedbackButton = makeSoundFeedbackButton()
+    lazy var notifyOnFailureButton = makeNotifyOnFailureButton()
     lazy var launchAtLoginButton = makeLaunchAtLoginButton()
     let launchApprovalLabel = NSTextField(wrappingLabelWithString: "")
     lazy var launchApprovalButton = makeLaunchApprovalButton()
@@ -99,6 +105,7 @@ final class ViewController: NSViewController {
         title: "Behavior",
         bodyViews: [
             soundFeedbackButton,
+            notifyOnFailureButton,
             launchAtLoginButton,
             launchApprovalLabel,
             launchApprovalButton,
@@ -172,6 +179,7 @@ final class ViewController: NSViewController {
     /// System Settings에서 토글하면 다시 활성화될 때까지 갱신이 지연될 수 있다.
     func updateBehaviorUI() {
         soundFeedbackButton.state = preferencesStore.soundFeedbackEnabled ? .on : .off
+        notifyOnFailureButton.state = preferencesStore.notifyOnCommandFailure ? .on : .off
         menuBarIconButton.state = preferencesStore.menuBarIconHidden ? .on : .off
         launchAtLoginButton.state = launchService.isEnabled ? .on : .off
 

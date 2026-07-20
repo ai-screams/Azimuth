@@ -15,6 +15,7 @@ final class SettingsWindowController {
     private let setHotkeysSuspended: (Bool) -> Void
     private let setMenuBarIconHidden: (Bool) -> Void
     private let checkForUpdates: () -> Void
+    private let requestNotificationAuthorization: () async -> Bool
 
     init(
         preferencesStore: PreferencesStore,
@@ -23,7 +24,8 @@ final class SettingsWindowController {
         registrationFailures: @escaping () -> Set<String>,
         setHotkeysSuspended: @escaping (Bool) -> Void,
         setMenuBarIconHidden: @escaping (Bool) -> Void,
-        checkForUpdates: @escaping () -> Void
+        checkForUpdates: @escaping () -> Void,
+        requestNotificationAuthorization: @escaping () async -> Bool
     ) {
         self.preferencesStore = preferencesStore
         self.launchService = launchService
@@ -32,6 +34,7 @@ final class SettingsWindowController {
         self.setHotkeysSuspended = setHotkeysSuspended
         self.setMenuBarIconHidden = setMenuBarIconHidden
         self.checkForUpdates = checkForUpdates
+        self.requestNotificationAuthorization = requestNotificationAuthorization
     }
 
     func show() {
@@ -66,7 +69,8 @@ final class SettingsWindowController {
             registrationFailures: registrationFailures,
             setHotkeysSuspended: setHotkeysSuspended,
             setMenuBarIconHidden: setMenuBarIconHidden,
-            checkForUpdates: checkForUpdates
+            checkForUpdates: checkForUpdates,
+            requestNotificationAuthorization: requestNotificationAuthorization
         )
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: Self.windowWidth, height: 640),

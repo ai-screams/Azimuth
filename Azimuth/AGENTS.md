@@ -29,6 +29,7 @@
 | `Settings/` | 설정창 윈도우 컨트롤러 (see `Settings/AGENTS.md`) |
 | `StatusBar/` | 메뉴바 상태 항목·메뉴 (see `StatusBar/AGENTS.md`) |
 | `Launch/` | 로그인 자동 실행(SMAppService) (see `Launch/AGENTS.md`) |
+| `Notifications/` | 명령 실패 알림(opt-in, UserNotifications) (see `Notifications/AGENTS.md`) |
 | `Assets.xcassets` | 앱 아이콘·액센트 컬러(에셋 카탈로그). 메뉴바 아이콘은 SF Symbol 사용이라 별도 에셋 불필요 |
 
 ## For AI Agents

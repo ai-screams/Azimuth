@@ -11,6 +11,7 @@ final class PreferencesStore {
     private let defaults: UserDefaults
     private let activePresetKey = "activeHotkeyPreset"
     private let soundFeedbackKey = "soundFeedbackEnabled"
+    private let notifyOnCommandFailureKey = "notifyOnCommandFailure"
     private let customShortcutsKey = "customShortcuts"
     private let disabledCommandsKey = "disabledCommandIdentifiers"
     private let disabledGroupsKey = "disabledGroupTokens"
@@ -66,6 +67,17 @@ final class PreferencesStore {
         }
         set {
             defaults.set(newValue, forKey: soundFeedbackKey)
+        }
+    }
+
+    /// 명령 실패 시 사유를 담은 사용자 알림 표시 여부. 기본 비활성(opt-in) —
+    /// 켜는 순간에만 알림 권한을 요청하고, 거부되면 UI가 다시 끈다.
+    var notifyOnCommandFailure: Bool {
+        get {
+            defaults.bool(forKey: notifyOnCommandFailureKey)
+        }
+        set {
+            defaults.set(newValue, forKey: notifyOnCommandFailureKey)
         }
     }
 
