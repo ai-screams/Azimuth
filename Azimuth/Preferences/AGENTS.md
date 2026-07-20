@@ -9,7 +9,7 @@
 ## Key Files
 | File | Description |
 |------|-------------|
-| `PreferencesStore.swift` | `@MainActor`. `activePreset: HotkeyPreset`(키 `activeHotkeyPreset`, 기본 `.standard`), `soundFeedbackEnabled: Bool`(키 `soundFeedbackEnabled`, 미설정 시 기본 true — `object(forKey:)` nil 체크로 "미설정"과 "false" 구분) |
+| `PreferencesStore.swift` | `@MainActor`. `activePreset: HotkeyPreset`(키 `activeHotkeyPreset`, 기본 `.standard`), `soundFeedbackEnabled: Bool`(키 `soundFeedbackEnabled`, 미설정 시 기본 true — `object(forKey:)` nil 체크로 "미설정"과 "false" 구분), `notifyOnCommandFailure: Bool`(키 `notifyOnCommandFailure`, 기본 false — opt-in, 켜는 순간에만 알림 권한 요청) |
 
 ## For AI Agents
 

@@ -121,6 +121,14 @@ extension ViewController {
         )
     }
 
+    func makeNotifyOnFailureButton() -> NSButton {
+        NSButton(
+            checkboxWithTitle: "Notify when a command fails",
+            target: self,
+            action: #selector(notifyOnFailureChanged(_:))
+        )
+    }
+
     func makeMenuBarIconButton() -> NSButton {
         NSButton(
             checkboxWithTitle: "Hide menu bar icon",

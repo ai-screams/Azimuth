@@ -24,6 +24,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let hotkeyService = HotkeyService()
     private let preferencesStore = PreferencesStore()
     private let launchAtLoginService = LaunchAtLoginService()
+    /// 명령 실패 알림(opt-in). 권한 요청은 Settings 토글을 켤 때만 일어난다.
+    private let failureNotifier = CommandFailureNotifier()
     private var registrationFailureIdentifiers: Set<String> = []
     /// 권한 미부여로 단축키가 실패했을 때 이번 세션에 이미 안내(Settings 유도)를 했는지.
     /// 매 실패마다 창을 띄우면 성가시므로 세션당 1회만.
@@ -38,7 +40,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         registrationFailures: { [weak self] in self?.registrationFailureIdentifiers ?? [] },
         setHotkeysSuspended: { [weak self] suspended in self?.setHotkeysSuspended(suspended) },
         setMenuBarIconHidden: { [weak self] hidden in self?.statusBarController.setVisible(!hidden) },
-        checkForUpdates: { [weak self] in self?.updaterController.checkForUpdates(nil) }
+        checkForUpdates: { [weak self] in self?.updaterController.checkForUpdates(nil) },
+        requestNotificationAuthorization: { [weak self] in await self?.failureNotifier.requestAuthorization() ?? false }
     )
     private lazy var statusBarController = StatusBarController(
         frontmostAppTracker: frontmostAppTracker,
@@ -165,6 +168,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             lastCommandFailure = (command.displayName, error.userFacingMessage)
             if preferencesStore.soundFeedbackEnabled {
                 NSSound.beep()
+            }
+            if preferencesStore.notifyOnCommandFailure {
+                failureNotifier.postCommandFailure(commandName: command.displayName, message: error.userFacingMessage)
             }
             Log.windows.debug(
                 "Hotkey \(command.displayName, privacy: .public) -> FAIL \(error.userFacingMessage, privacy: .public)"
