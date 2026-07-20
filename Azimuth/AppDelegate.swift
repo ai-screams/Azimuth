@@ -41,6 +41,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         frontmostAppTracker: frontmostAppTracker,
         windowUndoStore: windowUndoStore
     )
+    private let firstRunGuidePresenter = FirstRunGuidePresenter()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         configureActivationPolicy()
@@ -66,7 +67,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusBarController.install()
         statusBarController.setVisible(!preferencesStore.menuBarIconHidden)
         reloadHotkeys()
-        showSettingsOnFirstRunIfNeeded()
+        showFirstRunOnboardingIfNeeded()
 
         NotificationCenter.default.addObserver(
             self,
@@ -187,22 +188,38 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Log.windows.debug("Screen parameters changed; cleared window undo history.")
     }
 
-    /// 첫 실행 온보딩: 권한 미부여 상태로 처음 켜지면 Settings 창을 자동으로 띄워 권한 안내
-    /// (Permissions 카드 + "Open Accessibility Settings…")로 유도한다. 윈도우 매니저는 Accessibility
-    /// 권한이 곧 제품 전체라, 메뉴바 아이콘만으로는 신규 사용자가 "작동 안 함"에 방치되기 쉽다.
-    /// 이미 권한이 있으면 조용히 지나가고, 어느 경우든 1회만 수행한다(사용자가 끈 뒤 계속 뜨지 않게).
-    /// DEBUG 빌드는 매 실행 Settings를 띄워 개발 편의를 유지한다.
-    private func showSettingsOnFirstRunIfNeeded() {
+    /// 첫 실행 온보딩: 상태바 아이콘에 앵커한 안내 팝오버로 메뉴바 상주·전역 단축키를 소개한다.
+    /// 윈도우 매니저는 Accessibility 권한이 곧 제품 전체라, 권한 미부여면 기본 버튼이
+    /// "Open Settings…"가 되어 Settings의 Permissions 카드로 연결한다.
+    /// 플래그는 표시 "결정" 시점에 기록해(닫힘 시점이 아니라) 크래시 시 재표시 루프를 막고,
+    /// 상태 아이템이 메뉴바에 자리잡도록 0.6초 뒤에 띄운다. 상태바 버튼을 얻지 못하면(슬롯 부족 등)
+    /// 기존 폴백대로 권한 미부여 시 Settings 창을 연다. 어느 경우든 1회만 수행한다.
+    /// DEBUG 빌드는 매 실행 Settings를 띄우는 개발 편의를 유지한다(팝오버는 플래그를 따름).
+    private func showFirstRunOnboardingIfNeeded() {
         #if DEBUG
             settingsWindowController.show()
             Log.app.debug("Azimuth debug launch opened settings window.")
-        #else
-            guard !preferencesStore.didCompleteFirstRun else { return }
-            preferencesStore.didCompleteFirstRun = true
-            guard !AccessibilityPermissionService.currentStatus().isTrusted else { return }
-            settingsWindowController.show()
-            Log.app.debug("First run without Accessibility permission — opened settings for onboarding.")
         #endif
+        guard !preferencesStore.didCompleteFirstRun else { return }
+        preferencesStore.didCompleteFirstRun = true
+        let needsPermission = !AccessibilityPermissionService.currentStatus().isTrusted
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
+            guard let self else { return }
+            guard let button = statusBarController.statusButton, !preferencesStore.menuBarIconHidden else {
+                if needsPermission {
+                    settingsWindowController.show()
+                    Log.app.debug("First run without a status item — opened settings for onboarding.")
+                }
+                return
+            }
+            firstRunGuidePresenter.show(
+                relativeTo: button,
+                launchService: launchAtLoginService,
+                needsPermission: needsPermission,
+                onOpenSettings: { [weak self] in self?.settingsWindowController.show() }
+            )
+            Log.app.debug("First-run guide popover shown.")
+        }
     }
 
     /// 기본은 .accessory(Dock 아이콘 없음, 메뉴바 유틸). 창이 열리면 updateActivationPolicy가
