@@ -1,3 +1,8 @@
+# 타깃은 모두 파일이 아니라 명령이다. 릴리스 산출물 디렉터리 `build/`가 있으면
+# make가 `build` 타깃을 "up to date"로 건너뛰고 종료 코드 0을 반환해,
+# `make build && make lint && make test` 게이트가 컴파일 없이 통과한다.
+.PHONY: lint format build run test coverage release secrets install-hooks
+
 lint:
 	./scripts/lint.sh
 
