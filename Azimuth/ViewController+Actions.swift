@@ -28,21 +28,42 @@ extension ViewController {
         preferencesStore.soundFeedbackEnabled = sender.state == .on
     }
 
-    /// 알림 권한은 토글을 켜는 순간에만 요청한다(opt-in). 거부되면(최초 거부든 시스템 설정의
-    /// 기존 거부든) 토글을 되돌려 "켜져 보이는데 알림이 안 오는" 상태를 만들지 않는다.
+    /// 알림 권한은 토글을 켜는 순간에만 요청한다(opt-in). 켜지 못하면 토글을 되돌려
+    /// "켜져 보이는데 알림이 안 오는" 상태를 막고, 거부/실패는 (beep 없이) System Settings
+    /// 안내 라벨로 연결한다 — 사용자가 의도적으로 누른 체크박스에 beep은 잘못된 신호다.
     @objc func notifyOnFailureChanged(_ sender: NSButton) {
         guard sender.state == .on else {
             preferencesStore.notifyOnCommandFailure = false
+            notifyApprovalLabel.isHidden = true
             return
         }
         Task { @MainActor in
-            if await requestNotificationAuthorization() {
+            let result = await requestNotificationAuthorization()
+            // 권한 프롬프트를 기다리는 사이 사용자가 토글을 껐다면 그 의사를 존중한다
+            // (안 그러면 체크는 꺼져 보이는데 알림은 켜지는 어긋남이 생긴다).
+            guard sender.state == .on else {
+                preferencesStore.notifyOnCommandFailure = false
+                return
+            }
+            switch result {
+            case .granted:
                 preferencesStore.notifyOnCommandFailure = true
-            } else {
+                notifyApprovalLabel.isHidden = true
+            case .denied:
                 sender.state = .off
                 preferencesStore.notifyOnCommandFailure = false
-                NSSound.beep()
+                notifyApprovalLabel.stringValue =
+                    "Enable notifications for Azimuth in System Settings > Notifications, then try again."
+                notifyApprovalLabel.isHidden = false
                 Log.app.info("Notification permission denied — notify-on-failure toggle reverted.")
+            case .failed:
+                // 요청 자체 에러(예: DerivedData 개발 빌드는 알림 미등록). 이 경우 앱이
+                // System Settings에 나타나지도 않으므로 그 안내는 오히려 막다른 길 → 라벨은 숨기고
+                // 로그만 남긴다(사실상 개발 빌드 전용 경로).
+                sender.state = .off
+                preferencesStore.notifyOnCommandFailure = false
+                notifyApprovalLabel.isHidden = true
+                Log.app.error("Notification request failed — notify-on-failure toggle reverted.")
             }
         }
     }
