@@ -74,6 +74,7 @@ final class FirstRunGuideViewController: NSViewController {
     /// 앱 아이콘 + 타이틀을 가로 중앙에 배치한 헤더.
     private func makeHeader() -> NSView {
         let icon = NSImageView(image: NSApp.applicationIconImage)
+        icon.setAccessibilityElement(false) // 장식용 — 의미는 타이틀 라벨이 전달한다
         icon.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             icon.widthAnchor.constraint(equalToConstant: Layout.headerIconSize),
@@ -124,6 +125,7 @@ final class FirstRunGuideViewController: NSViewController {
         let icon = NSImageView()
         icon.image = NSImage(systemSymbolName: symbol, accessibilityDescription: nil)?
             .withSymbolConfiguration(.init(pointSize: 13, weight: .regular))
+        icon.setAccessibilityElement(false) // 장식용 — 의미는 옆 텍스트가 전달한다
         icon.contentTintColor = tint
         icon.translatesAutoresizingMaskIntoConstraints = false
         icon.widthAnchor.constraint(equalToConstant: Layout.iconColumnWidth).isActive = true
