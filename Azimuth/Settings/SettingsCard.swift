@@ -60,6 +60,7 @@ enum SettingsCard {
     private static func makeHeader(symbolName: String, title: String) -> NSStackView {
         let icon = NSImageView()
         icon.image = NSImage(systemSymbolName: symbolName, accessibilityDescription: nil)
+        icon.setAccessibilityElement(false) // 장식용 — 의미는 옆 타이틀 라벨이 전달한다
         icon.contentTintColor = .secondaryLabelColor
         icon.imageScaling = .scaleProportionallyDown
         icon.translatesAutoresizingMaskIntoConstraints = false
