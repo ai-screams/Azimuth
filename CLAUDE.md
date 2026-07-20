@@ -42,7 +42,8 @@ Before opening a PR: `make build && make lint && make test` (CI runs the same, p
   Apple's own `tccutil reset` is fine. Fix root causes the OS-sanctioned way.
 - **Test anything permission-related with `make run`** (stable Apple Development signing).
   `make build` is ad-hoc → its cdhash changes every build → TCC resets the grant. Ad-hoc builds
-  are for compile/CI only.
+  are for compile/CI only. Debug builds use bundle id `com.aiscream.Azimuth.debug` — a separate
+  TCC identity and defaults domain from the installed release copy (prevents grant clashes).
 - **`.docs/` is internal — never commit or push it** (it is gitignored).
 - **GUI smoke tests:** do not read other apps' `kCGWindowName` (Screen Recording TCC gate that
   has frozen WindowServer). Confirm liveness via process + AX role checks. Never busy-loop to
