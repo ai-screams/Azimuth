@@ -40,6 +40,11 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         statusItem?.isVisible = visible
     }
 
+    /// 첫 실행 가이드 팝오버의 앵커용 상태바 버튼. 시스템이 메뉴바 슬롯을 주지 않으면 nil.
+    var statusButton: NSStatusBarButton? {
+        statusItem?.button
+    }
+
     func refreshPermissionState() {
         let status = AccessibilityPermissionService.currentStatus()
         permissionStatusMenuItem.title = status.menuTitle

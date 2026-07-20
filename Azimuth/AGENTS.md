@@ -27,6 +27,7 @@
 | `Permissions/` | Accessibility 권한 상태·요청 (see `Permissions/AGENTS.md`) |
 | `Preferences/` | UserDefaults 래퍼 (see `Preferences/AGENTS.md`) |
 | `Settings/` | 설정창 윈도우 컨트롤러 (see `Settings/AGENTS.md`) |
+| `Onboarding/` | 첫 실행 안내 팝오버(상태바 앵커) (see `Onboarding/AGENTS.md`) |
 | `StatusBar/` | 메뉴바 상태 항목·메뉴 (see `StatusBar/AGENTS.md`) |
 | `Launch/` | 로그인 자동 실행(SMAppService) (see `Launch/AGENTS.md`) |
 | `Assets.xcassets` | 앱 아이콘·액센트 컬러(에셋 카탈로그). 메뉴바 아이콘은 SF Symbol 사용이라 별도 에셋 불필요 |
