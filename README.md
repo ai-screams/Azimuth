@@ -143,7 +143,7 @@ Example: `⌃⌥H` (left half) · `⌃⌥⌘K` (move up) · `⌃⌥⇧J` (shrink
 - **Relative shrink (½ / ⅔)** — based on the *current window*, not the screen: pins the chosen edge and shrinks toward it. Arrow keys shrink to ½; `M , . /` shrink to ⅔ (M=left, ,=down, .=up, /=right). Effects compose: ⅔ then ½ lands on ⅓.
 - **Move to next display** — preserves shape, relative position, and size (capped/clamped so it never exceeds the target screen). No adjacent display → stays put.
 - **Undo** — restores the previous frame (one step per window). Display reconfiguration discards undo history.
-- **Failure feedback** — a beep on failure (toggleable in Settings) plus a log entry. Transient failures during Space switches or animations are skipped silently.
+- **Failure feedback** — a beep on failure (toggleable in Settings) plus a log entry, and the reason is recorded in the menu bar menu. You can also opt in to a notification on failure. Transient failures during Space switches or animations are skipped silently.
 
 > Note: apps with size increments (e.g. Terminal) may leave a sub-row gap when snapped to a half/maximize, because they round down to their character grid. The work area excludes the menu bar and Dock, so a gap at those edges is expected.
 
@@ -154,7 +154,7 @@ Open Settings from the menu bar item or with `⌘,`:
 - Switch preset (Standard / Vim).
 - Record custom shortcuts per command, with conflict warnings and per-command Reset.
 - Enable/disable command groups, or unbind individual commands.
-- Toggle failure beep, launch-at-login, and hide the menu bar icon.
+- Toggle failure beep, failure notifications, launch-at-login, and hide the menu bar icon.
 - Automatic updates via Sparkle — current version + Check for Updates… in Settings (and the menu bar / App menu).
 
 If the menu bar icon is hidden, relaunching Azimuth reopens the Settings window so you always have a way back in.
