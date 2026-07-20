@@ -8,3 +8,5 @@
 --stripunusedargs closure-only
 --self remove
 --header ignore
+# 0.62부터 기본 활성화 — 한 줄 guard성 if 본문(`if x { return }`)을 유지한다
+--disable wrapIfStatementBodies
