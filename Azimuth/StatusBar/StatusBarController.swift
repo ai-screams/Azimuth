@@ -80,6 +80,10 @@ final class StatusBarController: NSObject, NSMenuDelegate {
     }
 
     func menuWillOpen(_ menu: NSMenu) {
+        // .accessory 앱은 메뉴를 열어도 활성화(didBecomeActive)되지 않아 권한 캐시가 그대로다.
+        // System Settings에서 방금 토글한 상태가 보이도록 여기서 캐시를 비운다(가끔 열리는
+        // 메뉴의 동기 tccd 호출 1회는 캐시 목적 — 핫키마다 호출 방지 — 와 충돌하지 않는다).
+        AccessibilityPermissionService.invalidateCache()
         refreshPermissionState()
         updateLastFailureItem()
         #if DEBUG
