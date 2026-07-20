@@ -7,8 +7,11 @@
 # 그러면 TCC가 매번 "다른 앱"으로 보고 Accessibility 권한이 무효화된다(권한 꼬임).
 #
 # 이 스크립트는 안정적인 Apple Development 정체성으로 서명해 빌드한다. designated requirement가
-# `identifier "com.aiscream.Azimuth" + Apple Development 리프`에 고정되므로, 같은 서명으로 재빌드해도
-# 한 번 부여한 권한이 유지된다. 이것이 정공법이다(권한 우회·검사 무력화 금지).
+# `identifier "com.aiscream.Azimuth.debug" + Apple Development 리프`에 고정되므로, 같은 서명으로
+# 재빌드해도 한 번 부여한 권한이 유지된다. 이것이 정공법이다(권한 우회·검사 무력화 금지).
+#
+# Debug 번들 ID는 릴리스(com.aiscream.Azimuth)와 분리되어 있다 — /Applications 설치본과
+# 개발 빌드가 같은 ID를 쓰면 TCC가 하나의 권한 항목(csreq)을 두고 충돌해 권한이 꼬인다.
 
 set -euo pipefail
 

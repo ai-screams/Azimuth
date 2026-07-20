@@ -38,7 +38,7 @@
 ### Working In This Directory
 - 새 의존성은 `AppDelegate`에서 생성·주입한다. 컴포넌트는 생성자 주입(DI)으로 연결되어 있다(예: 설정창에 `PreferencesStore`/`LaunchAtLoginService` 주입).
 - 진입/와이어링(`main.swift`/`AppDelegate`)을 건드리면 **창이 실제로 뜨는지** 확인. `@main`만으로는 delegate가 안 붙는다(스토리보드 없음).
-- DEBUG 빌드는 활성화 정책 `.regular` + 기동 시 설정창 자동 표시, RELEASE는 `.accessory`(메뉴바 전용).
+- DEBUG 빌드는 활성화 정책 `.regular` + 기동 시 설정창 자동 표시, RELEASE는 `.accessory`(메뉴바 전용). DEBUG 번들 ID는 `com.aiscream.Azimuth.debug`로 분리 — /Applications 릴리스 설치본과 TCC 권한 항목·UserDefaults 도메인이 따로 간다(권한 꼬임 방지). 디버그용 `defaults`/`tccutil` 명령은 `.debug` ID를 쓸 것.
 
 ### Testing Requirements
 - `make build` + `make lint` + `make test`. 권한 동작 확인은 `make run`(서명 빌드).
