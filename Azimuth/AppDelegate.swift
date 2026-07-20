@@ -28,6 +28,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// 권한 미부여로 단축키가 실패했을 때 이번 세션에 이미 안내(Settings 유도)를 했는지.
     /// 매 실패마다 창을 띄우면 성가시므로 세션당 1회만.
     private var didNudgeForPermissionThisSession = false
+    /// 가장 최근 단축키 명령이 실패했을 때의 (명령 이름, 사유). 상태바 메뉴에 노출해
+    /// "beep만 나는" 실패의 이유를 설명한다. 다음 명령이 성공하면 지운다(세션 한정, 저장 안 함).
+    private var lastCommandFailure: (commandName: String, message: String)?
     private lazy var settingsWindowController = SettingsWindowController(
         preferencesStore: preferencesStore,
         launchService: launchAtLoginService,
@@ -64,6 +67,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             target: updaterController,
             action: #selector(SPUStandardUpdaterController.checkForUpdates(_:))
         )
+        statusBarController.lastFailureText = { [weak self] in
+            guard let failure = self?.lastCommandFailure else { return nil }
+            return "Last: \(failure.commandName) failed — \(failure.message)"
+        }
         statusBarController.install()
         statusBarController.setVisible(!preferencesStore.menuBarIconHidden)
         reloadHotkeys()
@@ -150,11 +157,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let result = WindowCommandExecutor.run(command, tracker: frontmostAppTracker, undoStore: windowUndoStore)
         switch result {
         case .success:
-            break
+            lastCommandFailure = nil
         case .failure(.transient):
-            // Space 전환·애니메이션 중 일시적 실패는 비프 없이 조용히 무시한다.
+            // Space 전환·애니메이션 중 일시적 실패는 비프 없이 조용히 무시한다(메뉴 노출도 제외).
             Log.windows.debug("Hotkey \(command.displayName, privacy: .public) -> transient, skipped")
         case let .failure(error):
+            lastCommandFailure = (command.displayName, error.userFacingMessage)
             if preferencesStore.soundFeedbackEnabled {
                 NSSound.beep()
             }

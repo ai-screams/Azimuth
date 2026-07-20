@@ -9,20 +9,21 @@ nonisolated enum WindowCommandError: Error, Equatable {
     case transient
     case noUndoState
 
+    /// UI(상태바 메뉴·알림)에 그대로 노출된다 — 나머지 UI와 같이 영어로 유지(현지화는 추후 일괄).
     var userFacingMessage: String {
         switch self {
         case let .resolution(error):
             error.userFacingMessage
         case .workAreaUnavailable:
-            "작업영역을 찾을 수 없음"
+            "Couldn't determine the screen work area"
         case .notMovable:
-            "이 창은 이동/리사이즈할 수 없음"
+            "This window can't be moved or resized"
         case .applyFailed:
-            "창에 적용하지 못함"
+            "Couldn't apply the new frame to the window"
         case .transient:
-            "잠시 후 다시 시도하세요"
+            "Try again in a moment"
         case .noUndoState:
-            "되돌릴 상태가 없음"
+            "Nothing to undo"
         }
     }
 }
