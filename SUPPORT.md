@@ -5,9 +5,9 @@ Need help with Azimuth? Here's where to look, in order.
 ## Documentation first
 
 - **[README](README.md)** — install, shortcuts, and command behavior.
-- **[User manual](https://ai-screams.github.io/Azimuth/manual.html)** — the full keyboard
+- **[User manual](https://ai-scream.ai/Azimuth/manual.html)** — the full keyboard
   reference and how each command works.
-- **[FAQ](https://ai-screams.github.io/Azimuth/#faq)** — common questions (permissions,
+- **[FAQ](https://ai-scream.ai/Azimuth/#faq)** — common questions (permissions,
   multi-monitor, size-increment apps like Terminal).
 
 Most questions — "why is there a gap after maximizing?", "how do I remap a shortcut?", "how do I

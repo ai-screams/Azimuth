@@ -72,7 +72,7 @@ Before opening a PR: `make build && make lint && make test` (CI runs the same, p
 - Strings like "N commands" / "N shortcuts" must match `WindowCommand.menuCommands`
   (currently **34**). Bumping a command means updating both HTML files and the README.
 - Merging to `main` triggers the **"pages build and deployment"** workflow. The live site
-  (`ai-screams.github.io/Azimuth`) lags until that run finishes — poll it to `completed`/`success`
+  (`ai-scream.ai/Azimuth`) lags until that run finishes — poll it to `completed`/`success`
   before verifying live content; catching the old page mid-deploy is expected.
 
 ## Funding / community
