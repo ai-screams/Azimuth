@@ -70,7 +70,10 @@ final class StatusBarController: NSObject, NSMenuDelegate {
     private func updateStatusButton(isTrusted: Bool) {
         guard let button = statusItem?.button else { return }
         let symbol = isTrusted ? "macwindow.on.rectangle" : "exclamationmark.triangle"
-        let image = NSImage(systemSymbolName: symbol, accessibilityDescription: "Azimuth")
+        let image = NSImage(
+            systemSymbolName: symbol,
+            accessibilityDescription: isTrusted ? "Azimuth" : "Azimuth — Accessibility access required"
+        )
         image?.isTemplate = true
         button.image = image
         button.toolTip = isTrusted ? "Azimuth" : "Azimuth needs Accessibility access"

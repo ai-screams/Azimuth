@@ -20,6 +20,13 @@ final class BadgeLabel: NSView {
         layer?.cornerRadius = 5
         layer?.cornerCurve = .continuous
 
+        // VoiceOver에는 배지 전체를 하나의 텍스트 요소로 노출한다 — 안쪽 라벨만 읽히면
+        // "Duplicate"처럼 문맥 없는 단어만 들린다. 전체 라벨은 configure에서 채운다.
+        setAccessibilityElement(true)
+        setAccessibilityRole(.staticText)
+        label.setAccessibilityElement(false)
+        iconView.setAccessibilityElement(false)
+
         label.font = .systemFont(ofSize: 11, weight: .medium)
         label.lineBreakMode = .byTruncatingTail
         iconView.imageScaling = .scaleProportionallyDown
@@ -55,5 +62,6 @@ final class BadgeLabel: NSView {
         iconView.contentTintColor = color
         layer?.backgroundColor = color.withAlphaComponent(0.14).cgColor
         toolTip = "\(text) — this shortcut won't trigger this command."
+        setAccessibilityLabel(toolTip)
     }
 }

@@ -96,6 +96,7 @@ extension ViewController {
     /// 권한 상태 아이콘(✓/⚠) + 상태 텍스트를 한 줄로 묶는다.
     func makePermissionStatusRow() -> NSStackView {
         statusIcon.imageScaling = .scaleProportionallyDown
+        statusIcon.setAccessibilityElement(false) // 장식용 — 권한 상태는 statusLabel 텍스트가 전달한다
         statusIcon.translatesAutoresizingMaskIntoConstraints = false
 
         let row = NSStackView(views: [statusIcon, statusLabel])

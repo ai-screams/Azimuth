@@ -65,6 +65,7 @@ extension ShortcutsSectionView {
     func makeSearchField() -> NSSearchField {
         let field = NSSearchField()
         field.placeholderString = "Filter shortcuts"
+        field.setAccessibilityLabel("Filter shortcuts") // placeholder는 VoiceOver 라벨을 보장하지 않는다
         field.translatesAutoresizingMaskIntoConstraints = false
         field.delegate = self
         field.sendsWholeSearchString = false
@@ -131,6 +132,7 @@ extension ShortcutsSectionView {
         let recorder = makeRecorder(for: command)
 
         let reset = NSButton.rounded(title: "Reset", target: self, action: #selector(resetRow(_:)))
+        reset.setAccessibilityLabel("Reset \(command.displayName) shortcut")
 
         let badge = BadgeLabel()
         badge.isHidden = true
@@ -160,6 +162,7 @@ extension ShortcutsSectionView {
 
     private func makeRecorder(for command: WindowCommand) -> ShortcutRecorderButton {
         let recorder = ShortcutRecorderButton()
+        recorder.commandName = command.displayName
         recorder.onCapture = { [weak self] shortcut in self?.capture(shortcut, for: command) }
         // 녹화 중에는 전역 핫키를 일시 정지해, 녹화하려는 조합이 백그라운드 창을 조작하지 않게 한다.
         recorder.onRecordingStateChanged = { [weak self] recording in self?.setHotkeysSuspended(recording) }

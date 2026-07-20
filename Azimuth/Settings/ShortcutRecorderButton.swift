@@ -14,6 +14,15 @@ final class ShortcutRecorderButton: NSButton {
     var onCapture: ((HotkeyShortcut) -> Void)?
     /// 녹화 시작(true)/종료(false)를 알린다. 녹화 중 전역 핫키를 일시 정지하는 데 쓴다.
     var onRecordingStateChanged: ((Bool) -> Void)?
+    /// 접근성 라벨 문맥. 버튼 타이틀은 조합 글리프(⌃⌥← 등)뿐이라 VoiceOver로는
+    /// 어느 명령의 단축키인지 알 수 없다 — "Shortcut for <명령>: <타이틀>"로 합성한다.
+    var commandName: String? {
+        didSet { updateAccessibilityLabel() }
+    }
+
+    override var title: String {
+        didSet { updateAccessibilityLabel() }
+    }
 
     private var idleTitle = "—"
     private var isRecording = false
@@ -34,6 +43,11 @@ final class ShortcutRecorderButton: NSButton {
 
     override var acceptsFirstResponder: Bool {
         isRecording
+    }
+
+    private func updateAccessibilityLabel() {
+        guard let commandName else { return }
+        setAccessibilityLabel("Shortcut for \(commandName): \(title)")
     }
 
     /// 녹화 중이 아닐 때 표시할 현재 단축키 텍스트.
