@@ -184,6 +184,9 @@ final class ViewController: NSViewController {
     func updateBehaviorUI() {
         soundFeedbackButton.state = preferencesStore.soundFeedbackEnabled ? .on : .off
         notifyOnFailureButton.state = preferencesStore.notifyOnCommandFailure ? .on : .off
+        // 창을 다시 열거나 앱이 활성화될 때마다 이전에 띄운 알림 권한 안내를 정리한다
+        // (사용자가 그새 System Settings에서 켜고 왔을 수 있어 stale 안내가 남지 않게 한다).
+        notifyApprovalLabel.isHidden = true
         menuBarIconButton.state = preferencesStore.menuBarIconHidden ? .on : .off
         launchAtLoginButton.state = launchService.isEnabled ? .on : .off
 
