@@ -41,7 +41,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         setHotkeysSuspended: { [weak self] suspended in self?.setHotkeysSuspended(suspended) },
         setMenuBarIconHidden: { [weak self] hidden in self?.statusBarController.setVisible(!hidden) },
         checkForUpdates: { [weak self] in self?.updaterController.checkForUpdates(nil) },
-        requestNotificationAuthorization: { [weak self] in await self?.failureNotifier.requestAuthorization() ?? false }
+        requestNotificationAuthorization: { [weak self] in
+            await self?.failureNotifier.requestAuthorization() ?? .failed
+        }
     )
     private lazy var statusBarController = StatusBarController(
         frontmostAppTracker: frontmostAppTracker,

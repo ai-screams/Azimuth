@@ -28,21 +28,27 @@ extension ViewController {
         preferencesStore.soundFeedbackEnabled = sender.state == .on
     }
 
-    /// 알림 권한은 토글을 켜는 순간에만 요청한다(opt-in). 거부되면(최초 거부든 시스템 설정의
-    /// 기존 거부든) 토글을 되돌려 "켜져 보이는데 알림이 안 오는" 상태를 만들지 않는다.
+    /// 알림 권한은 토글을 켜는 순간에만 요청한다(opt-in). 켜지 못하면 토글을 되돌려
+    /// "켜져 보이는데 알림이 안 오는" 상태를 막고, 거부/실패는 (beep 없이) System Settings
+    /// 안내 라벨로 연결한다 — 사용자가 의도적으로 누른 체크박스에 beep은 잘못된 신호다.
     @objc func notifyOnFailureChanged(_ sender: NSButton) {
         guard sender.state == .on else {
             preferencesStore.notifyOnCommandFailure = false
+            notifyApprovalLabel.isHidden = true
             return
         }
         Task { @MainActor in
-            if await requestNotificationAuthorization() {
+            switch await requestNotificationAuthorization() {
+            case .granted:
                 preferencesStore.notifyOnCommandFailure = true
-            } else {
+                notifyApprovalLabel.isHidden = true
+            case .denied, .failed:
                 sender.state = .off
                 preferencesStore.notifyOnCommandFailure = false
-                NSSound.beep()
-                Log.app.info("Notification permission denied — notify-on-failure toggle reverted.")
+                notifyApprovalLabel.stringValue =
+                    "Enable notifications for Azimuth in System Settings > Notifications, then try again."
+                notifyApprovalLabel.isHidden = false
+                Log.app.info("Notification permission not granted — notify-on-failure toggle reverted.")
             }
         }
     }

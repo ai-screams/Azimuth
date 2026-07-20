@@ -63,6 +63,10 @@ extension ViewController {
         launchApprovalLabel.textColor = .systemOrange
         launchApprovalLabel.font = .systemFont(ofSize: Layout.statusFontSize)
         launchApprovalLabel.maximumNumberOfLines = 0
+        notifyApprovalLabel.textColor = .systemOrange
+        notifyApprovalLabel.font = .systemFont(ofSize: Layout.statusFontSize)
+        notifyApprovalLabel.maximumNumberOfLines = 0
+        notifyApprovalLabel.isHidden = true
         menuBarIconHintLabel.textColor = .secondaryLabelColor
         menuBarIconHintLabel.font = .systemFont(ofSize: Layout.statusFontSize)
         menuBarIconHintLabel.maximumNumberOfLines = 0

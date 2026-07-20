@@ -29,9 +29,9 @@ final class ViewController: NSViewController {
     let setMenuBarIconHidden: (Bool) -> Void
     /// "Check for Updates…" 버튼 액션. Sparkle 업데이터를 모르도록(결합 회피) 클로저로 받는다.
     let checkForUpdates: () -> Void
-    /// 알림 권한 요청(true = 허용). UserNotifications를 모르도록 클로저로 받는다 —
+    /// 알림 권한 요청 결과. UserNotifications를 모르도록 클로저로 받는다 —
     /// "Notify when a command fails" 토글을 켜는 순간에만 불린다(opt-in).
-    let requestNotificationAuthorization: () async -> Bool
+    let requestNotificationAuthorization: () async -> NotificationAuthorizationResult
 
     init(
         preferencesStore: PreferencesStore,
@@ -41,7 +41,7 @@ final class ViewController: NSViewController {
         setHotkeysSuspended: @escaping (Bool) -> Void,
         setMenuBarIconHidden: @escaping (Bool) -> Void,
         checkForUpdates: @escaping () -> Void,
-        requestNotificationAuthorization: @escaping () async -> Bool
+        requestNotificationAuthorization: @escaping () async -> NotificationAuthorizationResult
     ) {
         self.preferencesStore = preferencesStore
         self.launchService = launchService
@@ -79,6 +79,9 @@ final class ViewController: NSViewController {
 
     lazy var soundFeedbackButton = makeSoundFeedbackButton()
     lazy var notifyOnFailureButton = makeNotifyOnFailureButton()
+    /// 알림 권한이 거부/실패라 토글을 켜지 못했을 때 System Settings로 안내하는 라벨
+    /// (평소 숨김). launch-at-login의 승인 안내 라벨과 같은 패턴.
+    let notifyApprovalLabel = NSTextField(wrappingLabelWithString: "")
     lazy var launchAtLoginButton = makeLaunchAtLoginButton()
     let launchApprovalLabel = NSTextField(wrappingLabelWithString: "")
     lazy var launchApprovalButton = makeLaunchApprovalButton()
@@ -106,6 +109,7 @@ final class ViewController: NSViewController {
         bodyViews: [
             soundFeedbackButton,
             notifyOnFailureButton,
+            notifyApprovalLabel,
             launchAtLoginButton,
             launchApprovalLabel,
             launchApprovalButton,

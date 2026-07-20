@@ -15,7 +15,7 @@ final class SettingsWindowController {
     private let setHotkeysSuspended: (Bool) -> Void
     private let setMenuBarIconHidden: (Bool) -> Void
     private let checkForUpdates: () -> Void
-    private let requestNotificationAuthorization: () async -> Bool
+    private let requestNotificationAuthorization: () async -> NotificationAuthorizationResult
 
     init(
         preferencesStore: PreferencesStore,
@@ -25,7 +25,7 @@ final class SettingsWindowController {
         setHotkeysSuspended: @escaping (Bool) -> Void,
         setMenuBarIconHidden: @escaping (Bool) -> Void,
         checkForUpdates: @escaping () -> Void,
-        requestNotificationAuthorization: @escaping () async -> Bool
+        requestNotificationAuthorization: @escaping () async -> NotificationAuthorizationResult
     ) {
         self.preferencesStore = preferencesStore
         self.launchService = launchService
