@@ -6,9 +6,17 @@ final class FrontmostAppTracker {
     var onChange: ((NSRunningApplication) -> Void)?
 
     /// 명령 대상 앱: 추적된 직전 non-Azimuth 앱, 없으면 현재 frontmost. "어느 앱"
-    /// 정책을 한 곳에 모은다.
+    /// 정책을 한 곳에 모은다. 폴백에서도 자기 자신은 제외한다 — 기동 직후 다른 앱을 한 번도
+    /// 활성화하지 않은 채(설정창만 띄운 상태) 단축키를 누르면 frontmost가 Azimuth 자신이라,
+    /// 롤백된 "자기 설정창 스냅"이 이 구멍으로 되살아났다(자기창은 명령 대상이 아니다).
     var targetApplication: NSRunningApplication? {
-        lastFocusedApp ?? NSWorkspace.shared.frontmostApplication
+        if let lastFocusedApp { return lastFocusedApp }
+        guard let frontmost = NSWorkspace.shared.frontmostApplication,
+              frontmost.processIdentifier != selfPID
+        else {
+            return nil // 대상 없음 → noFrontmostApplication 실패(비프 + 메뉴 사유 행)
+        }
+        return frontmost
     }
 
     private let selfPID = ProcessInfo.processInfo.processIdentifier
