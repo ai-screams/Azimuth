@@ -7,9 +7,24 @@ final class StatusBarController: NSObject, NSMenuDelegate {
     /// Sparkle 업데이터의 (타깃, 셀렉터). install() 전에 설정하면 메뉴에 "Check for Updates…"가 추가된다.
     /// Sparkle import를 StatusBarController로 끌어오지 않으려고 제네릭 타깃/셀렉터로 받는다.
     var checkForUpdates: (target: AnyObject, action: Selector)?
+    /// 마지막 명령 실패의 표시 문구(nil이면 행 숨김). AppDelegate가 주입한다 —
+    /// "beep만 나고 이유를 알 수 없는" 실패를 메뉴를 열면 설명하기 위한 행이다.
+    var lastFailureText: (() -> String?)?
 
     private var statusItem: NSStatusItem?
     private let permissionStatusMenuItem = NSMenuItem()
+    /// 마지막 명령 실패 사유(정보 행). 실패가 없으면 숨겨지고, menuWillOpen에서 갱신된다.
+    private let lastFailureMenuItem: NSMenuItem = {
+        let item = NSMenuItem()
+        item.isEnabled = false
+        item.isHidden = true
+        item.image = NSImage(
+            systemSymbolName: "exclamationmark.triangle",
+            accessibilityDescription: "Last command failed"
+        )
+        return item
+    }()
+
     private let openAccessibilitySettingsMenuItem = NSMenuItem(
         title: "Open Accessibility Settings…",
         action: #selector(openAccessibilitySettings(_:)),
@@ -58,9 +73,20 @@ final class StatusBarController: NSObject, NSMenuDelegate {
 
     func menuWillOpen(_ menu: NSMenu) {
         refreshPermissionState()
+        updateLastFailureItem()
         #if DEBUG
             updateDebugResolutionMenuItem()
         #endif
+    }
+
+    /// 마지막 명령이 실패했으면 그 사유를, 성공/없음이면 행을 숨긴다(메뉴 열 때마다 갱신).
+    private func updateLastFailureItem() {
+        if let text = lastFailureText?() {
+            lastFailureMenuItem.title = text
+            lastFailureMenuItem.isHidden = false
+        } else {
+            lastFailureMenuItem.isHidden = true
+        }
     }
 
     private func configureStatusItem() {
@@ -83,6 +109,8 @@ final class StatusBarController: NSObject, NSMenuDelegate {
 
         openAccessibilitySettingsMenuItem.target = self
         menu.addItem(openAccessibilitySettingsMenuItem)
+
+        menu.addItem(lastFailureMenuItem)
 
         menu.addItem(.separator())
 

@@ -18,22 +18,23 @@ nonisolated enum WindowResolutionError: Error, Equatable {
     case fullscreenWindow
     case axError(code: Int32)
 
+    /// UI(상태바 메뉴·알림)에 그대로 노출된다 — 나머지 UI와 같이 영어로 유지(현지화는 추후 일괄).
     var userFacingMessage: String {
         switch self {
         case .permissionDenied:
-            "Accessibility 권한 필요"
+            "Accessibility permission required"
         case .noFrontmostApplication:
-            "활성 앱 없음"
+            "No active application"
         case .noFocusedWindow:
-            "조작할 활성 창을 찾을 수 없음"
+            "No focused window to control"
         case .appUnresponsive:
-            "앱이 응답하지 않음"
+            "The app is not responding"
         case let .unsupportedWindowType(subrole):
-            "지원하지 않는 창 (\(subrole ?? "unknown"))"
+            "Unsupported window type (\(subrole ?? "unknown"))"
         case .fullscreenWindow:
-            "풀스크린 창은 지원하지 않음"
+            "Full screen windows aren't supported"
         case let .axError(code):
-            "창 접근 실패 (\(code))"
+            "Couldn't access the window (error \(code))"
         }
     }
 }
