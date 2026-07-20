@@ -6,7 +6,7 @@
 ## Purpose
 GitHub Pages source for the Azimuth website — a marketing landing page and a full user
 manual. Plain static HTML/CSS/JS with **no build step**; published at
-`https://ai-screams.github.io/Azimuth/`. Both pages are **bilingual (EN/KO)** and share an
+`https://ai-scream.ai/Azimuth/`. Both pages are **bilingual (EN/KO)** and share an
 inline design-token stylesheet.
 
 ## Key Files
@@ -33,7 +33,7 @@ inline design-token stylesheet.
   spots (shortcuts heading + "all N unique key combinations" note, EN+KO each).
 - **No hardcoded version.** The download CTA and JSON-LD `downloadUrl` point at
   `/releases/latest` — keep it that way so releases don't require doc edits. Canonical/OG URLs
-  are absolute (`ai-screams.github.io/Azimuth/...`); update only if the Pages URL changes.
+  are absolute (`ai-scream.ai/Azimuth/...`); update only if the Pages URL changes.
 - **Funding links live in index.html's support block.** Ko-fi `https://ko-fi.com/pignuante`
   and GitHub Sponsors `https://github.com/sponsors/ai-screams` (see `.github/FUNDING.yml`).
 - `assets/` holds only images — no `AGENTS.md` of its own.

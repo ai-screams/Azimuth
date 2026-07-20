@@ -28,7 +28,7 @@ final class AboutWindowController: NSWindowController {
 
     private static let links: [Link] = [
         Link(title: "Homepage", symbol: "globe",
-             url: "https://ai-screams.github.io/Azimuth/", tint: nil),
+             url: "https://ai-scream.ai/Azimuth/", tint: nil),
         Link(title: "Report an Issue", symbol: "ladybug",
              url: "https://github.com/ai-screams/Azimuth/issues/new", tint: nil),
         Link(title: "Sponsor", symbol: "heart.fill",
