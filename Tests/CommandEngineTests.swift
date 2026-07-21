@@ -454,6 +454,16 @@ enum CommandEngineTests {
         // 제약 앱: 크기가 목표보다 8pt 넘게 크면 미도달.
         expectName("constrained size beyond tolerance not reached",
                    "\(FrameApply.reached(target: target, achieved: CGRect(x: 960, y: 25, width: 1100, height: 1055)))", "false")
+        // M-3: 축별 변경 판정(해당 축만 쓰고 권한을 요구하도록).
+        let base = CGRect(x: 100, y: 100, width: 400, height: 300)
+        let moved = CGRect(x: 200, y: 100, width: 400, height: 300)
+        let resized = CGRect(x: 100, y: 100, width: 600, height: 300)
+        expectName("move-only changes origin", "\(FrameApply.movesOrigin(from: base, to: moved))", "true")
+        expectName("move-only does not resize", "\(FrameApply.resizesSize(from: base, to: moved))", "false")
+        expectName("resize-only changes size", "\(FrameApply.resizesSize(from: base, to: resized))", "true")
+        expectName("resize-only does not move", "\(FrameApply.movesOrigin(from: base, to: resized))", "false")
+        expectName("identical frame neither moves nor resizes",
+                   "\(FrameApply.movesOrigin(from: base, to: base) || FrameApply.resizesSize(from: base, to: base))", "false")
     }
 
     // CommandGroup 표시명·토큰과 command→group 매핑 전수.
