@@ -444,6 +444,22 @@ enum CommandEngineTests {
         let rightNear = CGRect(x: 1920, y: 0, width: 1920, height: 1080)  // edge-gap 0(인접)
         expectName("right picks nearest adjacent layer (nearer=idx1)",
                    "\(DisplayGeometry.selectAdjacentIndex(current: cur, candidates: [rightFar, rightNear], window: win, edge: .right) ?? -1)", "1")
+        // 순서 의존성 회귀 방지: perpendicular gap이 여러 단계로 놓여도 항상 "최소"를 고른다.
+        // 비교에 데드밴드를 쓰면 순차 비교가 비추이적이 되어(각 단계가 직전 승자와만 비교)
+        // [1.2, 0.8, 0.4, 0.0]에서 최소가 아닌 0.4가 뽑히고, 순서를 뒤집으면 결과가 달라졌다.
+        let seamWin = CGRect(x: 100, y: 495, width: 10, height: 10) // midY = 500
+        let ladder = [
+            CGRect(x: -500, y: 501.2, width: 500, height: 400), // gap 1.2
+            CGRect(x: -500, y: 500.8, width: 500, height: 400), // gap 0.8
+            CGRect(x: -500, y: 500.4, width: 500, height: 400), // gap 0.4
+            CGRect(x: -500, y: 500.0, width: 500, height: 400) // gap 0.0
+        ]
+        expectName("perpendicular ladder picks the true minimum (idx3)",
+                   "\(DisplayGeometry.selectAdjacentIndex(current: cur, candidates: ladder, window: seamWin, edge: .left) ?? -1)",
+                   "3")
+        expectName("reversed ladder picks the same screen (idx0)",
+                   "\(DisplayGeometry.selectAdjacentIndex(current: cur, candidates: Array(ladder.reversed()), window: seamWin, edge: .left) ?? -1)",
+                   "0")
         // M-6: 방향상 가장 가까운(edge-gap 최소) 화면이, 멀지만 창 Y에 정렬된 화면을 이긴다.
         // near는 바로 오른쪽이지만 Y가 어긋나 perpendicular gap이 크고, far는 멀지만 창 Y에 정렬됨.
         // 과거(정렬 우선)엔 far가 이겼다 — 이제는 인접 계층(near)이 이긴다.
