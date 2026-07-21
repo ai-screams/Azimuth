@@ -180,6 +180,33 @@ nonisolated enum RelativeAnchor: Equatable {
             "bottom"
         }
     }
+
+    /// 상대 축소가 고정해야 할 모서리. 좌/상은 origin이 그대로라 topLeft, 우/하는 반대 모서리를 고정한다.
+    var frameAnchor: FrameAnchor {
+        switch self {
+        case .left, .top:
+            .topLeft
+        case .right:
+            .right
+        case .bottom:
+            .bottom
+        }
+    }
+}
+
+/// frame 적용 시 실제 크기가 목표와 다를 때 어느 모서리를 고정할지의 명시적 의도.
+/// 상대 축소는 앱이 요청 크기와 다르게 반올림(크기증분 앱의 셀 단위)해도 고정 모서리를 유지해야 하므로,
+/// 명령이 의도를 실어 Writer로 전달한다 — 작업영역 모서리 접촉만으로는 화면 가장자리에 닿지 않은
+/// 상대 축소의 고정점을 복구할 수 없다(감사 M-4).
+nonisolated enum FrameAnchor: Equatable {
+    /// origin 그대로 — 좌/상 고정(기본). 크기가 달라져도 origin은 목표 그대로.
+    case topLeft
+    /// 오른쪽 모서리 고정(너비가 목표와 달라도 target.maxX 유지).
+    case right
+    /// 아래쪽 모서리 고정(높이가 목표와 달라도 target.maxY 유지).
+    case bottom
+    /// target이 닿아 있던 작업영역 모서리를 추론해 유지(스냅·절대·최대화).
+    case workAreaEdges
 }
 
 nonisolated enum SnapEdge: Equatable {

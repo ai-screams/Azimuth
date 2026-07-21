@@ -23,6 +23,7 @@ enum CommandEngineTests {
         testFixedAndMinWidthSnap()
         testCenterClamp()
         testAnchorOrigin()
+        testAnchoredOrigin()
         testFallbackCommands()
         testGapMaximize()
         testGapMaximizeDegenerate()
@@ -299,6 +300,53 @@ enum CommandEngineTests {
                     FrameCalculator.anchorOrigin(actualSize: CGSize(width: 2000, height: 1055),
                                                  requested: rightHalf, workArea: workArea),
                     CGPoint(x: 0, y: 25))
+    }
+
+    // M-4: 명시적 anchor로 실제 크기에 맞춰 고정 모서리를 유지(앱 반올림에 의한 드리프트 방지).
+    private static func testAnchoredOrigin() {
+        let target = CGRect(x: 400, y: 100, width: 400, height: 300) // maxX=800, maxY=400
+        // 앱이 요청(400)보다 작게(396) 잡아도 오른쪽 모서리(800) 유지 → x=404. (기존 코드가 못 잡던 드리프트)
+        expectPoint("right anchor keeps right edge when app rounds down",
+                    FrameCalculator.anchoredOrigin(anchor: .right, actualSize: CGSize(width: 396, height: 300),
+                                                   target: target, workArea: workArea),
+                    CGPoint(x: 404, y: 100))
+        // 앱이 요청보다 크게(420) 잡아도 오른쪽 모서리 유지 → x=380.
+        expectPoint("right anchor keeps right edge when app overshoots",
+                    FrameCalculator.anchoredOrigin(anchor: .right, actualSize: CGSize(width: 420, height: 300),
+                                                   target: target, workArea: workArea),
+                    CGPoint(x: 380, y: 100))
+        // 하단 anchor: maxY(400) 고정, 실제 높이 290 → y=110.
+        expectPoint("bottom anchor keeps bottom edge",
+                    FrameCalculator.anchoredOrigin(anchor: .bottom, actualSize: CGSize(width: 400, height: 290),
+                                                   target: target, workArea: workArea),
+                    CGPoint(x: 400, y: 110))
+        // topLeft: 크기가 달라도 origin 그대로.
+        expectPoint("topLeft anchor keeps origin",
+                    FrameCalculator.anchoredOrigin(anchor: .topLeft, actualSize: CGSize(width: 396, height: 290),
+                                                   target: target, workArea: workArea),
+                    CGPoint(x: 400, y: 100))
+        // workAreaEdges: 기존 작업영역 모서리 추론 경로로 위임.
+        let rightHalf = FrameCalculator.halfRect(.right, workArea: workArea)
+        expectPoint("workAreaEdges delegates to edge inference",
+                    FrameCalculator.anchoredOrigin(anchor: .workAreaEdges,
+                                                   actualSize: CGSize(width: 1100, height: 1055),
+                                                   target: rightHalf, workArea: workArea),
+                    CGPoint(x: 820, y: 25))
+        // 명령 → anchor 의도 매핑.
+        expectName("relative right maps to right anchor",
+                   "\(WindowCommand.relativeHalf(.right).frameAnchor == FrameAnchor.right)", "true")
+        expectName("relative bottom maps to bottom anchor",
+                   "\(WindowCommand.relativeTwoThird(.bottom).frameAnchor == FrameAnchor.bottom)", "true")
+        expectName("relative left maps to topLeft anchor",
+                   "\(WindowCommand.relativeHalf(.left).frameAnchor == FrameAnchor.topLeft)", "true")
+        expectName("relative top maps to topLeft anchor",
+                   "\(WindowCommand.relativeTwoThird(.top).frameAnchor == FrameAnchor.topLeft)", "true")
+        expectName("undo maps to topLeft anchor",
+                   "\(WindowCommand.undo.frameAnchor == FrameAnchor.topLeft)", "true")
+        expectName("maximize maps to workAreaEdges anchor",
+                   "\(WindowCommand.maximize.frameAnchor == FrameAnchor.workAreaEdges)", "true")
+        expectName("snapThrow maps to workAreaEdges anchor",
+                   "\(WindowCommand.snapThrow(.left).frameAnchor == FrameAnchor.workAreaEdges)", "true")
     }
 
     // 순수 계층 폴백: undo·moveToDisplay는 현재 frame을 그대로 반환(실제 동작은 Executor).

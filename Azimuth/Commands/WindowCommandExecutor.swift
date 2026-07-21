@@ -19,8 +19,10 @@ enum WindowCommandExecutor {
             guard let previous = undoStore.previousFrame(for: resolved.element, pid: resolved.pid) else {
                 return .failure(.noUndoState)
             }
-            // undo는 직전 실제 frame 복원이라 anchor 보정 불필요(workArea: nil).
-            let outcome = WindowFrameWriter.apply(previous, to: resolved, workArea: nil)
+            // undo는 직전 실제 frame 복원이라 anchor 보정 불필요(workArea: nil, anchor: topLeft).
+            let outcome = WindowFrameWriter.apply(
+                previous, to: resolved, workArea: nil, anchor: WindowCommand.undo.frameAnchor
+            )
             // 복원이 실제로 직전 frame에 도달했을 때만 소비한 entry를 제거한다(부분 복원·미도달이면
             // 재시도 여지를 남긴다 — 명목상 성공이 아니라 achieved 기준. 감사 H-1).
             if let achieved = outcome.achieved, FrameApply.reached(target: previous, achieved: achieved) {
@@ -38,7 +40,10 @@ enum WindowCommandExecutor {
         // anchor 보정은 "target이 놓일 화면"의 작업영역 기준이어야 한다(디스플레이 간 throw 시 목적지 화면).
         // 같은 화면 명령이면 결과적으로 source와 동일. 못 구하면 source로 폴백.
         let anchorArea = WorkAreaResolver.workArea(forAXWindowFrame: target) ?? workArea
-        let outcome = WindowFrameWriter.apply(target, to: resolved, workArea: anchorArea)
+        // 고정 모서리 의도는 명령이 안다 — 상대 축소는 명시적 모서리, 나머지는 작업영역 모서리 추론(M-4).
+        let outcome = WindowFrameWriter.apply(
+            target, to: resolved, workArea: anchorArea, anchor: command.frameAnchor
+        )
         // 되돌리기용 직전 frame은 창이 "실제로" 변했을 때만 저장한다(achieved 기준 — 감사 H-1):
         //  - 부분 실패라도 창이 이동했으면 기록(복원 지점 보존).
         //  - 무시된 쓰기·no-op(예: 인접 디스플레이 없는 moveToDisplay)이면 미기록 → 직전 성공 명령의

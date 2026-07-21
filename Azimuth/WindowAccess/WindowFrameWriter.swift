@@ -29,10 +29,12 @@ enum WindowFrameWriter {
     private static let suppressor = AnimationSuppressor()
 
     /// `resolved`가 element/appElement/pid/현재 frame을 모두 운반한다. workArea는 anchor 보정용(undo는 nil).
+    /// `anchor`는 명령이 고정하려는 모서리 의도(상대 축소는 명시적, 나머지는 작업영역 모서리 추론).
     static func apply(
         _ target: CGRect,
         to resolved: ResolvedWindow,
-        workArea: CGRect?
+        workArea: CGRect?,
+        anchor: FrameAnchor
     ) -> FrameApplyResult {
         // 권한 가드를 쓰기 경계에도 둔다(방어적 — 호출 순서에 의존하지 않게).
         guard AccessibilityPermissionService.currentStatus().isTrusted else {
@@ -56,7 +58,7 @@ enum WindowFrameWriter {
         }
 
         let didSuppress = suppressor.suppress(appElement: resolved.appElement, pid: resolved.pid)
-        let result = writeFrame(target, to: element, current: current, workArea: workArea)
+        let result = writeFrame(target, to: element, current: current, workArea: workArea, anchor: anchor)
         if didSuppress { suppressor.scheduleRestore(pid: resolved.pid) }
         return result
     }
@@ -67,7 +69,8 @@ enum WindowFrameWriter {
         _ target: CGRect,
         to element: AXUIElement,
         current: CGRect,
-        workArea: CGRect?
+        workArea: CGRect?,
+        anchor: FrameAnchor
     ) -> FrameApplyResult {
         // 실제로 바뀌는 축만 쓴다(권한 가드는 apply에서 이미 통과). 이동만이면 size를, 리사이즈만이면
         // position을 건드리지 않아 AX IPC와 부분 실패 면적을 줄인다(감사 M-3).
@@ -81,7 +84,7 @@ enum WindowFrameWriter {
         // (2) 이동이 있으면: 제약 앱이 목표보다 큰 크기에 머물 때 실제 크기를 읽어 anchored origin을 1회 쓴다.
         var positionError = AXError.success
         if moves {
-            let origin = originForConstrainedApp(element: element, target: target, workArea: workArea)
+            let origin = anchoredOrigin(element: element, target: target, workArea: workArea, anchor: anchor)
             positionError = AXAttribute.set(element, kAXPositionAttribute as String, point: origin)
         }
         // (3) 리사이즈가 있으면 크기 재확정(모니터를 넘어가며 클램프됐을 수 있음). 이동만이면 size는 안 건드린다.
@@ -95,7 +98,7 @@ enum WindowFrameWriter {
         // 재시도 결과를 최종 판정에 반영한다 — 재시도 중에만 생긴 일시적 실패를 success로 오분류하지 않게.
         if let achieved = readFrame(element), !FrameApply.reached(target: target, achieved: achieved) {
             if moves {
-                let retryOrigin = originForConstrainedApp(element: element, target: target, workArea: workArea)
+                let retryOrigin = anchoredOrigin(element: element, target: target, workArea: workArea, anchor: anchor)
                 positionError = AXAttribute.set(element, kAXPositionAttribute as String, point: retryOrigin)
             }
             if resizes {
@@ -118,18 +121,34 @@ enum WindowFrameWriter {
         return .applyFailed
     }
 
-    /// 제약 앱이 목표보다 크게 머물면 스냅 모서리를 유지하는 anchored origin, 아니면 목표 origin.
-    /// workArea 없으면(undo) 항상 목표 origin.
-    private static func originForConstrainedApp(
+    /// 실제 크기를 읽어 anchor 의도대로 고정 모서리를 유지하는 origin.
+    ///  - topLeft: 목표 origin 그대로(좌/상 고정 — AX 읽기 불필요).
+    ///  - right/bottom: 상대 축소. 앱이 요청보다 작게/크게 반올림해도 그 모서리를 고정하려면 항상 실제
+    ///    크기를 읽어 다시 계산한다(감사 M-4 — 반복 축소의 셀 단위 드리프트 방지).
+    ///  - workAreaEdges: 제약 앱이 목표보다 "클 때"만 스냅 모서리를 유지(기존 동작).
+    private static func anchoredOrigin(
         element: AXUIElement,
         target: CGRect,
-        workArea: CGRect?
+        workArea: CGRect?,
+        anchor: FrameAnchor
     ) -> CGPoint {
-        guard let workArea,
-              let achieved = AXAttribute.size(element, kAXSizeAttribute as String),
-              FrameCalculator.isConstrained(actualSize: achieved, target: target.size, tolerance: sizeTolerance)
-        else { return target.origin }
-        return FrameCalculator.anchorOrigin(actualSize: achieved, requested: target, workArea: workArea)
+        switch anchor {
+        case .topLeft:
+            return target.origin
+        case .right, .bottom:
+            guard let actual = AXAttribute.size(element, kAXSizeAttribute as String) else { return target.origin }
+            return FrameCalculator.anchoredOrigin(
+                anchor: anchor, actualSize: actual, target: target, workArea: workArea ?? target
+            )
+        case .workAreaEdges:
+            guard let workArea,
+                  let actual = AXAttribute.size(element, kAXSizeAttribute as String),
+                  FrameCalculator.isConstrained(actualSize: actual, target: target.size, tolerance: sizeTolerance)
+            else { return target.origin }
+            return FrameCalculator.anchoredOrigin(
+                anchor: .workAreaEdges, actualSize: actual, target: target, workArea: workArea
+            )
+        }
     }
 
     // MARK: - AX 래퍼

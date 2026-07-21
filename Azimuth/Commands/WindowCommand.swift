@@ -96,6 +96,19 @@ nonisolated enum WindowCommand: Equatable {
         }
     }
 
+    /// 적용 시 고정할 모서리 의도. 상대 축소만 명시적 모서리를 요구하고(앱이 요청 크기와 다르게
+    /// 반올림해도 고정 — 감사 M-4), 나머지는 작업영역 모서리 추론, undo는 직전 frame을 그대로 복원한다.
+    var frameAnchor: FrameAnchor {
+        switch self {
+        case let .relativeHalf(anchor), let .relativeTwoThird(anchor):
+            anchor.frameAnchor
+        case .undo:
+            .topLeft
+        case .maximize, .maximizeGaps, .absolute, .snapThrow, .moveToDisplay, .move:
+            .workAreaEdges
+        }
+    }
+
     /// 명령이 하는 일을 한 줄로 설명한다(Settings 목록의 tooltip — 학습성). 계열 단위로 간결하게.
     var helpText: String {
         switch self {

@@ -149,6 +149,28 @@ nonisolated enum FrameCalculator {
         return CGPoint(x: Swift.max(workArea.minX, x), y: Swift.max(workArea.minY, y))
     }
 
+    /// 명시적 anchor 의도에 따라, 앱이 실제로 취한 크기(actualSize)에 맞춰 고정 모서리를 유지하는 origin.
+    /// 상대 축소(right/bottom)는 앱이 요청보다 작게/크게 반올림해도 그 모서리를 고정한다 — 작업영역
+    /// 모서리에 닿지 않은 창도 복구되므로 반복 축소의 셀 단위 드리프트가 생기지 않는다(감사 M-4).
+    /// workAreaEdges는 target이 닿아 있던 작업영역 모서리를 추론해 유지한다(스냅·절대 배치).
+    static func anchoredOrigin(
+        anchor: FrameAnchor,
+        actualSize: CGSize,
+        target: CGRect,
+        workArea: CGRect
+    ) -> CGPoint {
+        switch anchor {
+        case .topLeft:
+            return target.origin
+        case .right:
+            return CGPoint(x: target.maxX - actualSize.width, y: target.minY)
+        case .bottom:
+            return CGPoint(x: target.minX, y: target.maxY - actualSize.height)
+        case .workAreaEdges:
+            return anchorOrigin(actualSize: actualSize, requested: target, workArea: workArea)
+        }
+    }
+
     /// 현재 창을 `from` 작업영역 기준 상대 위치를 유지한 채 `to` 작업영역으로 옮긴다(다음 디스플레이 이동).
     /// 크기는 창의 절대(픽셀) 크기를 유지하되 대상 화면을 넘지 않게 캡하고, 위치는 대상 영역 안으로 클램프한다.
     /// 화면 비율이 달라도 창의 모양(종횡비)·크기가 보존된다(대상 화면보다 큰 축만 대상 크기로 축소).
