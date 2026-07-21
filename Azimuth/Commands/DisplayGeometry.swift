@@ -9,8 +9,7 @@
 //  선택 규칙: ① 그 방향에 있고 수직/수평으로 겹치는 후보 중 주축 edge-gap이 가장 작은(방향상 가장
 //  가까운) 인접 계층을 먼저 고른다 — "인접 디스플레이" 계약을 정렬 최적화보다 우선(먼데 정렬된
 //  화면으로 leap 방지). ② 그 계층 안에서 창의 현재 수직(좌우 이동)·수평(상하 이동) 위치에 가장
-//  가까운(perpendicularGap 최소) 화면. 동률(0.5pt 이내)이면 edge-gap이 가까운 쪽, 그래도 동률이면
-//  먼저 나온 인덱스(안정적).
+//  가까운(perpendicularGap 최소) 화면. 정확히 동률이면 먼저 나온 인덱스(안정적).
 //
 //  ⚠️ 순수 로직 파일 — AppKit/AX를 import하지 말 것(scripts/test.sh가 swiftc로 직접 컴파일).
 //  CoreGraphics·SnapEdge(CommandPrimitives)만 사용.
@@ -43,8 +42,10 @@ nonisolated enum DisplayGeometry {
             .min()
         else { return nil }
 
-        // ② 그 계층(edge-gap ≈ 최소) 안에서만 창 정렬(perpendicular gap)이 가장 가까운 화면을 고른다.
-        //    동률(deadband 이내)이면 먼저 나온 인덱스가 이긴다(열거 순서에 무관하게 결정적).
+        // ② 그 계층(edge-gap ≈ 최소) 안에서 창 정렬(perpendicular gap)이 **최소**인 화면을 고른다.
+        //    정확히 동률이면 먼저 나온 인덱스가 이긴다. 비교에 데드밴드를 쓰면 안 된다 — 순차 비교가
+        //    비추이적이 되어(각 단계가 직전 승자와만 비교) 후보 순서에 따라 최소가 아닌 화면이 뽑힌다
+        //    (예: gap [1.2, 0.8, 0.4, 0.0] → 0.4 선택, 순서를 뒤집으면 0.0 선택).
         let deadband = DisplaygeometryConstants.tieDeadband
         var best: Int?
         var bestPerpendicular = CGFloat.greatestFiniteMagnitude
@@ -52,7 +53,7 @@ nonisolated enum DisplayGeometry {
             let edgeGap = primaryEdgeGap(origin: current, candidate: candidate, edge: edge)
             guard edgeGap <= nearestEdgeGap + deadband else { continue }
             let perpendicular = perpendicularGap(window: window, candidate: candidate, edge: edge)
-            if best == nil || perpendicular < bestPerpendicular - deadband {
+            if best == nil || perpendicular < bestPerpendicular {
                 best = index
                 bestPerpendicular = perpendicular
             }

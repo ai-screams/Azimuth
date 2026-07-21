@@ -160,11 +160,15 @@ enum WindowFrameWriter {
 
     // MARK: - AX 래퍼
 
+    /// 읽은 frame이 비정상(NaN·무한·0·음수)이면 nil로 취급한다. NaN은 모든 비교가 false라
+    /// `FrameApply.changed`에서 "변함"으로 나와 **허위 undo 항목**을 남기므로(멀쩡한 직전 항목을 덮음)
+    /// 판정에 흘러들기 전에 여기서 걸러야 한다.
     private static func readFrame(_ element: AXUIElement) -> CGRect? {
         guard let origin = AXAttribute.point(element, kAXPositionAttribute as String),
               let size = AXAttribute.size(element, kAXSizeAttribute as String)
         else { return nil }
-        return CGRect(origin: origin, size: size)
+        let frame = CGRect(origin: origin, size: size)
+        return FrameCalculator.isUsableFrame(frame) ? frame : nil
     }
 
     private static func isSettable(_ element: AXUIElement, _ attribute: String) -> Bool {

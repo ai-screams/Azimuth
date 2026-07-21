@@ -36,10 +36,15 @@ nonisolated enum FrameApply {
         abs(target.width - current.width) > changeEpsilon || abs(target.height - current.height) > changeEpsilon
     }
 
-    /// achieved가 pre에서 (허용오차 내) 실제로 달라졌는가 — Undo를 기록할지 판정한다.
+    /// achieved가 pre에서 실제로 달라졌는가 — Undo를 기록할지 판정한다.
     /// 무시된 쓰기(achieved≈pre)면 false라 직전 Undo를 무의미하게 덮지 않는다.
+    ///
+    /// 임계는 **쓰기 여부를 정할 때와 같은 `changeEpsilon`** 이어야 한다: "쓸 만큼 달라졌으면 변한 것"이라는
+    /// 불변식이 깨지면, 쓰기는 됐는데 변화로 안 쳐서 Undo를 잃는 구간이 생긴다(그러면 직전 명령의 Undo
+    /// 항목이 살아남아, Undo 시 창이 한참 전 frame으로 튄다). `reached`의 관대한 허용오차는 "앱이 목표에
+    /// 도달했나"라는 다른 질문용이므로 여기에 쓰면 안 된다.
     static func changed(pre: CGRect, achieved: CGRect) -> Bool {
-        changed(pre: pre, achieved: achieved, originTolerance: originTolerance, sizeTolerance: sizeTolerance)
+        changed(pre: pre, achieved: achieved, originTolerance: changeEpsilon, sizeTolerance: changeEpsilon)
     }
 
     static func changed(pre: CGRect, achieved: CGRect, originTolerance: CGFloat, sizeTolerance: CGFloat) -> Bool {

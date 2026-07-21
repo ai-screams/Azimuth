@@ -313,6 +313,25 @@ enum CommandEngineTests {
                     FrameCalculator.anchoredOrigin(anchor: .topLeft, actualSize: CGSize(width: 396, height: 290),
                                                    target: target, workArea: workArea),
                     CGPoint(x: 400, y: 100))
+        // 최소폭이 큰 제약 앱을 화면 왼쪽 근처에서 우측 앵커로 축소해도 작업영역 밖으로 밀리지 않는다.
+        // (회귀 방지: 클램프가 없으면 maxX=350·실제폭 800에서 x=-450으로 화면 밖에 놓였다.)
+        expectPoint("right anchor clamps into the work area (constrained app near left edge)",
+                    FrameCalculator.anchoredOrigin(anchor: .right, actualSize: CGSize(width: 800, height: 600),
+                                                   target: CGRect(x: 200, y: 200, width: 150, height: 600),
+                                                   workArea: workArea),
+                    CGPoint(x: 0, y: 200))
+        expectPoint("bottom anchor clamps into the work area",
+                    FrameCalculator.anchoredOrigin(anchor: .bottom, actualSize: CGSize(width: 400, height: 2000),
+                                                   target: CGRect(x: 100, y: 200, width: 400, height: 300),
+                                                   workArea: workArea),
+                    CGPoint(x: 100, y: 25))
+        // 앱이 비정상 크기(NaN)를 보고하면 앵커 보정을 포기하고 목표 origin — NaN이 AX 쓰기로 새지 않게.
+        expectPoint("non-finite actual size falls back to target origin",
+                    FrameCalculator.anchoredOrigin(anchor: .right,
+                                                   actualSize: CGSize(width: CGFloat.nan, height: 600),
+                                                   target: CGRect(x: 400, y: 100, width: 400, height: 300),
+                                                   workArea: workArea),
+                    CGPoint(x: 400, y: 100))
         // workAreaEdges: 기존 작업영역 모서리 추론 경로로 위임.
         let rightHalf = FrameCalculator.halfRect(.right, workArea: workArea)
         expectPoint("workAreaEdges delegates to edge inference",
@@ -425,6 +444,22 @@ enum CommandEngineTests {
         let rightNear = CGRect(x: 1920, y: 0, width: 1920, height: 1080)  // edge-gap 0(인접)
         expectName("right picks nearest adjacent layer (nearer=idx1)",
                    "\(DisplayGeometry.selectAdjacentIndex(current: cur, candidates: [rightFar, rightNear], window: win, edge: .right) ?? -1)", "1")
+        // 순서 의존성 회귀 방지: perpendicular gap이 여러 단계로 놓여도 항상 "최소"를 고른다.
+        // 비교에 데드밴드를 쓰면 순차 비교가 비추이적이 되어(각 단계가 직전 승자와만 비교)
+        // [1.2, 0.8, 0.4, 0.0]에서 최소가 아닌 0.4가 뽑히고, 순서를 뒤집으면 결과가 달라졌다.
+        let seamWin = CGRect(x: 100, y: 495, width: 10, height: 10) // midY = 500
+        let ladder = [
+            CGRect(x: -500, y: 501.2, width: 500, height: 400), // gap 1.2
+            CGRect(x: -500, y: 500.8, width: 500, height: 400), // gap 0.8
+            CGRect(x: -500, y: 500.4, width: 500, height: 400), // gap 0.4
+            CGRect(x: -500, y: 500.0, width: 500, height: 400) // gap 0.0
+        ]
+        expectName("perpendicular ladder picks the true minimum (idx3)",
+                   "\(DisplayGeometry.selectAdjacentIndex(current: cur, candidates: ladder, window: seamWin, edge: .left) ?? -1)",
+                   "3")
+        expectName("reversed ladder picks the same screen (idx0)",
+                   "\(DisplayGeometry.selectAdjacentIndex(current: cur, candidates: Array(ladder.reversed()), window: seamWin, edge: .left) ?? -1)",
+                   "0")
         // M-6: 방향상 가장 가까운(edge-gap 최소) 화면이, 멀지만 창 Y에 정렬된 화면을 이긴다.
         // near는 바로 오른쪽이지만 Y가 어긋나 perpendicular gap이 크고, far는 멀지만 창 Y에 정렬됨.
         // 과거(정렬 우선)엔 far가 이겼다 — 이제는 인접 계층(near)이 이긴다.
@@ -474,9 +509,24 @@ enum CommandEngineTests {
         // 변화 없음(무시된 쓰기) → Undo 미기록.
         expectName("unchanged frame is not undo-worthy",
                    "\(FrameApply.changed(pre: pre, achieved: pre))", "false")
-        // 허용오차 내 미세 차이도 변화 아님(origin 2pt·size 8pt).
-        expectName("within tolerance is not changed",
-                   "\(FrameApply.changed(pre: pre, achieved: CGRect(x: 1, y: 26, width: 803, height: 600)))", "false")
+        // 쓰기 임계(changeEpsilon 0.5pt) 이하의 미세 차이만 "변화 없음" — AX 왕복 반올림 잡음 흡수.
+        expectName("sub-epsilon jitter is not changed",
+                   "\(FrameApply.changed(pre: pre, achieved: CGRect(x: 0.3, y: 25.2, width: 800.4, height: 600)))",
+                   "false")
+        // 회귀 방지: 쓰기가 일어날 만큼(>0.5pt) 달라졌으면 반드시 "변함"이어야 한다. 과거엔 size 8pt
+        // 허용오차를 써서 5pt 축소가 "변화 없음"이 되어 undo가 기록되지 않았고, 그 결과 직전 명령의
+        // undo 항목이 남아 Undo 시 창이 한참 전 frame으로 튀었다.
+        expectName("5pt resize is changed (undo must be recorded)",
+                   "\(FrameApply.changed(pre: pre, achieved: CGRect(x: 0, y: 25, width: 795, height: 600)))", "true")
+        expectName("1pt move is changed (undo must be recorded)",
+                   "\(FrameApply.changed(pre: pre, achieved: CGRect(x: 1, y: 25, width: 800, height: 600)))", "true")
+        // 불변식: "쓴다"(movesOrigin/resizesSize)와 "변했다"(changed)는 같은 임계를 써야 한다.
+        // 상대 축소 100pt 하한에 걸리는 실제 케이스로 고정한다(105 → 100).
+        let beforeFloor = CGRect(x: 300, y: 200, width: 105, height: 600)
+        let floored = CGRect(x: 300, y: 200, width: 100, height: 600)
+        expectName("write-decision and changed agree at the 100pt floor",
+                   "\(FrameApply.resizesSize(from: beforeFloor, to: floored) == FrameApply.changed(pre: beforeFloor, achieved: floored))",
+                   "true")
         // 위치만 바뀜(부분 적용) → 변화로 인정 → Undo 기록.
         expectName("position-only move is changed",
                    "\(FrameApply.changed(pre: pre, achieved: CGRect(x: 400, y: 25, width: 800, height: 600)))", "true")
