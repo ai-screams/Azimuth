@@ -138,7 +138,7 @@ Example: `⌃⌥H` (left half) · `⌃⌥⌘K` (move up) · `⌃⌥⇧J` (shrink
 - **Maximize with gaps** — like Maximize, but leaves a uniform 12pt inset on all four sides so the window doesn't touch the screen edges. Falls back to a plain maximize if the work area is too small for the gap.
 - **Thirds / two-thirds** — axis-independent: horizontal commands change only x/width, vertical only y/height, so they compose (e.g. horizontal-third then vertical-third → a corner cell).
 - **Halves + throw** — if the window isn't already in that half, it snaps there. If it *is*, Azimuth throws it to the adjacent display in that direction and places it in the opposite half (throwing right lands it in the target's left half). No adjacent display → it stays put.
-- **Move** — keeps the current size and nudges the window by its own width/height, clamping at the work-area edge. It never resizes or changes display; repeated presses push it to the edge.
+- **Move** — keeps the current size and nudges the window by its own width/height, clamping at the work-area edge. It never resizes or changes display; repeated presses push it to the edge. A window that already sits off-screen past an edge is recovered into the work area, so a directional Move can pull it back onto the screen rather than push it further out.
 - **Center** — keeps size, centers in the work area.
 - **Relative shrink (½ / ⅔)** — based on the *current window*, not the screen: pins the chosen edge and shrinks toward it. Arrow keys shrink to ½; `M , . /` shrink to ⅔ (M=left, ,=down, .=up, /=right). Effects compose: ⅔ then ½ lands on ⅓.
 - **Move to next display** — preserves shape, relative position, and size (capped/clamped so it never exceeds the target screen). No adjacent display → stays put.
