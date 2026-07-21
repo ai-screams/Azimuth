@@ -141,15 +141,16 @@ nonisolated enum FrameCalculator {
         return CGPoint(x: Swift.max(workArea.minX, x), y: Swift.max(workArea.minY, y))
     }
 
-    /// 현재 창을 `from` 작업영역 기준 상대 위치·크기를 유지한 채 `to` 작업영역으로 옮긴다(다음 디스플레이 이동).
-    /// 크기는 대상 화면을 넘지 않게 캡(비율 1.0)하고, 위치는 대상 영역 안으로 클램프한다.
+    /// 현재 창을 `from` 작업영역 기준 상대 위치를 유지한 채 `to` 작업영역으로 옮긴다(다음 디스플레이 이동).
+    /// 크기는 창의 절대(픽셀) 크기를 유지하되 대상 화면을 넘지 않게 캡하고, 위치는 대상 영역 안으로 클램프한다.
+    /// 화면 비율이 달라도 창의 모양(종횡비)·크기가 보존된다(대상 화면보다 큰 축만 대상 크기로 축소).
     /// `from`이 너비 또는 높이가 0인 퇴화 사각형이면 `destination` 전체를 반환한다(창이 대상 화면을 채움).
     static func displayMoveRect(_ rect: CGRect, from: CGRect, to destination: CGRect) -> CGRect {
         guard from.width > 0, from.height > 0 else { return destination }
         let relativeX = (rect.minX - from.minX) / from.width
         let relativeY = (rect.minY - from.minY) / from.height
-        let width = Swift.min(rect.width / from.width, 1) * destination.width
-        let height = Swift.min(rect.height / from.height, 1) * destination.height
+        let width = Swift.min(rect.width, destination.width)
+        let height = Swift.min(rect.height, destination.height)
         let originX = clamped(destination.minX + relativeX * destination.width,
                               lower: destination.minX, upper: destination.maxX - width)
         let originY = clamped(destination.minY + relativeY * destination.height,

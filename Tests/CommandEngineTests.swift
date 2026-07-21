@@ -226,6 +226,17 @@ enum CommandEngineTests {
         let small = CGRect(x: 100, y: 0, width: 600, height: 600)
         expect("display move caps into smaller", display(CGRect(x: 0, y: 0, width: 1000, height: 1000), from, small),
                CGRect(x: 100, y: 0, width: 600, height: 600))
+        // M-5: 절대 크기 유지 — 대상 화면 크기가 달라도 창의 픽셀 크기를 보존한다(비례 축소하지 않음).
+        // 비례였다면 200×200이 됐을 창이 절대 크기 400×400을 유지한다.
+        let big = CGRect(x: 0, y: 0, width: 2000, height: 2000)
+        let smallDest = CGRect(x: 5000, y: 0, width: 1000, height: 1000)
+        expect("display move preserves absolute size (no proportional shrink)",
+               display(CGRect(x: 0, y: 0, width: 400, height: 400), big, smallDest),
+               CGRect(x: 5000, y: 0, width: 400, height: 400))
+        // 대상 화면보다 큰 축만 대상 크기로 캡(창이 화면을 넘지 않게).
+        expect("display move caps oversize axis to destination",
+               display(CGRect(x: 0, y: 0, width: 1500, height: 800), big, smallDest),
+               CGRect(x: 5000, y: 0, width: 1000, height: 800))
         expectName("moveToDisplay name", WindowCommand.moveToDisplay(.top).displayName, "Move to Up Display")
     }
 
