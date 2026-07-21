@@ -313,6 +313,25 @@ enum CommandEngineTests {
                     FrameCalculator.anchoredOrigin(anchor: .topLeft, actualSize: CGSize(width: 396, height: 290),
                                                    target: target, workArea: workArea),
                     CGPoint(x: 400, y: 100))
+        // 최소폭이 큰 제약 앱을 화면 왼쪽 근처에서 우측 앵커로 축소해도 작업영역 밖으로 밀리지 않는다.
+        // (회귀 방지: 클램프가 없으면 maxX=350·실제폭 800에서 x=-450으로 화면 밖에 놓였다.)
+        expectPoint("right anchor clamps into the work area (constrained app near left edge)",
+                    FrameCalculator.anchoredOrigin(anchor: .right, actualSize: CGSize(width: 800, height: 600),
+                                                   target: CGRect(x: 200, y: 200, width: 150, height: 600),
+                                                   workArea: workArea),
+                    CGPoint(x: 0, y: 200))
+        expectPoint("bottom anchor clamps into the work area",
+                    FrameCalculator.anchoredOrigin(anchor: .bottom, actualSize: CGSize(width: 400, height: 2000),
+                                                   target: CGRect(x: 100, y: 200, width: 400, height: 300),
+                                                   workArea: workArea),
+                    CGPoint(x: 100, y: 25))
+        // 앱이 비정상 크기(NaN)를 보고하면 앵커 보정을 포기하고 목표 origin — NaN이 AX 쓰기로 새지 않게.
+        expectPoint("non-finite actual size falls back to target origin",
+                    FrameCalculator.anchoredOrigin(anchor: .right,
+                                                   actualSize: CGSize(width: CGFloat.nan, height: 600),
+                                                   target: CGRect(x: 400, y: 100, width: 400, height: 300),
+                                                   workArea: workArea),
+                    CGPoint(x: 400, y: 100))
         // workAreaEdges: 기존 작업영역 모서리 추론 경로로 위임.
         let rightHalf = FrameCalculator.halfRect(.right, workArea: workArea)
         expectPoint("workAreaEdges delegates to edge inference",

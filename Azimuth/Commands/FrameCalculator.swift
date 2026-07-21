@@ -116,13 +116,18 @@ nonisolated enum FrameCalculator {
         target: CGRect,
         workArea: CGRect
     ) -> CGPoint {
+        // 앱이 비정상 크기(NaN·무한)를 보고하면 앵커 보정을 포기하고 목표 origin을 쓴다 —
+        // NaN origin이 그대로 AX 쓰기로 흘러가는 것을 막는다.
+        guard actualSize.width.isFinite, actualSize.height.isFinite else { return target.origin }
         switch anchor {
         case .topLeft:
             return target.origin
         case .right:
-            return CGPoint(x: target.maxX - actualSize.width, y: target.minY)
+            // 최소폭이 큰 제약 앱은 고정 모서리를 지키려다 작업영역 왼쪽 밖으로 밀릴 수 있다 → 클램프
+            // (workAreaEdges 경로와 동일한 보호. 예: maxX=350, 실제폭 800 → x=-450).
+            return CGPoint(x: Swift.max(workArea.minX, target.maxX - actualSize.width), y: target.minY)
         case .bottom:
-            return CGPoint(x: target.minX, y: target.maxY - actualSize.height)
+            return CGPoint(x: target.minX, y: Swift.max(workArea.minY, target.maxY - actualSize.height))
         case .workAreaEdges:
             return anchorOrigin(actualSize: actualSize, requested: target, workArea: workArea)
         }
