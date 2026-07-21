@@ -28,6 +28,7 @@ enum CommandEngineTests {
         testGapMaximizeDegenerate()
         testDisplayGeometry()
         testIsConstrained()
+        testUsableFrame()
         testCommandGroups()
         testPrimitiveStrings()
         testCommandModel()
@@ -414,6 +415,20 @@ enum CommandEngineTests {
         // 목표보다 작음 → 제약 아님(축소는 anchored 보정 대상 아님).
         expectName("smaller than target not constrained",
                    "\(FrameCalculator.isConstrained(actualSize: CGSize(width: 500, height: 400), target: target, tolerance: 8))", "false")
+    }
+
+    // L-3: AX에서 읽은 frame의 유효성(유한·양수 크기) 방어 술어.
+    private static func testUsableFrame() {
+        expectName("normal frame is usable",
+                   "\(FrameCalculator.isUsableFrame(CGRect(x: 0, y: 25, width: 800, height: 600)))", "true")
+        expectName("zero width not usable",
+                   "\(FrameCalculator.isUsableFrame(CGRect(x: 0, y: 0, width: 0, height: 600)))", "false")
+        expectName("negative width not usable",
+                   "\(FrameCalculator.isUsableFrame(CGRect(x: 0, y: 0, width: -10, height: 600)))", "false")
+        expectName("NaN origin not usable",
+                   "\(FrameCalculator.isUsableFrame(CGRect(x: CGFloat.nan, y: 0, width: 800, height: 600)))", "false")
+        expectName("infinite size not usable",
+                   "\(FrameCalculator.isUsableFrame(CGRect(x: 0, y: 0, width: CGFloat.infinity, height: 600)))", "false")
     }
 
     // CommandGroup 표시명·토큰과 command→group 매핑 전수.

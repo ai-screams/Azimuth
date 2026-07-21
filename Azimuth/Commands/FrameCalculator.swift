@@ -122,6 +122,14 @@ nonisolated enum FrameCalculator {
         actualSize.width > target.width + tolerance || actualSize.height > target.height + tolerance
     }
 
+    /// AX에서 읽은 frame이 사용 가능한가 — 좌표·크기가 모두 유한하고 크기가 양수인가. NaN·무한·0·음수
+    /// frame(비정상 앱·화면 전환 순간)이 fallback·잘못된 target 계산으로 새는 것을 막는 방어벽.
+    static func isUsableFrame(_ rect: CGRect) -> Bool {
+        rect.origin.x.isFinite && rect.origin.y.isFinite
+            && rect.size.width.isFinite && rect.size.height.isFinite
+            && rect.size.width > 0 && rect.size.height > 0
+    }
+
     /// 제약 앱이 목표 크기에 못 미칠 때, target이 닿아 있던 작업영역 모서리를 실제 크기에 맞춰 유지하는 origin.
     /// 위치를 두 번 쓰지 않고(KI-003 깜빡임 회피) 처음부터 이 anchored origin으로 단 한 번 쓰기 위해 사용.
     /// touching 모서리는 target·workArea에서 내부 도출한다(호출자가 넘기지 않음).
