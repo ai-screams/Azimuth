@@ -21,6 +21,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     )
     private let frontmostAppTracker = FrontmostAppTracker()
     private let windowUndoStore = WindowUndoStore()
+    private let windowSnapStore = SnapStateStore()
     private let hotkeyService = HotkeyService()
     private let preferencesStore = PreferencesStore()
     private let launchAtLoginService = LaunchAtLoginService()
@@ -47,7 +48,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     )
     private lazy var statusBarController = StatusBarController(
         frontmostAppTracker: frontmostAppTracker,
-        windowUndoStore: windowUndoStore
+        windowUndoStore: windowUndoStore,
+        windowSnapStore: windowSnapStore
     )
     private let firstRunGuidePresenter = FirstRunGuidePresenter()
 
@@ -159,7 +161,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func runHotkeyCommand(_ command: WindowCommand) {
-        let result = WindowCommandExecutor.run(command, tracker: frontmostAppTracker, undoStore: windowUndoStore)
+        let result = WindowCommandExecutor.run(
+            command, tracker: frontmostAppTracker, undoStore: windowUndoStore, snapStore: windowSnapStore
+        )
         switch result {
         case .success:
             lastCommandFailure = nil
@@ -199,9 +203,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func handleScreenParametersChanged(_ notification: Notification) {
-        // 디스플레이 연결/해제·배치 변경 시 저장된 절대 frame은 무효 → undo 이력을 버린다.
+        // 디스플레이 연결/해제·배치 변경 시 저장된 절대 frame은 무효 → undo 이력과 스냅 상태를 버린다.
         windowUndoStore.clearAll()
-        Log.windows.debug("Screen parameters changed; cleared window undo history.")
+        windowSnapStore.clearAll()
+        Log.windows.debug("Screen parameters changed; cleared window undo history and snap state.")
     }
 
     /// 첫 실행 온보딩: 상태바 아이콘에 앵커한 안내 팝오버로 메뉴바 상주·전역 단축키를 소개한다.

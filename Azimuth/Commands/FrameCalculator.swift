@@ -61,65 +61,30 @@ nonisolated enum FrameCalculator {
         }
     }
 
-    /// 창이 그 방향 절반에 "스냅된 상태"인가. snapThrow의 "이미 절반 → 튕기기" 트리거에 쓴다.
-    /// 판정(4변 대칭): ① 그 방향 바깥(화면) 모서리에 붙어 있고(단방향 — 화면 밖 overflow는 허용),
-    /// ② 반대쪽 바깥 모서리에는 닿지 않으며(최대화·양쪽 걸침 제외 → 그땐 스냅),
-    /// ③ 스냅 축과 수직인 축을 작업영역의 절반 이상 덮는다(모서리에 살짝 닿은 소형 부유창 오판 방지).
-    /// 주축(스냅 방향)은 flush만 보므로 고정폭·최소폭 앱도 한쪽에 붙어 있으면 "스냅됨"으로 인정된다
-    /// — 좌우/상하 대칭으로 throw가 가능해진다(면적 커버리지 기반의 좌우 비대칭 버그 제거).
-    static func isSnapped(_ rect: CGRect, to edge: SnapEdge, workArea: CGRect) -> Bool {
-        outerFlush(rect, edge: edge, workArea: workArea)
-            && !outerFlush(rect, edge: edge.opposite, workArea: workArea)
-            && spansPerpendicular(rect, edge: edge, workArea: workArea)
-    }
-
-    /// 스냅 축과 수직인 축(좌우 스냅이면 높이, 상하면 너비)을 작업영역의 절반 이상 덮는가.
-    /// 주축은 flush로만 판정하므로 고정폭/최소폭 앱은 통과하고, 모서리에 살짝 닿은 소형 부유창만 걸러진다.
-    private static func spansPerpendicular(_ rect: CGRect, edge: SnapEdge, workArea: CGRect) -> Bool {
-        let span: CGFloat
-        let extent: CGFloat
-        switch edge {
-        case .left, .right:
-            span = overlap(rect.minY, rect.maxY, workArea.minY, workArea.maxY)
-            extent = workArea.height
-        case .top, .bottom:
-            span = overlap(rect.minX, rect.maxX, workArea.minX, workArea.maxX)
-            extent = workArea.width
+    /// snapThrow의 "이미 그 방향에 스냅됨 → 인접 디스플레이로 던지기" 트리거. 두 경로로만 인정한다(감사 H-2):
+    ///  ① 현재 창이 그 방향 절반과 (엄격히) 일치 — 정확히 반쪽인 창.
+    ///  ② Azimuth가 이 창을 그 edge로 스냅했고(recorded) 그 뒤 외부에서 안 움직임 — 제약 앱(정확한 반쪽에
+    ///     못 미쳐도) 대응. 둘 다 아니면(수동으로 좁게/멀리/화면 밖에 둔 창) 첫 입력에 스냅되고 던져지지 않는다.
+    static func isAlreadySnapped(current: CGRect, edge: SnapEdge, workArea: CGRect, recorded: SnapRecord?) -> Bool {
+        if FrameApply.reached(target: halfRect(edge, workArea: workArea), achieved: current) { return true }
+        if let recorded, recorded.edge == edge, FrameApply.reached(target: recorded.frame, achieved: current) {
+            return true
         }
-        // 퇴화 작업영역(높이/너비 0 — 디스플레이 재구성 순간 등)에서 0 나눗셈(NaN) 방지.
-        guard extent > 0 else { return false }
-        return span / extent >= 0.5
-    }
-
-    /// 두 1차원 구간 [aMin,aMax]·[bMin,bMax]의 겹치는 길이(겹침 없으면 0).
-    private static func overlap(_ aMin: CGFloat, _ aMax: CGFloat, _ bMin: CGFloat, _ bMax: CGFloat) -> CGFloat {
-        Swift.max(0, Swift.min(aMax, bMax) - Swift.max(aMin, bMin))
-    }
-
-    /// 그 방향 바깥(화면) 모서리에 붙었는가. 단방향: 화면 밖으로 넘쳐도(앱 최소 크기 탓) 붙은 것으로 본다.
-    /// tolerance는 작업영역 크기에 비례(작은 모니터의 크기증분 앱 한 셀 오차 대응) — 최소 8pt.
-    private static func outerFlush(_ rect: CGRect, edge: SnapEdge, workArea: CGRect) -> Bool {
-        switch edge {
-        case .left:
-            return rect.minX <= workArea.minX + tolerance(workArea.width)
-        case .right:
-            return rect.maxX >= workArea.maxX - tolerance(workArea.width)
-        case .top:
-            return rect.minY <= workArea.minY + tolerance(workArea.height)
-        case .bottom:
-            return rect.maxY >= workArea.maxY - tolerance(workArea.height)
-        }
-    }
-
-    /// 절대 픽셀 대신 작업영역 비례(1%) tolerance. 모니터가 작아도 한 셀(≈8pt) 이상은 보장.
-    private static func tolerance(_ extent: CGFloat) -> CGFloat {
-        Swift.max(8, extent * 0.01)
+        return false
     }
 
     /// 앱이 목표보다 "제약적으로 큰"(어느 한 축이라도 tolerance 초과) 상태인가 — anchored origin
     /// 보정을 걸지 판정한다. 순수 함수라 경계값(tolerance 직전/직후)을 테스트할 수 있다.
     static func isConstrained(actualSize: CGSize, target: CGSize, tolerance: CGFloat) -> Bool {
         actualSize.width > target.width + tolerance || actualSize.height > target.height + tolerance
+    }
+
+    /// AX에서 읽은 frame이 사용 가능한가 — 좌표·크기가 모두 유한하고 크기가 양수인가. NaN·무한·0·음수
+    /// frame(비정상 앱·화면 전환 순간)이 fallback·잘못된 target 계산으로 새는 것을 막는 방어벽.
+    static func isUsableFrame(_ rect: CGRect) -> Bool {
+        rect.origin.x.isFinite && rect.origin.y.isFinite
+            && rect.size.width.isFinite && rect.size.height.isFinite
+            && rect.size.width > 0 && rect.size.height > 0
     }
 
     /// 제약 앱이 목표 크기에 못 미칠 때, target이 닿아 있던 작업영역 모서리를 실제 크기에 맞춰 유지하는 origin.
@@ -141,15 +106,38 @@ nonisolated enum FrameCalculator {
         return CGPoint(x: Swift.max(workArea.minX, x), y: Swift.max(workArea.minY, y))
     }
 
-    /// 현재 창을 `from` 작업영역 기준 상대 위치·크기를 유지한 채 `to` 작업영역으로 옮긴다(다음 디스플레이 이동).
-    /// 크기는 대상 화면을 넘지 않게 캡(비율 1.0)하고, 위치는 대상 영역 안으로 클램프한다.
+    /// 명시적 anchor 의도에 따라, 앱이 실제로 취한 크기(actualSize)에 맞춰 고정 모서리를 유지하는 origin.
+    /// 상대 축소(right/bottom)는 앱이 요청보다 작게/크게 반올림해도 그 모서리를 고정한다 — 작업영역
+    /// 모서리에 닿지 않은 창도 복구되므로 반복 축소의 셀 단위 드리프트가 생기지 않는다(감사 M-4).
+    /// workAreaEdges는 target이 닿아 있던 작업영역 모서리를 추론해 유지한다(스냅·절대 배치).
+    static func anchoredOrigin(
+        anchor: FrameAnchor,
+        actualSize: CGSize,
+        target: CGRect,
+        workArea: CGRect
+    ) -> CGPoint {
+        switch anchor {
+        case .topLeft:
+            return target.origin
+        case .right:
+            return CGPoint(x: target.maxX - actualSize.width, y: target.minY)
+        case .bottom:
+            return CGPoint(x: target.minX, y: target.maxY - actualSize.height)
+        case .workAreaEdges:
+            return anchorOrigin(actualSize: actualSize, requested: target, workArea: workArea)
+        }
+    }
+
+    /// 현재 창을 `from` 작업영역 기준 상대 위치를 유지한 채 `to` 작업영역으로 옮긴다(다음 디스플레이 이동).
+    /// 크기는 창의 절대(픽셀) 크기를 유지하되 대상 화면을 넘지 않게 캡하고, 위치는 대상 영역 안으로 클램프한다.
+    /// 화면 비율이 달라도 창의 모양(종횡비)·크기가 보존된다(대상 화면보다 큰 축만 대상 크기로 축소).
     /// `from`이 너비 또는 높이가 0인 퇴화 사각형이면 `destination` 전체를 반환한다(창이 대상 화면을 채움).
     static func displayMoveRect(_ rect: CGRect, from: CGRect, to destination: CGRect) -> CGRect {
         guard from.width > 0, from.height > 0 else { return destination }
         let relativeX = (rect.minX - from.minX) / from.width
         let relativeY = (rect.minY - from.minY) / from.height
-        let width = Swift.min(rect.width / from.width, 1) * destination.width
-        let height = Swift.min(rect.height / from.height, 1) * destination.height
+        let width = Swift.min(rect.width, destination.width)
+        let height = Swift.min(rect.height, destination.height)
         let originX = clamped(destination.minX + relativeX * destination.width,
                               lower: destination.minX, upper: destination.maxX - width)
         let originY = clamped(destination.minY + relativeY * destination.height,

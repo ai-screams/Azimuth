@@ -31,14 +31,15 @@ final class WindowUndoStore {
 
     func record(_ frame: CGRect, pid: pid_t, for element: AXUIElement) {
         let key = Key(element: element, pid: pid)
-        if entries[key] == nil {
-            order.append(key)
-            if order.count > capacity {
-                let oldest = order.removeFirst()
-                entries.removeValue(forKey: oldest)
-            }
-        }
+        // 재기록도 "최근 사용"으로 승격한다(진짜 LRU): 기존 위치를 빼고 끝으로 다시 넣어야
+        // 자주 쓰는 오래된 창이 삽입 순서(FIFO)로 먼저 퇴출되지 않는다.
+        order.removeAll { $0 == key }
+        order.append(key)
         entries[key] = Entry(frame: frame, pid: pid)
+        if order.count > capacity {
+            let oldest = order.removeFirst()
+            entries.removeValue(forKey: oldest)
+        }
     }
 
     /// pid가 일치할 때만 직전 frame을 돌려준다(닫힌 창의 element 재사용으로 인한 오인 방지).

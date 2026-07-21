@@ -1222,9 +1222,9 @@
               <div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">←</span><span class="key">→</span><span class="key">↑</span><span class="key">↓</span></div>
             </div>
             <p class="cmd-card-body"
-               data-en="Two-stage behavior: if the window is not already in that half, it snaps there. If it is already in that half, it is thrown to the adjacent display in the same direction, landing in the opposite half (throw right → lands in the left half of the right display). If there is no adjacent display in that direction, the window stays in its current half."
-               data-ko="두 단계 동작: 창이 아직 그 절반에 없으면 스냅합니다. 이미 그 절반에 있으면 같은 방향의 인접 디스플레이로 던져져 반대쪽 절반에 배치됩니다(오른쪽으로 던지면 오른쪽 디스플레이의 왼쪽 절반에 착지). 그 방향에 인접 디스플레이가 없으면 현재 절반을 유지합니다.">
-              Two-stage behavior: if the window is not already in that half, it snaps there. If it is already in that half, it is thrown to the adjacent display in the same direction, landing in the opposite half (throw right → lands in the left half of the right display). If there is no adjacent display in that direction, the window stays in its current half.
+               data-en="Two-stage behavior: if the window is not already in that half, it snaps there. If it is already in that half, it is thrown to the adjacent display in the same direction, landing in the opposite half (throw right → lands in the left half of the right display). If there is no adjacent display in that direction, the window stays put."
+               data-ko="두 단계 동작: 창이 아직 그 절반에 없으면 스냅합니다. 이미 그 절반에 있으면 같은 방향의 인접 디스플레이로 던져져 반대쪽 절반에 배치됩니다(오른쪽으로 던지면 오른쪽 디스플레이의 왼쪽 절반에 착지). 그 방향에 인접 디스플레이가 없으면 현 위치를 그대로 유지합니다.">
+              Two-stage behavior: if the window is not already in that half, it snaps there. If it is already in that half, it is thrown to the adjacent display in the same direction, landing in the opposite half (throw right → lands in the left half of the right display). If there is no adjacent display in that direction, the window stays put.
             </p>
           </div>
 
@@ -1237,9 +1237,9 @@
               <div class="keys-group"><span class="key sym">⌃⌥⌘</span><span class="key">←</span><span class="key">→</span><span class="key">↑</span><span class="key">↓</span></div>
             </div>
             <p class="cmd-card-body"
-               data-en="Nudges the window by exactly its own width (horizontal) or height (vertical), with no resize and no display change. Clamped at the work-area boundary — repeat presses push the window to the edge and keep it flush. If the window is larger than the work area, it is pinned to the top-left corner."
-               data-ko="창을 자체 너비(수평) 또는 높이(수직)만큼 정확히 이동합니다. 크기 변경과 디스플레이 이동은 없습니다. 작업영역 경계에서 클램프 — 계속 누르면 끝까지 밀려 경계에 붙습니다. 창이 작업영역보다 크면 좌상단에 고정됩니다.">
-              Nudges the window by exactly its own width (horizontal) or height (vertical), with no resize and no display change. Clamped at the work-area boundary — repeat presses push the window to the edge and keep it flush. If the window is larger than the work area, it is pinned to the top-left corner.
+               data-en="Nudges the window by exactly its own width (horizontal) or height (vertical), with no resize and no display change. Clamped at the work-area boundary — repeat presses push the window to the edge and keep it flush. A window that already sits off-screen past an edge is recovered into the work area, so a directional Move can pull it back onto the screen rather than push it further out. If the window is larger than the work area, it is pinned to the top-left corner."
+               data-ko="창을 자체 너비(수평) 또는 높이(수직)만큼 정확히 이동합니다. 크기 변경과 디스플레이 이동은 없습니다. 작업영역 경계에서 클램프 — 계속 누르면 끝까지 밀려 경계에 붙습니다. 이미 화면 밖으로 벗어난 창은 작업영역 안으로 회수되므로, 방향 이동이 창을 더 밀어내지 않고 화면 안으로 되돌릴 수 있습니다. 창이 작업영역보다 크면 좌상단에 고정됩니다.">
+              Nudges the window by exactly its own width (horizontal) or height (vertical), with no resize and no display change. Clamped at the work-area boundary — repeat presses push the window to the edge and keep it flush. A window that already sits off-screen past an edge is recovered into the work area, so a directional Move can pull it back onto the screen rather than push it further out. If the window is larger than the work area, it is pinned to the top-left corner.
             </p>
           </div>
 
@@ -1283,9 +1283,9 @@
               <div class="keys-group"><span class="key sym">⌃⌥⌘⇧</span><span class="key">←</span><span class="key">→</span><span class="key">↑</span><span class="key">↓</span></div>
             </div>
             <p class="cmd-card-body"
-               data-en="Sends the window to the adjacent display in the given direction while preserving its relative position and proportional size on the new screen. The size is capped so it never exceeds the target work area, and the position is clamped to fit. If there is no adjacent display in that direction, the window stays put."
-               data-ko="창을 지정 방향의 인접 디스플레이로 옮기면서 상대 위치와 비율적 크기를 유지합니다. 크기는 대상 작업영역을 초과하지 않도록 조정되며 위치는 클램프됩니다. 그 방향에 인접 디스플레이가 없으면 현 위치를 유지합니다.">
-              Sends the window to the adjacent display in the given direction while preserving its relative position and proportional size on the new screen. The size is capped so it never exceeds the target work area, and the position is clamped to fit. If there is no adjacent display in that direction, the window stays put.
+               data-en="Sends the window to the adjacent display in the given direction while preserving its relative position and its size on the new screen. The window keeps its shape and pixel size — only an axis larger than the target work area is capped to fit — and the position is clamped so it stays on screen. If there is no adjacent display in that direction, the window stays put."
+               data-ko="창을 지정 방향의 인접 디스플레이로 옮기면서 상대 위치와 창 크기를 유지합니다. 창의 모양(종횡비)과 픽셀 크기가 보존되며, 대상 작업영역보다 큰 축만 화면에 맞게 축소하고 위치는 클램프됩니다. 그 방향에 인접 디스플레이가 없으면 현 위치를 유지합니다.">
+              Sends the window to the adjacent display in the given direction while preserving its relative position and its size on the new screen. The window keeps its shape and pixel size — only an axis larger than the target work area is capped to fit — and the position is clamped so it stays on screen. If there is no adjacent display in that direction, the window stays put.
             </p>
           </div>
 

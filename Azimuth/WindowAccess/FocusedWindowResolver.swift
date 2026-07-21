@@ -61,6 +61,10 @@ enum FocusedWindowResolver {
         else {
             return .failure(.axError(code: AXError.noValue.rawValue))
         }
+        // NaN·무한·0·음수 frame(비정상 앱·화면 전환 순간)은 target 계산·화면 fallback을 오염시키므로 차단.
+        guard FrameCalculator.isUsableFrame(CGRect(origin: origin, size: size)) else {
+            return .failure(.invalidFrame)
+        }
 
         return .success(ResolvedWindow(
             element: window,

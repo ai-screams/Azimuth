@@ -9,11 +9,12 @@
 ## Key Files
 | File | Description |
 |------|-------------|
-| `CommandPrimitives.swift` | `nonisolated` 빌딩블록 값 타입: `Axis`/`Fraction`/`Slot`/`AbsolutePlacement`/`MoveDirection`/`RelativeAnchor`/`SnapEdge`(표시명·안정 토큰). `WindowCommand.swift`에서 분리(파일 비대화 방지) |
-| `WindowCommand.swift` | `nonisolated` 명령 모델: `WindowCommand`(maximize/absolute/snapThrow/moveToDisplay/move/relativeHalf/relativeTwoThird/undo) + `CommandGroup`(core/halves/thirds/twoThirds/move/relative/display) + 식별자 역조회 + `menuCommands` 목록(34개) |
-| `FrameCalculator.swift` | `nonisolated` 순수 기하. AX 좌표 입력(current, workArea)으로 목표 frame 계산. 절대 배치(축 독립), 이동(현재 크기 유지·작업영역 클램프), 상대 반분/2/3(현재 frame 기준 edge 고정), snapThrow/moveToDisplay 지원(`halfRect`·`isSnapped`·`displayMoveRect`), 여백 최대화(`gappedWorkArea`), 고정폭 앱 판정(`isConstrained`) |
+| `CommandPrimitives.swift` | `nonisolated` 빌딩블록 값 타입: `Axis`/`Fraction`/`Slot`/`AbsolutePlacement`/`MoveDirection`/`RelativeAnchor`/`SnapEdge`(표시명·안정 토큰) + `FrameAnchor`(고정 모서리 의도)·`SnapRecord`(창별 스냅 상태 값). `WindowCommand.swift`에서 분리(파일 비대화 방지) |
+| `WindowCommand.swift` | `nonisolated` 명령 모델: `WindowCommand`(maximize/absolute/snapThrow/moveToDisplay/move/relativeHalf/relativeTwoThird/undo) + `CommandGroup`(core/halves/thirds/twoThirds/move/relative/display) + 명령별 `frameAnchor`(고정 모서리) + 식별자 역조회 + `menuCommands` 목록(34개) |
+| `FrameCalculator.swift` | `nonisolated` 순수 기하. AX 좌표 입력(current, workArea)으로 목표 frame 계산. 절대 배치(축 독립), 이동(현재 크기 유지·작업영역 클램프), 상대 반분/2/3(현재 frame 기준 edge 고정), snapThrow/moveToDisplay 지원(`halfRect`·`isAlreadySnapped`·`displayMoveRect`), anchor 계산(`anchoredOrigin`), 여백 최대화(`gappedWorkArea`), 제약 앱·유효 frame 판정(`isConstrained`·`isUsableFrame`) |
+| `FrameApply.swift` | `nonisolated` 순수 판정. AX 쓰기 결과 해석과 무관한 기하 판정을 모은다: `changed`(achieved가 pre에서 변했나 — Undo), `reached`(target 도달 — 재시도·복원 확인), `movesOrigin`/`resizesSize`(축별 변경 — 권한·쓰기 최소화). Writer가 AX 결과·읽은 frame을 값으로 넘겨 사용 |
 | `DisplayGeometry.swift` | `nonisolated` 순수 기하. 인접 디스플레이 선택(`selectAdjacentIndex(current:candidates:window:edge:)`): 방향 판정·수직/주축 간격·거리·겹침으로 후보 중 최적 화면 인덱스 산출. AX 계층(`WindowAccess/DisplayResolver`)에서 분리해 테스트 가능하게 함 |
-| `WindowCommandExecutor.swift` | `@MainActor` 오케스트레이션. 창 해석 → (undo면 복원, 아니면 직전 frame 기록) → 작업영역 해석 → 목표 계산 → AX 쓰기. `Result<CGRect, WindowCommandError>` 반환 |
+| `WindowCommandExecutor.swift` | `@MainActor` 오케스트레이션. 창 해석 → 작업영역 해석 → 목표·스냅 계획(`snapStore`) → AX 쓰기(`anchor`) → achieved 기준 Undo 기록·스냅 상태 기록. `FrameApplyResult`를 `Result<CGRect, WindowCommandError>`로 매핑 |
 
 ## For AI Agents
 

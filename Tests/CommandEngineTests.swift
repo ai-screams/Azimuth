@@ -20,14 +20,17 @@ enum CommandEngineTests {
         testRelativeShrinkFloor()
         testSnapHalves()
         testDisplayMove()
-        testFixedAndMinWidthSnap()
+        testSnapDecision()
         testCenterClamp()
         testAnchorOrigin()
+        testAnchoredOrigin()
         testFallbackCommands()
         testGapMaximize()
         testGapMaximizeDegenerate()
         testDisplayGeometry()
         testIsConstrained()
+        testUsableFrame()
+        testFrameApply()
         testCommandGroups()
         testPrimitiveStrings()
         testCommandModel()
@@ -184,39 +187,13 @@ enum CommandEngineTests {
         expect("snap bottom = bottom 1/2", target(.snapThrow(.bottom), base),
                CGRect(x: 0, y: 552.5, width: 1920, height: 527.5))
         expectName("opposite left", SnapEdge.left.opposite.token, "right")
+        expectName("opposite right", SnapEdge.right.opposite.token, "left")
         expectName("opposite top", SnapEdge.top.opposite.token, "bottom")
+        expectName("opposite bottom", SnapEdge.bottom.opposite.token, "top")
         expectName("snap left name", WindowCommand.snapThrow(.left).displayName, "Left 1/2")
     }
 
     private static func testDisplayMove() {
-        let rightHalf = FrameCalculator.halfRect(.right, workArea: workArea)
-        let leftHalf = FrameCalculator.halfRect(.left, workArea: workArea)
-        let bottomHalf = FrameCalculator.halfRect(.bottom, workArea: workArea)
-        let rightFillsRight = FrameCalculator.isSnapped(rightHalf, to: .right, workArea: workArea)
-        let leftFillsRight = FrameCalculator.isSnapped(leftHalf, to: .right, workArea: workArea)
-        let bottomFillsBottom = FrameCalculator.isSnapped(bottomHalf, to: .bottom, workArea: workArea)
-        expectName("right half fills right", "\(rightFillsRight)", "true")
-        expectName("left half does not fill right", "\(leftFillsRight)", "false")
-        expectName("bottom half fills bottom", "\(bottomFillsBottom)", "true")
-        // 절반보다 작은 창은 "채움"이 아니다 → snapThrow가 던지지 않고 그 절반으로 스냅.
-        let smallInRight = CGRect(x: 1400, y: 400, width: 300, height: 300)
-        expectName("small window in right half does not fill",
-                   "\(FrameCalculator.isSnapped(smallInRight, to: .right, workArea: workArea))", "false")
-        // 크기증분으로 한 셀 모자란 거의-꽉찬 창은 채움으로 인정 → 던지기.
-        let nearlyRight = CGRect(x: 965, y: 30, width: 950, height: 1045)
-        expectName("nearly-full right half still fills",
-                   "\(FrameCalculator.isSnapped(nearlyRight, to: .right, workArea: workArea))", "true")
-        // 앱 최소 크기 탓에 절반보다 '커서' 바깥(화면 가장자리)으로 넘친 창도 그 절반에 고정돼 있으면 채움.
-        // (Safari가 아래 절반으로 줄 때 끝까지 안 줄어 화면 밖으로 넘치던 throw 미작동 버그 회귀 방지.)
-        let bottomHalfRect = FrameCalculator.halfRect(.bottom, workArea: workArea)
-        let tallerThanBottom = CGRect(x: bottomHalfRect.minX, y: bottomHalfRect.minY,
-                                      width: bottomHalfRect.width, height: bottomHalfRect.height + 80)
-        expectName("bottom window overshooting outer edge still fills",
-                   "\(FrameCalculator.isSnapped(tallerThanBottom, to: .bottom, workArea: workArea))", "true")
-        // 반대쪽 절반으로 침범하는 창(최대화 등)은 그 절반 '채움'이 아니다 → 던지지 않고 스냅.
-        expectName("maximized window does not fill bottom half",
-                   "\(FrameCalculator.isSnapped(workArea, to: .bottom, workArea: workArea))", "false")
-
         let from = CGRect(x: 0, y: 0, width: 1000, height: 1000)
         let to = CGRect(x: 2000, y: 0, width: 1000, height: 1000)
         expect("display move keeps left-half", display(CGRect(x: 0, y: 0, width: 500, height: 1000), from, to),
@@ -226,6 +203,17 @@ enum CommandEngineTests {
         let small = CGRect(x: 100, y: 0, width: 600, height: 600)
         expect("display move caps into smaller", display(CGRect(x: 0, y: 0, width: 1000, height: 1000), from, small),
                CGRect(x: 100, y: 0, width: 600, height: 600))
+        // M-5: 절대 크기 유지 — 대상 화면 크기가 달라도 창의 픽셀 크기를 보존한다(비례 축소하지 않음).
+        // 비례였다면 200×200이 됐을 창이 절대 크기 400×400을 유지한다.
+        let big = CGRect(x: 0, y: 0, width: 2000, height: 2000)
+        let smallDest = CGRect(x: 5000, y: 0, width: 1000, height: 1000)
+        expect("display move preserves absolute size (no proportional shrink)",
+               display(CGRect(x: 0, y: 0, width: 400, height: 400), big, smallDest),
+               CGRect(x: 5000, y: 0, width: 400, height: 400))
+        // 대상 화면보다 큰 축만 대상 크기로 캡(창이 화면을 넘지 않게).
+        expect("display move caps oversize axis to destination",
+               display(CGRect(x: 0, y: 0, width: 1500, height: 800), big, smallDest),
+               CGRect(x: 5000, y: 0, width: 1000, height: 800))
         expectName("moveToDisplay name", WindowCommand.moveToDisplay(.top).displayName, "Move to Up Display")
     }
 
@@ -233,28 +221,42 @@ enum CommandEngineTests {
         FrameCalculator.displayMoveRect(rect, from: from, to: to)
     }
 
-    // 고정폭·최소폭 앱이 좌/우 대칭으로 "스냅됨"으로 판정돼 throw 가능한지(B1/B2/B3).
-    private static func testFixedAndMinWidthSnap() {
-        let fixedLeft = CGRect(x: 0, y: 25, width: 800, height: 1055) // 절반(960)보다 좁은 고정폭, 좌측 붙음
-        expectName("fixed-width flush-left fills left (B2)",
-                   "\(FrameCalculator.isSnapped(fixedLeft, to: .left, workArea: workArea))", "true")
-        let fixedRight = CGRect(x: 1120, y: 25, width: 800, height: 1055) // 같은 고정폭, 우측 붙음
-        expectName("fixed-width flush-right fills right (B1 대칭)",
-                   "\(FrameCalculator.isSnapped(fixedRight, to: .right, workArea: workArea))", "true")
-        let minLeft = CGRect(x: 0, y: 25, width: 1100, height: 1055) // 절반보다 넓은 최소폭, 좌측 붙음
-        expectName("min-width flush-left fills left (B3)",
-                   "\(FrameCalculator.isSnapped(minLeft, to: .left, workArea: workArea))", "true")
-        let floating = CGRect(x: 810, y: 400, width: 300, height: 300) // 어느 쪽에도 안 붙은 소형창
-        expectName("floating small window fills neither (left)",
-                   "\(FrameCalculator.isSnapped(floating, to: .left, workArea: workArea))", "false")
-        expectName("floating small window fills neither (right)",
-                   "\(FrameCalculator.isSnapped(floating, to: .right, workArea: workArea))", "false")
-        // 좌측 모서리에 닿았지만 키가 작은 부유창은 "스냅됨"이 아니다(수직 커버리지<0.5 → 스냅, throw 아님).
-        let shortNearLeft = CGRect(x: 10, y: 400, width: 500, height: 300)
-        expectName("short edge-touching window is not snapped",
-                   "\(FrameCalculator.isSnapped(shortNearLeft, to: .left, workArea: workArea))", "false")
-        expectName("maximized does not fill left (both edges flush)",
-                   "\(FrameCalculator.isSnapped(workArea, to: .left, workArea: workArea))", "false")
+    // H-2: snapThrow의 "이미 스냅됨 → 던지기" 판정. 엄격 기하 OR Azimuth의 스냅 기록으로만 인정한다.
+    private static func testSnapDecision() {
+        let leftHalf = FrameCalculator.halfRect(.left, workArea: workArea) // (0,25,960,1055)
+        let rightHalf = FrameCalculator.halfRect(.right, workArea: workArea)
+        // ① 정확히 그 방향 절반 → 스냅됨(엄격 기하, 기록 없이도).
+        expectName("exact left half is snapped (geometric)",
+                   "\(FrameCalculator.isAlreadySnapped(current: leftHalf, edge: .left, workArea: workArea, recorded: nil))",
+                   "true")
+        expectName("exact right half is snapped (geometric)",
+                   "\(FrameCalculator.isAlreadySnapped(current: rightHalf, edge: .right, workArea: workArea, recorded: nil))",
+                   "true")
+        // 수동으로 좁게 둔 세로 창(폭 200) → 스냅 아님 → 첫 입력에 던져지지 않고 스냅(감사 H-2 핵심).
+        let narrowLeft = CGRect(x: 0, y: 25, width: 200, height: 1055)
+        expectName("manually narrow flush-left window is NOT snapped",
+                   "\(FrameCalculator.isAlreadySnapped(current: narrowLeft, edge: .left, workArea: workArea, recorded: nil))",
+                   "false")
+        // 화면 왼쪽 밖으로 나간 창 → 스냅 아님(과거엔 flush로 오판했음).
+        let offScreen = CGRect(x: -2000, y: 25, width: 200, height: 1055)
+        expectName("off-screen window is NOT snapped",
+                   "\(FrameCalculator.isAlreadySnapped(current: offScreen, edge: .left, workArea: workArea, recorded: nil))",
+                   "false")
+        // ② Azimuth가 스냅한 제약 앱(정확한 반쪽 미달)이 그 frame 그대로면 known-snap → 스냅됨.
+        let constrained = CGRect(x: 0, y: 25, width: 700, height: 1055)
+        let record = SnapRecord(edge: .left, frame: constrained)
+        expectName("recorded constrained snap (unchanged) is snapped",
+                   "\(FrameCalculator.isAlreadySnapped(current: constrained, edge: .left, workArea: workArea, recorded: record))",
+                   "true")
+        // 기록됐지만 외부에서 움직임(현재≠기록) → 무효화 → 스냅 아님.
+        let moved = CGRect(x: 300, y: 25, width: 700, height: 1055)
+        expectName("recorded snap but externally moved is NOT snapped",
+                   "\(FrameCalculator.isAlreadySnapped(current: moved, edge: .left, workArea: workArea, recorded: record))",
+                   "false")
+        // 기록된 edge가 다른 방향이면 그 방향엔 스냅 아님.
+        expectName("recorded left snap does not count as right snap",
+                   "\(FrameCalculator.isAlreadySnapped(current: constrained, edge: .right, workArea: workArea, recorded: record))",
+                   "false")
     }
 
     // 작업영역보다 큰 창의 move(.center)가 음수 origin(화면 밖)으로 가지 않고 좌상단에 핀(B4).
@@ -286,6 +288,53 @@ enum CommandEngineTests {
                     FrameCalculator.anchorOrigin(actualSize: CGSize(width: 2000, height: 1055),
                                                  requested: rightHalf, workArea: workArea),
                     CGPoint(x: 0, y: 25))
+    }
+
+    // M-4: 명시적 anchor로 실제 크기에 맞춰 고정 모서리를 유지(앱 반올림에 의한 드리프트 방지).
+    private static func testAnchoredOrigin() {
+        let target = CGRect(x: 400, y: 100, width: 400, height: 300) // maxX=800, maxY=400
+        // 앱이 요청(400)보다 작게(396) 잡아도 오른쪽 모서리(800) 유지 → x=404. (기존 코드가 못 잡던 드리프트)
+        expectPoint("right anchor keeps right edge when app rounds down",
+                    FrameCalculator.anchoredOrigin(anchor: .right, actualSize: CGSize(width: 396, height: 300),
+                                                   target: target, workArea: workArea),
+                    CGPoint(x: 404, y: 100))
+        // 앱이 요청보다 크게(420) 잡아도 오른쪽 모서리 유지 → x=380.
+        expectPoint("right anchor keeps right edge when app overshoots",
+                    FrameCalculator.anchoredOrigin(anchor: .right, actualSize: CGSize(width: 420, height: 300),
+                                                   target: target, workArea: workArea),
+                    CGPoint(x: 380, y: 100))
+        // 하단 anchor: maxY(400) 고정, 실제 높이 290 → y=110.
+        expectPoint("bottom anchor keeps bottom edge",
+                    FrameCalculator.anchoredOrigin(anchor: .bottom, actualSize: CGSize(width: 400, height: 290),
+                                                   target: target, workArea: workArea),
+                    CGPoint(x: 400, y: 110))
+        // topLeft: 크기가 달라도 origin 그대로.
+        expectPoint("topLeft anchor keeps origin",
+                    FrameCalculator.anchoredOrigin(anchor: .topLeft, actualSize: CGSize(width: 396, height: 290),
+                                                   target: target, workArea: workArea),
+                    CGPoint(x: 400, y: 100))
+        // workAreaEdges: 기존 작업영역 모서리 추론 경로로 위임.
+        let rightHalf = FrameCalculator.halfRect(.right, workArea: workArea)
+        expectPoint("workAreaEdges delegates to edge inference",
+                    FrameCalculator.anchoredOrigin(anchor: .workAreaEdges,
+                                                   actualSize: CGSize(width: 1100, height: 1055),
+                                                   target: rightHalf, workArea: workArea),
+                    CGPoint(x: 820, y: 25))
+        // 명령 → anchor 의도 매핑.
+        expectName("relative right maps to right anchor",
+                   "\(WindowCommand.relativeHalf(.right).frameAnchor == FrameAnchor.right)", "true")
+        expectName("relative bottom maps to bottom anchor",
+                   "\(WindowCommand.relativeTwoThird(.bottom).frameAnchor == FrameAnchor.bottom)", "true")
+        expectName("relative left maps to topLeft anchor",
+                   "\(WindowCommand.relativeHalf(.left).frameAnchor == FrameAnchor.topLeft)", "true")
+        expectName("relative top maps to topLeft anchor",
+                   "\(WindowCommand.relativeTwoThird(.top).frameAnchor == FrameAnchor.topLeft)", "true")
+        expectName("undo maps to topLeft anchor",
+                   "\(WindowCommand.undo.frameAnchor == FrameAnchor.topLeft)", "true")
+        expectName("maximize maps to workAreaEdges anchor",
+                   "\(WindowCommand.maximize.frameAnchor == FrameAnchor.workAreaEdges)", "true")
+        expectName("snapThrow maps to workAreaEdges anchor",
+                   "\(WindowCommand.snapThrow(.left).frameAnchor == FrameAnchor.workAreaEdges)", "true")
     }
 
     // 순수 계층 폴백: undo·moveToDisplay는 현재 frame을 그대로 반환(실제 동작은 Executor).
@@ -371,12 +420,18 @@ enum CommandEngineTests {
         let winLeft = CGRect(x: 100, y: 400, width: 200, height: 200)         // midX=200
         expectName("horizontal-stack top picks x-closer screen (left=idx0)",
                    "\(DisplayGeometry.selectAdjacentIndex(current: cur, candidates: [aboveLeft, aboveRight], window: winLeft, edge: .top) ?? -1)", "0")
-        // perpendicularGap 동률(둘 다 창 midY를 덮음) → primaryGap(이동방향 거리)로 타이브레이크.
-        // 더 먼 화면을 먼저 넣어, 뒤에 오는 가까운 화면이 tiedPerpendicular true 분기로 이기게 한다.
-        let rightFar = CGRect(x: 4000, y: 0, width: 1920, height: 1080)   // primaryGap 큼
-        let rightNear = CGRect(x: 1920, y: 0, width: 1920, height: 1080)  // primaryGap 작음
-        expectName("right tie broken by primary distance (nearer=idx1)",
+        // 주축 edge-gap이 다른 두 오른쪽 화면 → 가까운(edge-gap 최소) 화면이 인접 계층으로 이긴다.
+        let rightFar = CGRect(x: 4000, y: 0, width: 1920, height: 1080)   // edge-gap 큼(먼 화면)
+        let rightNear = CGRect(x: 1920, y: 0, width: 1920, height: 1080)  // edge-gap 0(인접)
+        expectName("right picks nearest adjacent layer (nearer=idx1)",
                    "\(DisplayGeometry.selectAdjacentIndex(current: cur, candidates: [rightFar, rightNear], window: win, edge: .right) ?? -1)", "1")
+        // M-6: 방향상 가장 가까운(edge-gap 최소) 화면이, 멀지만 창 Y에 정렬된 화면을 이긴다.
+        // near는 바로 오른쪽이지만 Y가 어긋나 perpendicular gap이 크고, far는 멀지만 창 Y에 정렬됨.
+        // 과거(정렬 우선)엔 far가 이겼다 — 이제는 인접 계층(near)이 이긴다.
+        let nearMisaligned = CGRect(x: 1920, y: -900, width: 1920, height: 1080) // 인접, Y 어긋남
+        let farAligned = CGRect(x: 4000, y: 0, width: 1920, height: 1080)        // 멀지만 Y 정렬
+        expectName("nearest adjacent beats far-but-aligned (near=idx0)",
+                   "\(DisplayGeometry.selectAdjacentIndex(current: cur, candidates: [nearMisaligned, farAligned], window: win, edge: .right) ?? -1)", "0")
     }
 
     // WindowFrameWriter가 anchored 보정을 걸지 판정하는 순수 임계 함수(경계값).
@@ -397,6 +452,54 @@ enum CommandEngineTests {
         // 목표보다 작음 → 제약 아님(축소는 anchored 보정 대상 아님).
         expectName("smaller than target not constrained",
                    "\(FrameCalculator.isConstrained(actualSize: CGSize(width: 500, height: 400), target: target, tolerance: 8))", "false")
+    }
+
+    // L-3: AX에서 읽은 frame의 유효성(유한·양수 크기) 방어 술어.
+    private static func testUsableFrame() {
+        expectName("normal frame is usable",
+                   "\(FrameCalculator.isUsableFrame(CGRect(x: 0, y: 25, width: 800, height: 600)))", "true")
+        expectName("zero width not usable",
+                   "\(FrameCalculator.isUsableFrame(CGRect(x: 0, y: 0, width: 0, height: 600)))", "false")
+        expectName("negative width not usable",
+                   "\(FrameCalculator.isUsableFrame(CGRect(x: 0, y: 0, width: -10, height: 600)))", "false")
+        expectName("NaN origin not usable",
+                   "\(FrameCalculator.isUsableFrame(CGRect(x: CGFloat.nan, y: 0, width: 800, height: 600)))", "false")
+        expectName("infinite size not usable",
+                   "\(FrameCalculator.isUsableFrame(CGRect(x: 0, y: 0, width: CGFloat.infinity, height: 600)))", "false")
+    }
+
+    // H-1: 적용 결과 판정 순수 함수 — Undo는 achieved가 pre에서 변했는지, 도달은 target 기준.
+    private static func testFrameApply() {
+        let pre = CGRect(x: 0, y: 25, width: 800, height: 600)
+        // 변화 없음(무시된 쓰기) → Undo 미기록.
+        expectName("unchanged frame is not undo-worthy",
+                   "\(FrameApply.changed(pre: pre, achieved: pre))", "false")
+        // 허용오차 내 미세 차이도 변화 아님(origin 2pt·size 8pt).
+        expectName("within tolerance is not changed",
+                   "\(FrameApply.changed(pre: pre, achieved: CGRect(x: 1, y: 26, width: 803, height: 600)))", "false")
+        // 위치만 바뀜(부분 적용) → 변화로 인정 → Undo 기록.
+        expectName("position-only move is changed",
+                   "\(FrameApply.changed(pre: pre, achieved: CGRect(x: 400, y: 25, width: 800, height: 600)))", "true")
+        // 크기만 바뀜(size 축 8pt 초과) → 변화.
+        expectName("size-only change beyond tolerance is changed",
+                   "\(FrameApply.changed(pre: pre, achieved: CGRect(x: 0, y: 25, width: 900, height: 600)))", "true")
+        // 목표 도달: target과 achieved가 허용오차 내(제약 앱 셀 오차 포함).
+        let target = CGRect(x: 960, y: 25, width: 960, height: 1055)
+        expectName("reached target within tolerance",
+                   "\(FrameApply.reached(target: target, achieved: CGRect(x: 961, y: 26, width: 955, height: 1055)))", "true")
+        // 제약 앱: 크기가 목표보다 8pt 넘게 크면 미도달.
+        expectName("constrained size beyond tolerance not reached",
+                   "\(FrameApply.reached(target: target, achieved: CGRect(x: 960, y: 25, width: 1100, height: 1055)))", "false")
+        // M-3: 축별 변경 판정(해당 축만 쓰고 권한을 요구하도록).
+        let base = CGRect(x: 100, y: 100, width: 400, height: 300)
+        let moved = CGRect(x: 200, y: 100, width: 400, height: 300)
+        let resized = CGRect(x: 100, y: 100, width: 600, height: 300)
+        expectName("move-only changes origin", "\(FrameApply.movesOrigin(from: base, to: moved))", "true")
+        expectName("move-only does not resize", "\(FrameApply.resizesSize(from: base, to: moved))", "false")
+        expectName("resize-only changes size", "\(FrameApply.resizesSize(from: base, to: resized))", "true")
+        expectName("resize-only does not move", "\(FrameApply.movesOrigin(from: base, to: resized))", "false")
+        expectName("identical frame neither moves nor resizes",
+                   "\(FrameApply.movesOrigin(from: base, to: base) || FrameApply.resizesSize(from: base, to: base))", "false")
     }
 
     // CommandGroup 표시명·토큰과 command→group 매핑 전수.
