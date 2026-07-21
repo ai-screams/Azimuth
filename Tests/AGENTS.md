@@ -9,7 +9,7 @@
 ## Key Files
 | File | Description |
 |------|-------------|
-| `CommandEngineTests.swift` | `@main` 실행형 테스트. 순수 로직(`FrameCalculator`·`WindowCommand`·`DisplayGeometry`)을 검증: 절대 배치/축 독립 합성/이동(클램프)/상대 반분/상대 2/3(relativeTwoThird)/shrink 하한/여백 최대화·고정폭 판정(isConstrained)/인접 디스플레이 선택/snapHalves·isSnapped/displayMove/anchorOrigin/명령 모델(34개)·식별자·helpText 전수. 실패 시 비0 종료. AppKit/AX 비의존 |
+| `CommandEngineTests.swift` | `@main` 실행형 테스트. 순수 로직(`FrameCalculator`·`WindowCommand`·`DisplayGeometry`)을 검증: 절대 배치/축 독립 합성/이동(클램프)/상대 반분/상대 2/3(relativeTwoThird)/shrink 하한/여백 최대화·고정폭 판정(isConstrained)/유효 frame(isUsableFrame)/인접 디스플레이 선택/snapHalves·스냅 판정(isAlreadySnapped)/displayMove/anchorOrigin·anchoredOrigin/frame 적용 판정(FrameApply)/명령 모델(34개)·식별자·helpText 전수. 실패 시 비0 종료. AppKit/AX 비의존 |
 
 ## For AI Agents
 

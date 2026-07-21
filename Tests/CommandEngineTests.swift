@@ -20,7 +20,7 @@ enum CommandEngineTests {
         testRelativeShrinkFloor()
         testSnapHalves()
         testDisplayMove()
-        testFixedAndMinWidthSnap()
+        testSnapDecision()
         testCenterClamp()
         testAnchorOrigin()
         testAnchoredOrigin()
@@ -187,39 +187,13 @@ enum CommandEngineTests {
         expect("snap bottom = bottom 1/2", target(.snapThrow(.bottom), base),
                CGRect(x: 0, y: 552.5, width: 1920, height: 527.5))
         expectName("opposite left", SnapEdge.left.opposite.token, "right")
+        expectName("opposite right", SnapEdge.right.opposite.token, "left")
         expectName("opposite top", SnapEdge.top.opposite.token, "bottom")
+        expectName("opposite bottom", SnapEdge.bottom.opposite.token, "top")
         expectName("snap left name", WindowCommand.snapThrow(.left).displayName, "Left 1/2")
     }
 
     private static func testDisplayMove() {
-        let rightHalf = FrameCalculator.halfRect(.right, workArea: workArea)
-        let leftHalf = FrameCalculator.halfRect(.left, workArea: workArea)
-        let bottomHalf = FrameCalculator.halfRect(.bottom, workArea: workArea)
-        let rightFillsRight = FrameCalculator.isSnapped(rightHalf, to: .right, workArea: workArea)
-        let leftFillsRight = FrameCalculator.isSnapped(leftHalf, to: .right, workArea: workArea)
-        let bottomFillsBottom = FrameCalculator.isSnapped(bottomHalf, to: .bottom, workArea: workArea)
-        expectName("right half fills right", "\(rightFillsRight)", "true")
-        expectName("left half does not fill right", "\(leftFillsRight)", "false")
-        expectName("bottom half fills bottom", "\(bottomFillsBottom)", "true")
-        // 절반보다 작은 창은 "채움"이 아니다 → snapThrow가 던지지 않고 그 절반으로 스냅.
-        let smallInRight = CGRect(x: 1400, y: 400, width: 300, height: 300)
-        expectName("small window in right half does not fill",
-                   "\(FrameCalculator.isSnapped(smallInRight, to: .right, workArea: workArea))", "false")
-        // 크기증분으로 한 셀 모자란 거의-꽉찬 창은 채움으로 인정 → 던지기.
-        let nearlyRight = CGRect(x: 965, y: 30, width: 950, height: 1045)
-        expectName("nearly-full right half still fills",
-                   "\(FrameCalculator.isSnapped(nearlyRight, to: .right, workArea: workArea))", "true")
-        // 앱 최소 크기 탓에 절반보다 '커서' 바깥(화면 가장자리)으로 넘친 창도 그 절반에 고정돼 있으면 채움.
-        // (Safari가 아래 절반으로 줄 때 끝까지 안 줄어 화면 밖으로 넘치던 throw 미작동 버그 회귀 방지.)
-        let bottomHalfRect = FrameCalculator.halfRect(.bottom, workArea: workArea)
-        let tallerThanBottom = CGRect(x: bottomHalfRect.minX, y: bottomHalfRect.minY,
-                                      width: bottomHalfRect.width, height: bottomHalfRect.height + 80)
-        expectName("bottom window overshooting outer edge still fills",
-                   "\(FrameCalculator.isSnapped(tallerThanBottom, to: .bottom, workArea: workArea))", "true")
-        // 반대쪽 절반으로 침범하는 창(최대화 등)은 그 절반 '채움'이 아니다 → 던지지 않고 스냅.
-        expectName("maximized window does not fill bottom half",
-                   "\(FrameCalculator.isSnapped(workArea, to: .bottom, workArea: workArea))", "false")
-
         let from = CGRect(x: 0, y: 0, width: 1000, height: 1000)
         let to = CGRect(x: 2000, y: 0, width: 1000, height: 1000)
         expect("display move keeps left-half", display(CGRect(x: 0, y: 0, width: 500, height: 1000), from, to),
@@ -247,28 +221,42 @@ enum CommandEngineTests {
         FrameCalculator.displayMoveRect(rect, from: from, to: to)
     }
 
-    // 고정폭·최소폭 앱이 좌/우 대칭으로 "스냅됨"으로 판정돼 throw 가능한지(B1/B2/B3).
-    private static func testFixedAndMinWidthSnap() {
-        let fixedLeft = CGRect(x: 0, y: 25, width: 800, height: 1055) // 절반(960)보다 좁은 고정폭, 좌측 붙음
-        expectName("fixed-width flush-left fills left (B2)",
-                   "\(FrameCalculator.isSnapped(fixedLeft, to: .left, workArea: workArea))", "true")
-        let fixedRight = CGRect(x: 1120, y: 25, width: 800, height: 1055) // 같은 고정폭, 우측 붙음
-        expectName("fixed-width flush-right fills right (B1 대칭)",
-                   "\(FrameCalculator.isSnapped(fixedRight, to: .right, workArea: workArea))", "true")
-        let minLeft = CGRect(x: 0, y: 25, width: 1100, height: 1055) // 절반보다 넓은 최소폭, 좌측 붙음
-        expectName("min-width flush-left fills left (B3)",
-                   "\(FrameCalculator.isSnapped(minLeft, to: .left, workArea: workArea))", "true")
-        let floating = CGRect(x: 810, y: 400, width: 300, height: 300) // 어느 쪽에도 안 붙은 소형창
-        expectName("floating small window fills neither (left)",
-                   "\(FrameCalculator.isSnapped(floating, to: .left, workArea: workArea))", "false")
-        expectName("floating small window fills neither (right)",
-                   "\(FrameCalculator.isSnapped(floating, to: .right, workArea: workArea))", "false")
-        // 좌측 모서리에 닿았지만 키가 작은 부유창은 "스냅됨"이 아니다(수직 커버리지<0.5 → 스냅, throw 아님).
-        let shortNearLeft = CGRect(x: 10, y: 400, width: 500, height: 300)
-        expectName("short edge-touching window is not snapped",
-                   "\(FrameCalculator.isSnapped(shortNearLeft, to: .left, workArea: workArea))", "false")
-        expectName("maximized does not fill left (both edges flush)",
-                   "\(FrameCalculator.isSnapped(workArea, to: .left, workArea: workArea))", "false")
+    // H-2: snapThrow의 "이미 스냅됨 → 던지기" 판정. 엄격 기하 OR Azimuth의 스냅 기록으로만 인정한다.
+    private static func testSnapDecision() {
+        let leftHalf = FrameCalculator.halfRect(.left, workArea: workArea) // (0,25,960,1055)
+        let rightHalf = FrameCalculator.halfRect(.right, workArea: workArea)
+        // ① 정확히 그 방향 절반 → 스냅됨(엄격 기하, 기록 없이도).
+        expectName("exact left half is snapped (geometric)",
+                   "\(FrameCalculator.isAlreadySnapped(current: leftHalf, edge: .left, workArea: workArea, recorded: nil))",
+                   "true")
+        expectName("exact right half is snapped (geometric)",
+                   "\(FrameCalculator.isAlreadySnapped(current: rightHalf, edge: .right, workArea: workArea, recorded: nil))",
+                   "true")
+        // 수동으로 좁게 둔 세로 창(폭 200) → 스냅 아님 → 첫 입력에 던져지지 않고 스냅(감사 H-2 핵심).
+        let narrowLeft = CGRect(x: 0, y: 25, width: 200, height: 1055)
+        expectName("manually narrow flush-left window is NOT snapped",
+                   "\(FrameCalculator.isAlreadySnapped(current: narrowLeft, edge: .left, workArea: workArea, recorded: nil))",
+                   "false")
+        // 화면 왼쪽 밖으로 나간 창 → 스냅 아님(과거엔 flush로 오판했음).
+        let offScreen = CGRect(x: -2000, y: 25, width: 200, height: 1055)
+        expectName("off-screen window is NOT snapped",
+                   "\(FrameCalculator.isAlreadySnapped(current: offScreen, edge: .left, workArea: workArea, recorded: nil))",
+                   "false")
+        // ② Azimuth가 스냅한 제약 앱(정확한 반쪽 미달)이 그 frame 그대로면 known-snap → 스냅됨.
+        let constrained = CGRect(x: 0, y: 25, width: 700, height: 1055)
+        let record = SnapRecord(edge: .left, frame: constrained)
+        expectName("recorded constrained snap (unchanged) is snapped",
+                   "\(FrameCalculator.isAlreadySnapped(current: constrained, edge: .left, workArea: workArea, recorded: record))",
+                   "true")
+        // 기록됐지만 외부에서 움직임(현재≠기록) → 무효화 → 스냅 아님.
+        let moved = CGRect(x: 300, y: 25, width: 700, height: 1055)
+        expectName("recorded snap but externally moved is NOT snapped",
+                   "\(FrameCalculator.isAlreadySnapped(current: moved, edge: .left, workArea: workArea, recorded: record))",
+                   "false")
+        // 기록된 edge가 다른 방향이면 그 방향엔 스냅 아님.
+        expectName("recorded left snap does not count as right snap",
+                   "\(FrameCalculator.isAlreadySnapped(current: constrained, edge: .right, workArea: workArea, recorded: record))",
+                   "false")
     }
 
     // 작업영역보다 큰 창의 move(.center)가 음수 origin(화면 밖)으로 가지 않고 좌상단에 핀(B4).

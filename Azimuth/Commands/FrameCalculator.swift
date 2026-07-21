@@ -61,59 +61,16 @@ nonisolated enum FrameCalculator {
         }
     }
 
-    /// 창이 그 방향 절반에 "스냅된 상태"인가. snapThrow의 "이미 절반 → 튕기기" 트리거에 쓴다.
-    /// 판정(4변 대칭): ① 그 방향 바깥(화면) 모서리에 붙어 있고(단방향 — 화면 밖 overflow는 허용),
-    /// ② 반대쪽 바깥 모서리에는 닿지 않으며(최대화·양쪽 걸침 제외 → 그땐 스냅),
-    /// ③ 스냅 축과 수직인 축을 작업영역의 절반 이상 덮는다(모서리에 살짝 닿은 소형 부유창 오판 방지).
-    /// 주축(스냅 방향)은 flush만 보므로 고정폭·최소폭 앱도 한쪽에 붙어 있으면 "스냅됨"으로 인정된다
-    /// — 좌우/상하 대칭으로 throw가 가능해진다(면적 커버리지 기반의 좌우 비대칭 버그 제거).
-    static func isSnapped(_ rect: CGRect, to edge: SnapEdge, workArea: CGRect) -> Bool {
-        outerFlush(rect, edge: edge, workArea: workArea)
-            && !outerFlush(rect, edge: edge.opposite, workArea: workArea)
-            && spansPerpendicular(rect, edge: edge, workArea: workArea)
-    }
-
-    /// 스냅 축과 수직인 축(좌우 스냅이면 높이, 상하면 너비)을 작업영역의 절반 이상 덮는가.
-    /// 주축은 flush로만 판정하므로 고정폭/최소폭 앱은 통과하고, 모서리에 살짝 닿은 소형 부유창만 걸러진다.
-    private static func spansPerpendicular(_ rect: CGRect, edge: SnapEdge, workArea: CGRect) -> Bool {
-        let span: CGFloat
-        let extent: CGFloat
-        switch edge {
-        case .left, .right:
-            span = overlap(rect.minY, rect.maxY, workArea.minY, workArea.maxY)
-            extent = workArea.height
-        case .top, .bottom:
-            span = overlap(rect.minX, rect.maxX, workArea.minX, workArea.maxX)
-            extent = workArea.width
+    /// snapThrow의 "이미 그 방향에 스냅됨 → 인접 디스플레이로 던지기" 트리거. 두 경로로만 인정한다(감사 H-2):
+    ///  ① 현재 창이 그 방향 절반과 (엄격히) 일치 — 정확히 반쪽인 창.
+    ///  ② Azimuth가 이 창을 그 edge로 스냅했고(recorded) 그 뒤 외부에서 안 움직임 — 제약 앱(정확한 반쪽에
+    ///     못 미쳐도) 대응. 둘 다 아니면(수동으로 좁게/멀리/화면 밖에 둔 창) 첫 입력에 스냅되고 던져지지 않는다.
+    static func isAlreadySnapped(current: CGRect, edge: SnapEdge, workArea: CGRect, recorded: SnapRecord?) -> Bool {
+        if FrameApply.reached(target: halfRect(edge, workArea: workArea), achieved: current) { return true }
+        if let recorded, recorded.edge == edge, FrameApply.reached(target: recorded.frame, achieved: current) {
+            return true
         }
-        // 퇴화 작업영역(높이/너비 0 — 디스플레이 재구성 순간 등)에서 0 나눗셈(NaN) 방지.
-        guard extent > 0 else { return false }
-        return span / extent >= 0.5
-    }
-
-    /// 두 1차원 구간 [aMin,aMax]·[bMin,bMax]의 겹치는 길이(겹침 없으면 0).
-    private static func overlap(_ aMin: CGFloat, _ aMax: CGFloat, _ bMin: CGFloat, _ bMax: CGFloat) -> CGFloat {
-        Swift.max(0, Swift.min(aMax, bMax) - Swift.max(aMin, bMin))
-    }
-
-    /// 그 방향 바깥(화면) 모서리에 붙었는가. 단방향: 화면 밖으로 넘쳐도(앱 최소 크기 탓) 붙은 것으로 본다.
-    /// tolerance는 작업영역 크기에 비례(작은 모니터의 크기증분 앱 한 셀 오차 대응) — 최소 8pt.
-    private static func outerFlush(_ rect: CGRect, edge: SnapEdge, workArea: CGRect) -> Bool {
-        switch edge {
-        case .left:
-            return rect.minX <= workArea.minX + tolerance(workArea.width)
-        case .right:
-            return rect.maxX >= workArea.maxX - tolerance(workArea.width)
-        case .top:
-            return rect.minY <= workArea.minY + tolerance(workArea.height)
-        case .bottom:
-            return rect.maxY >= workArea.maxY - tolerance(workArea.height)
-        }
-    }
-
-    /// 절대 픽셀 대신 작업영역 비례(1%) tolerance. 모니터가 작아도 한 셀(≈8pt) 이상은 보장.
-    private static func tolerance(_ extent: CGFloat) -> CGFloat {
-        Swift.max(8, extent * 0.01)
+        return false
     }
 
     /// 앱이 목표보다 "제약적으로 큰"(어느 한 축이라도 tolerance 초과) 상태인가 — anchored origin

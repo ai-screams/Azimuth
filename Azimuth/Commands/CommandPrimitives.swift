@@ -271,3 +271,11 @@ nonisolated enum SnapEdge: Equatable {
         }
     }
 }
+
+/// Azimuth가 특정 창을 어느 edge로 스냅했고 그때 실제 frame이 무엇이었는지의 기록.
+/// snapThrow가 "이미 스냅됨 → 던지기"를 판정할 때, 제약 앱(정확한 반쪽에 못 미치는)을 상태로 인식하고
+/// 외부에서 창이 움직이면(현재≠frame) 무효화하는 데 쓴다(감사 H-2). `SnapStateStore`가 창별로 보관한다.
+nonisolated struct SnapRecord: Equatable {
+    let edge: SnapEdge
+    let frame: CGRect
+}

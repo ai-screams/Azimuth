@@ -32,13 +32,19 @@ final class StatusBarController: NSObject, NSMenuDelegate {
     )
     private let frontmostAppTracker: FrontmostAppTracker
     private let windowUndoStore: WindowUndoStore
+    private let windowSnapStore: SnapStateStore
     #if DEBUG
         private let debugResolutionMenuItem = NSMenuItem()
     #endif
 
-    init(frontmostAppTracker: FrontmostAppTracker, windowUndoStore: WindowUndoStore) {
+    init(
+        frontmostAppTracker: FrontmostAppTracker,
+        windowUndoStore: WindowUndoStore,
+        windowSnapStore: SnapStateStore
+    ) {
         self.frontmostAppTracker = frontmostAppTracker
         self.windowUndoStore = windowUndoStore
+        self.windowSnapStore = windowSnapStore
         super.init()
     }
 
@@ -235,7 +241,8 @@ final class StatusBarController: NSObject, NSMenuDelegate {
             let result = WindowCommandExecutor.run(
                 command,
                 tracker: frontmostAppTracker,
-                undoStore: windowUndoStore
+                undoStore: windowUndoStore,
+                snapStore: windowSnapStore
             )
             switch result {
             case let .success(frame):
