@@ -474,9 +474,24 @@ enum CommandEngineTests {
         // 변화 없음(무시된 쓰기) → Undo 미기록.
         expectName("unchanged frame is not undo-worthy",
                    "\(FrameApply.changed(pre: pre, achieved: pre))", "false")
-        // 허용오차 내 미세 차이도 변화 아님(origin 2pt·size 8pt).
-        expectName("within tolerance is not changed",
-                   "\(FrameApply.changed(pre: pre, achieved: CGRect(x: 1, y: 26, width: 803, height: 600)))", "false")
+        // 쓰기 임계(changeEpsilon 0.5pt) 이하의 미세 차이만 "변화 없음" — AX 왕복 반올림 잡음 흡수.
+        expectName("sub-epsilon jitter is not changed",
+                   "\(FrameApply.changed(pre: pre, achieved: CGRect(x: 0.3, y: 25.2, width: 800.4, height: 600)))",
+                   "false")
+        // 회귀 방지: 쓰기가 일어날 만큼(>0.5pt) 달라졌으면 반드시 "변함"이어야 한다. 과거엔 size 8pt
+        // 허용오차를 써서 5pt 축소가 "변화 없음"이 되어 undo가 기록되지 않았고, 그 결과 직전 명령의
+        // undo 항목이 남아 Undo 시 창이 한참 전 frame으로 튀었다.
+        expectName("5pt resize is changed (undo must be recorded)",
+                   "\(FrameApply.changed(pre: pre, achieved: CGRect(x: 0, y: 25, width: 795, height: 600)))", "true")
+        expectName("1pt move is changed (undo must be recorded)",
+                   "\(FrameApply.changed(pre: pre, achieved: CGRect(x: 1, y: 25, width: 800, height: 600)))", "true")
+        // 불변식: "쓴다"(movesOrigin/resizesSize)와 "변했다"(changed)는 같은 임계를 써야 한다.
+        // 상대 축소 100pt 하한에 걸리는 실제 케이스로 고정한다(105 → 100).
+        let beforeFloor = CGRect(x: 300, y: 200, width: 105, height: 600)
+        let floored = CGRect(x: 300, y: 200, width: 100, height: 600)
+        expectName("write-decision and changed agree at the 100pt floor",
+                   "\(FrameApply.resizesSize(from: beforeFloor, to: floored) == FrameApply.changed(pre: beforeFloor, achieved: floored))",
+                   "true")
         // 위치만 바뀜(부분 적용) → 변화로 인정 → Undo 기록.
         expectName("position-only move is changed",
                    "\(FrameApply.changed(pre: pre, achieved: CGRect(x: 400, y: 25, width: 800, height: 600)))", "true")
