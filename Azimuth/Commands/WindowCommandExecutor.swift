@@ -2,18 +2,28 @@ import Cocoa
 
 @MainActor
 enum WindowCommandExecutor {
+    /// 응답 지연 앱에서 명령 해석(다수의 AX 읽기)이 이 상한을 넘으면, 쓰기 단계의 추가 AX 호출로
+    /// MainActor 프리즈를 키우지 않고 조용히 중단한다(감사 H-3 부분 완화 — AX 호출은 동기라 개별
+    /// 호출은 못 끊으므로 호출 경계에서만 검사한다. 완전 비블로킹은 백그라운드 AX 워커 과제로 분리).
+    private static let resolveBudgetSeconds: CFTimeInterval = 3
+
     static func run(
         _ command: WindowCommand,
         on app: NSRunningApplication,
         undoStore: WindowUndoStore,
         snapStore: SnapStateStore
     ) -> Result<CGRect, WindowCommandError> {
+        let startedAt = ProcessInfo.processInfo.systemUptime
         let resolved: ResolvedWindow
         switch FocusedWindowResolver.resolveFocusedWindow(for: app) {
         case let .success(window):
             resolved = window
         case let .failure(error):
             return .failure(.resolution(error))
+        }
+        // 응답 지연 앱: 해석이 예산을 넘겼으면 쓰기 단계의 추가 AX 호출로 프리즈를 키우지 않는다(H-3).
+        if ProcessInfo.processInfo.systemUptime - startedAt > resolveBudgetSeconds {
+            return .failure(.transient)
         }
 
         if command == .undo {

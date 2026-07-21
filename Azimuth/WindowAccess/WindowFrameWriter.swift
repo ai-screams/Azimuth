@@ -1,4 +1,5 @@
 import ApplicationServices
+import Foundation
 
 /// frame 적용 결과. achieved(마지막으로 읽은 실제 frame)를 성공·실패 양쪽에서 실어, Executor가
 /// "창이 실제로 변했는가"로 Undo를 판정하게 한다(부분 실패로 이동한 창의 복원 지점을 잃지 않고,
@@ -24,6 +25,9 @@ enum WindowFrameWriter {
     private static let shrinkDeadband: CGFloat = 1
     /// anchored 보정을 걸지 판정하는 size 허용오차(순수 계층과 공유).
     private static let sizeTolerance = FrameApply.sizeTolerance
+    /// 응답 지연 앱에서 초기 쓰기·검증이 이 상한을 넘으면 재시도(추가 position/size 쓰기)를 생략해
+    /// MainActor 프리즈를 키우지 않는다(감사 H-3 부분 완화).
+    private static let retryBudgetSeconds: CFTimeInterval = 1
 
     /// 애니메이션 억제 상태(PID별)는 명령 간 유지되어야 하므로 writer가 단일 인스턴스로 소유한다.
     private static let suppressor = AnimationSuppressor()
@@ -74,6 +78,7 @@ enum WindowFrameWriter {
     ) -> FrameApplyResult {
         // 실제로 바뀌는 축만 쓴다(권한 가드는 apply에서 이미 통과). 이동만이면 size를, 리사이즈만이면
         // position을 건드리지 않아 AX IPC와 부분 실패 면적을 줄인다(감사 M-3).
+        let phaseStart = ProcessInfo.processInfo.systemUptime
         let moves = FrameApply.movesOrigin(from: current, to: target)
         let resizes = FrameApply.resizesSize(from: current, to: target)
         let shrinking = resizes
@@ -97,11 +102,13 @@ enum WindowFrameWriter {
         // 재시도 origin은 방금 읽힌 실제 크기로 다시 anchor 계산(첫 추정이 어긋났을 때 보정).
         // 재시도 결과를 최종 판정에 반영한다 — 재시도 중에만 생긴 일시적 실패를 success로 오분류하지 않게.
         if let achieved = readFrame(element), !FrameApply.reached(target: target, achieved: achieved) {
-            if moves {
+            // 응답 지연 앱: 초기 단계가 이미 예산을 넘겼으면 재시도로 프리즈를 키우지 않는다(H-3).
+            let slow = ProcessInfo.processInfo.systemUptime - phaseStart >= retryBudgetSeconds
+            if !slow, moves {
                 let retryOrigin = anchoredOrigin(element: element, target: target, workArea: workArea, anchor: anchor)
                 positionError = AXAttribute.set(element, kAXPositionAttribute as String, point: retryOrigin)
             }
-            if resizes {
+            if !slow, resizes {
                 sizeError = AXAttribute.set(element, kAXSizeAttribute as String, size: target.size)
             }
         }
