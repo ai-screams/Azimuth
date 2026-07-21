@@ -6,9 +6,11 @@
 //  고를지 결정한다. NSScreen 같은 AppKit 타입에 의존하지 않아 단위 테스트가 가능하다
 //  (DisplayResolver가 NSScreen → CGRect 매핑만 하는 얇은 wrapper로 이 로직을 호출한다).
 //
-//  선택 규칙(위치 인식형): 그 방향에 있고 현재 화면과 수직/수평으로 겹치는 후보 중, 창의
-//  현재 수직(좌우 이동)·수평(상하 이동) 위치에 가장 가까운(perpendicularGap 최소) 화면.
-//  동률(0.5pt 이내)이면 이동 방향 중심 거리(primaryGap)가 가까운 쪽.
+//  선택 규칙: ① 그 방향에 있고 수직/수평으로 겹치는 후보 중 주축 edge-gap이 가장 작은(방향상 가장
+//  가까운) 인접 계층을 먼저 고른다 — "인접 디스플레이" 계약을 정렬 최적화보다 우선(먼데 정렬된
+//  화면으로 leap 방지). ② 그 계층 안에서 창의 현재 수직(좌우 이동)·수평(상하 이동) 위치에 가장
+//  가까운(perpendicularGap 최소) 화면. 동률(0.5pt 이내)이면 edge-gap이 가까운 쪽, 그래도 동률이면
+//  먼저 나온 인덱스(안정적).
 //
 //  ⚠️ 순수 로직 파일 — AppKit/AX를 import하지 말 것(scripts/test.sh가 swiftc로 직접 컴파일).
 //  CoreGraphics·SnapEdge(CommandPrimitives)만 사용.
@@ -31,20 +33,28 @@ nonisolated enum DisplayGeometry {
         window: CGRect,
         edge: SnapEdge
     ) -> Int? {
+        // 그 방향에 있고 수직/수평으로 겹치는 후보만.
+        let inDirection = candidates.enumerated().filter {
+            isInDirection(origin: current, candidate: $0.element, edge: edge)
+        }
+        // ① 방향상 가장 가까운(주축 edge-gap 최소) 인접 계층을 먼저 확정한다.
+        guard let nearestEdgeGap = inDirection
+            .map({ primaryEdgeGap(origin: current, candidate: $0.element, edge: edge) })
+            .min()
+        else { return nil }
+
+        // ② 그 계층(edge-gap ≈ 최소) 안에서만 창 정렬(perpendicular gap)이 가장 가까운 화면을 고른다.
+        //    동률(deadband 이내)이면 먼저 나온 인덱스가 이긴다(열거 순서에 무관하게 결정적).
+        let deadband = DisplaygeometryConstants.tieDeadband
         var best: Int?
         var bestPerpendicular = CGFloat.greatestFiniteMagnitude
-        var bestPrimary = CGFloat.greatestFiniteMagnitude
-        for (index, candidate) in candidates.enumerated() {
-            guard isInDirection(origin: current, candidate: candidate, edge: edge) else { continue }
+        for (index, candidate) in inDirection {
+            let edgeGap = primaryEdgeGap(origin: current, candidate: candidate, edge: edge)
+            guard edgeGap <= nearestEdgeGap + deadband else { continue }
             let perpendicular = perpendicularGap(window: window, candidate: candidate, edge: edge)
-            let primary = primaryGap(origin: current, candidate: candidate, edge: edge)
-            let closerPerpendicular = perpendicular < bestPerpendicular - DisplaygeometryConstants.tieDeadband
-            let tiedPerpendicular = abs(perpendicular - bestPerpendicular) <= DisplaygeometryConstants.tieDeadband
-                && primary < bestPrimary
-            if closerPerpendicular || tiedPerpendicular {
-                bestPerpendicular = perpendicular
-                bestPrimary = primary
+            if best == nil || perpendicular < bestPerpendicular - deadband {
                 best = index
+                bestPerpendicular = perpendicular
             }
         }
         return best
@@ -75,17 +85,18 @@ nonisolated enum DisplayGeometry {
         }
     }
 
-    /// 이동 방향(주축) 중심 거리. 동률 타이브레이크에 쓴다.
-    static func primaryGap(origin: CGRect, candidate: CGRect, edge: SnapEdge) -> CGFloat {
+    /// 이동 방향(주축)에서 현재 화면과 후보 화면 사이의 edge-to-edge 간격(겹치면 음수). 값이 작을수록
+    /// 방향상 더 가까운(더 인접한) 화면. 중심 거리 대신 이 간격으로 "인접 계층"을 판정한다.
+    static func primaryEdgeGap(origin: CGRect, candidate: CGRect, edge: SnapEdge) -> CGFloat {
         switch edge {
         case .left:
-            return origin.midX - candidate.midX
+            return origin.minX - candidate.maxX
         case .right:
-            return candidate.midX - origin.midX
+            return candidate.minX - origin.maxX
         case .top:
-            return candidate.midY - origin.midY
+            return candidate.minY - origin.maxY
         case .bottom:
-            return origin.midY - candidate.midY
+            return origin.minY - candidate.maxY
         }
     }
 

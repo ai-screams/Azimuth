@@ -371,12 +371,18 @@ enum CommandEngineTests {
         let winLeft = CGRect(x: 100, y: 400, width: 200, height: 200)         // midX=200
         expectName("horizontal-stack top picks x-closer screen (left=idx0)",
                    "\(DisplayGeometry.selectAdjacentIndex(current: cur, candidates: [aboveLeft, aboveRight], window: winLeft, edge: .top) ?? -1)", "0")
-        // perpendicularGap 동률(둘 다 창 midY를 덮음) → primaryGap(이동방향 거리)로 타이브레이크.
-        // 더 먼 화면을 먼저 넣어, 뒤에 오는 가까운 화면이 tiedPerpendicular true 분기로 이기게 한다.
-        let rightFar = CGRect(x: 4000, y: 0, width: 1920, height: 1080)   // primaryGap 큼
-        let rightNear = CGRect(x: 1920, y: 0, width: 1920, height: 1080)  // primaryGap 작음
-        expectName("right tie broken by primary distance (nearer=idx1)",
+        // 주축 edge-gap이 다른 두 오른쪽 화면 → 가까운(edge-gap 최소) 화면이 인접 계층으로 이긴다.
+        let rightFar = CGRect(x: 4000, y: 0, width: 1920, height: 1080)   // edge-gap 큼(먼 화면)
+        let rightNear = CGRect(x: 1920, y: 0, width: 1920, height: 1080)  // edge-gap 0(인접)
+        expectName("right picks nearest adjacent layer (nearer=idx1)",
                    "\(DisplayGeometry.selectAdjacentIndex(current: cur, candidates: [rightFar, rightNear], window: win, edge: .right) ?? -1)", "1")
+        // M-6: 방향상 가장 가까운(edge-gap 최소) 화면이, 멀지만 창 Y에 정렬된 화면을 이긴다.
+        // near는 바로 오른쪽이지만 Y가 어긋나 perpendicular gap이 크고, far는 멀지만 창 Y에 정렬됨.
+        // 과거(정렬 우선)엔 far가 이겼다 — 이제는 인접 계층(near)이 이긴다.
+        let nearMisaligned = CGRect(x: 1920, y: -900, width: 1920, height: 1080) // 인접, Y 어긋남
+        let farAligned = CGRect(x: 4000, y: 0, width: 1920, height: 1080)        // 멀지만 Y 정렬
+        expectName("nearest adjacent beats far-but-aligned (near=idx0)",
+                   "\(DisplayGeometry.selectAdjacentIndex(current: cur, candidates: [nearMisaligned, farAligned], window: win, edge: .right) ?? -1)", "0")
     }
 
     // WindowFrameWriter가 anchored 보정을 걸지 판정하는 순수 임계 함수(경계값).
