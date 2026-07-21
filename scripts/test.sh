@@ -12,6 +12,7 @@ BIN="$(mktemp -t yuri-tests-XXXXXX)"
 
 swiftc \
     "$ROOT_DIR/Azimuth/Commands/FrameCalculator.swift" \
+    "$ROOT_DIR/Azimuth/Commands/FrameApply.swift" \
     "$ROOT_DIR/Azimuth/Commands/CommandPrimitives.swift" \
     "$ROOT_DIR/Azimuth/Commands/WindowCommand.swift" \
     "$ROOT_DIR/Azimuth/Commands/DisplayGeometry.swift" \

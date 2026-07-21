@@ -29,6 +29,7 @@ enum CommandEngineTests {
         testDisplayGeometry()
         testIsConstrained()
         testUsableFrame()
+        testFrameApply()
         testCommandGroups()
         testPrimitiveStrings()
         testCommandModel()
@@ -429,6 +430,30 @@ enum CommandEngineTests {
                    "\(FrameCalculator.isUsableFrame(CGRect(x: CGFloat.nan, y: 0, width: 800, height: 600)))", "false")
         expectName("infinite size not usable",
                    "\(FrameCalculator.isUsableFrame(CGRect(x: 0, y: 0, width: CGFloat.infinity, height: 600)))", "false")
+    }
+
+    // H-1: 적용 결과 판정 순수 함수 — Undo는 achieved가 pre에서 변했는지, 도달은 target 기준.
+    private static func testFrameApply() {
+        let pre = CGRect(x: 0, y: 25, width: 800, height: 600)
+        // 변화 없음(무시된 쓰기) → Undo 미기록.
+        expectName("unchanged frame is not undo-worthy",
+                   "\(FrameApply.changed(pre: pre, achieved: pre))", "false")
+        // 허용오차 내 미세 차이도 변화 아님(origin 2pt·size 8pt).
+        expectName("within tolerance is not changed",
+                   "\(FrameApply.changed(pre: pre, achieved: CGRect(x: 1, y: 26, width: 803, height: 600)))", "false")
+        // 위치만 바뀜(부분 적용) → 변화로 인정 → Undo 기록.
+        expectName("position-only move is changed",
+                   "\(FrameApply.changed(pre: pre, achieved: CGRect(x: 400, y: 25, width: 800, height: 600)))", "true")
+        // 크기만 바뀜(size 축 8pt 초과) → 변화.
+        expectName("size-only change beyond tolerance is changed",
+                   "\(FrameApply.changed(pre: pre, achieved: CGRect(x: 0, y: 25, width: 900, height: 600)))", "true")
+        // 목표 도달: target과 achieved가 허용오차 내(제약 앱 셀 오차 포함).
+        let target = CGRect(x: 960, y: 25, width: 960, height: 1055)
+        expectName("reached target within tolerance",
+                   "\(FrameApply.reached(target: target, achieved: CGRect(x: 961, y: 26, width: 955, height: 1055)))", "true")
+        // 제약 앱: 크기가 목표보다 8pt 넘게 크면 미도달.
+        expectName("constrained size beyond tolerance not reached",
+                   "\(FrameApply.reached(target: target, achieved: CGRect(x: 960, y: 25, width: 1100, height: 1055)))", "false")
     }
 
     // CommandGroup 표시명·토큰과 command→group 매핑 전수.

@@ -15,6 +15,7 @@ trap 'rm -rf "$TMP"' EXIT
 
 SRC=(
     "Azimuth/Commands/FrameCalculator.swift"
+    "Azimuth/Commands/FrameApply.swift"
     "Azimuth/Commands/CommandPrimitives.swift"
     "Azimuth/Commands/WindowCommand.swift"
     "Azimuth/Commands/DisplayGeometry.swift"
