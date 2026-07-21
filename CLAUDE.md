@@ -35,6 +35,11 @@ Sparkle 2 and ships Developer ID–signed, Apple-notarized, and EdDSA-verified.
 
 Before opening a PR: `make build && make lint && make test` (CI runs the same, plus gitleaks).
 
+- After `make run`, `make build` can fail with a **Sparkle.framework "permission to save"** error —
+  signed and ad-hoc builds share one DerivedData. Quit the app, `rm -rf` the built `Azimuth.app`, rebuild.
+- `main` is branch-protected: `lint-and-build` / `gitleaks` / `secret-scan` must go green before
+  `gh pr merge --squash` (it reports `BLOCKED` until then).
+
 ## Non-negotiable rules
 
 - **Never bypass macOS permissions or security.** Request AX through the official API; the user
@@ -58,11 +63,18 @@ Before opening a PR: `make build && make lint && make test` (CI runs the same, p
   Cocoa work areas via `Shared/CoordinateSpace`.
 - SwiftLint strict: no force-unwrap / force-cast (narrow, commented exceptions only), 120-column
   lines, function/type body-length limits. Match surrounding comment density and idiom.
+- Keep multi-line `if` conditions on **one line** (≤120 cols; extract a local `Bool` if needed):
+  SwiftFormat moves a wrapped condition's `{` to its own line, SwiftLint's `opening_brace` then
+  rejects it, and the pre-commit hook deadlocks. (Multi-line `guard … else {` is fine.)
+- `--strict` promotes SwiftLint *default* rules to errors — notably **max 5 function params** and
+  **max 2-member tuples**; bundle into a struct or recompute locally instead.
 - **Conventional Commits** (`feat(scope): …`, `fix: …`, `docs: …`, `refactor: …`, `chore: …`).
   Branch off `main`, keep PRs focused, **squash-merge**.
 - New source files under `Azimuth/` are auto-included via the Xcode **file-system synchronized
   group** — no `.pbxproj` edit needed. Adding a new target or SPM dependency still needs the
   pbxproj / Xcode GUI. Deployment target: macOS **14.0**.
+- That auto-include does **not** reach the test harness: a new pure-logic file must be added to
+  **both** `scripts/test.sh` and `scripts/coverage.sh` (hardcoded source lists) to be tested/measured.
 
 ## Docs (`docs/` is the GitHub Pages source)
 

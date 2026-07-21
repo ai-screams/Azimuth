@@ -6,6 +6,8 @@
 .docs/
 # OMC orchestration state (project memory, plans, mode state).
 .omc/
+# Per-machine Claude notes (shell/env quirks). Team-shared context belongs in CLAUDE.md.
+.claude.local.md
 # Release artifacts (also covered by build//dist/, kept explicit).
 dist/
 build/
