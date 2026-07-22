@@ -5,9 +5,14 @@ import Foundation
 /// "창이 실제로 변했는가"로 Undo를 판정하게 한다(부분 실패로 이동한 창의 복원 지점을 잃지 않고,
 /// 무시된 쓰기로 직전 Undo를 덮지 않게). error가 nil이면 UI 성공, 있으면 실패/transient.
 /// 읽기 자체가 실패하면 결과를 알 수 없으므로 achieved는 nil이다.
+///
+/// achieved가 nil일 때 상태 커밋의 유일한 근거가 `mayHaveMutated`다 — AX 쓰기가 하나라도 성공했다면
+/// 창은 움직였을 수 있으므로 복원점을 남겨야 한다(감사 H-2). 판정 자체는 `CommandOutcomePolicy`가 한다.
 nonisolated struct FrameApplyResult: Equatable {
     let achieved: CGRect?
     let error: WindowCommandError?
+    /// position/size 쓰기 중 하나라도 AX success를 반환했는가.
+    let mayHaveMutated: Bool
 }
 
 /// AX 쓰기는 메인 스레드에서만 안전하며 권한 캐시(@MainActor)와 애니메이션 억제 상태를 다루므로 @MainActor.
@@ -42,7 +47,7 @@ enum WindowFrameWriter {
     ) -> FrameApplyResult {
         // 권한 가드를 쓰기 경계에도 둔다(방어적 — 호출 순서에 의존하지 않게).
         guard AccessibilityPermissionService.currentStatus().isTrusted else {
-            return FrameApplyResult(achieved: nil, error: .resolution(.permissionDenied))
+            return FrameApplyResult(achieved: nil, error: .resolution(.permissionDenied), mayHaveMutated: false)
         }
         let element = resolved.element
         let current = resolved.frame.rect
@@ -51,14 +56,14 @@ enum WindowFrameWriter {
         // 실제로 바뀌는 축의 권한만 요구한다 — 이동만 하는 고정크기 창의 Move를 허용하고, 불필요한
         // size AX IPC와 부분 실패 면적을 줄인다(감사 M-3).
         if moves, !isSettable(element, kAXPositionAttribute) {
-            return FrameApplyResult(achieved: nil, error: .notMovable)
+            return FrameApplyResult(achieved: nil, error: .notMovable, mayHaveMutated: false)
         }
         if resizes, !isSettable(element, kAXSizeAttribute) {
-            return FrameApplyResult(achieved: nil, error: .notResizable)
+            return FrameApplyResult(achieved: nil, error: .notResizable, mayHaveMutated: false)
         }
         // 어느 축도 안 바뀌면 no-op — AX 쓰기 없이 현재 frame을 성공으로 반환(불필요한 쓰기·재정규화 방지).
         guard moves || resizes else {
-            return FrameApplyResult(achieved: current, error: nil)
+            return FrameApplyResult(achieved: current, error: nil, mayHaveMutated: false)
         }
 
         let didSuppress = suppressor.suppress(appElement: resolved.appElement, pid: resolved.pid)
@@ -83,41 +88,62 @@ enum WindowFrameWriter {
         let resizes = FrameApply.resizesSize(from: current, to: target)
         let shrinking = resizes
             && (target.width < current.width - shrinkDeadband || target.height < current.height - shrinkDeadband)
+        // 쓰기가 하나라도 먹었는지 — 최종 read가 실패했을 때 복원점을 남길지의 유일한 근거다(감사 H-2).
+        var mutated = false
         // (1) 작아질 때만 size-first: 줄인 뒤 이동해야 옛 큰 크기로 옆 모니터를 침범하지 않는다.
-        if shrinking { AXAttribute.set(element, kAXSizeAttribute as String, size: target.size) }
+        if shrinking {
+            let shrinkError = AXAttribute.set(element, kAXSizeAttribute as String, size: target.size)
+            mutated = mutated || shrinkError == .success
+        }
 
         // (2) 이동이 있으면: 제약 앱이 목표보다 큰 크기에 머물 때 실제 크기를 읽어 anchored origin을 1회 쓴다.
         var positionError = AXError.success
         if moves {
             let origin = anchoredOrigin(element: element, target: target, workArea: workArea, anchor: anchor)
             positionError = AXAttribute.set(element, kAXPositionAttribute as String, point: origin)
+            mutated = mutated || positionError == .success
         }
         // (3) 리사이즈가 있으면 크기 재확정(모니터를 넘어가며 클램프됐을 수 있음). 이동만이면 size는 안 건드린다.
         var sizeError = AXError.success
         if resizes {
             sizeError = AXAttribute.set(element, kAXSizeAttribute as String, size: target.size)
+            mutated = mutated || sizeError == .success
         }
 
         // (4) verify + 1회 재시도(비동기·부분수용 앱). reached는 origin 2pt·size 8pt 오차 허용(증분 앱 헛재시도 방지).
         // 재시도 origin은 방금 읽힌 실제 크기로 다시 anchor 계산(첫 추정이 어긋났을 때 보정).
         // 재시도 결과를 최종 판정에 반영한다 — 재시도 중에만 생긴 일시적 실패를 success로 오분류하지 않게.
-        if let achieved = readFrame(element), !FrameApply.reached(target: target, achieved: achieved) {
+        var achieved = readFrame(element)
+        var retried = false
+        if let verified = achieved, !FrameApply.reached(target: target, achieved: verified) {
             // 응답 지연 앱: 초기 단계가 이미 예산을 넘겼으면 재시도로 프리즈를 키우지 않는다(H-3).
             let slow = ProcessInfo.processInfo.systemUptime - phaseStart >= retryBudgetSeconds
             if !slow, moves {
                 let retryOrigin = anchoredOrigin(element: element, target: target, workArea: workArea, anchor: anchor)
                 positionError = AXAttribute.set(element, kAXPositionAttribute as String, point: retryOrigin)
+                mutated = mutated || positionError == .success
+                retried = true
             }
             if !slow, resizes {
                 sizeError = AXAttribute.set(element, kAXSizeAttribute as String, size: target.size)
+                mutated = mutated || sizeError == .success
+                retried = true
             }
         }
+        // 재시도로 창이 또 움직였거나 검증 읽기 자체가 실패했을 때만 최종 frame을 다시 읽는다.
+        // 이미 목표에 도달한 정상 경로에서는 검증 frame이 곧 최종 frame이다 — 명령마다 position/size
+        // 읽기 2회가 줄어든다(감사 H-1). 재시도를 건너뛴 느린 앱에서도 한 번 더 읽지 않는다.
+        if retried || achieved == nil { achieved = readFrame(element) }
 
-        // 최종 실제 frame을 읽는다. 읽기 실패면 결과를 알 수 없어 achieved=nil(Executor가 Undo를 건너뛴다).
-        guard let achieved = readFrame(element) else {
-            return FrameApplyResult(achieved: nil, error: .applyFailed)
+        // 읽기 실패면 결과를 알 수 없어 achieved=nil(Executor가 mayHaveMutated로 복원점을 판단한다).
+        guard let achieved else {
+            return FrameApplyResult(achieved: nil, error: .applyFailed, mayHaveMutated: mutated)
         }
-        return FrameApplyResult(achieved: achieved, error: applyError(position: positionError, size: sizeError))
+        return FrameApplyResult(
+            achieved: achieved,
+            error: applyError(position: positionError, size: sizeError),
+            mayHaveMutated: mutated
+        )
     }
 
     /// 쓰기 결과 → UI 오류. 둘 다 성공이면 nil(제약 앱이 목표 미달이어도 성공). Space 전환·애니메이션 중

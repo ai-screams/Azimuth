@@ -10,7 +10,9 @@ final class FrontmostAppTracker {
     /// 활성화하지 않은 채(설정창만 띄운 상태) 단축키를 누르면 frontmost가 Azimuth 자신이라,
     /// 롤백된 "자기 설정창 스냅"이 이 구멍으로 되살아났다(자기창은 명령 대상이 아니다).
     var targetApplication: NSRunningApplication? {
-        if let lastFocusedApp { return lastFocusedApp }
+        // 종료된 앱은 건너뛴다 — 다른 앱의 activation notification이 도착하기 전 짧은 구간에
+        // 죽은 프로세스로 AX 요청을 보내는 것을 막는다(감사 L-2).
+        if let lastFocusedApp, !lastFocusedApp.isTerminated { return lastFocusedApp }
         guard let frontmost = NSWorkspace.shared.frontmostApplication,
               frontmost.processIdentifier != selfPID
         else {

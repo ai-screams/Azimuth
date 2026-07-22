@@ -37,6 +37,10 @@ Before opening a PR: `make build && make lint && make test` (CI runs the same, p
 
 - After `make run`, `make build` can fail with a **Sparkle.framework "permission to save"** error —
   signed and ad-hoc builds share one DerivedData. Quit the app, `rm -rf` the built `Azimuth.app`, rebuild.
+- **Never `make build` while a `make run` app is running** — same shared DerivedData: it swaps the
+  bundle under the live process, invalidating its signature, and macOS silently drops the app's
+  Accessibility grant. Every command then dies while System Settings still shows it enabled.
+  `codesign -dvvv` on the built app showing `flags=…adhoc…` confirms it; quit, `rm -rf`, `make run`.
 - `main` is branch-protected: `lint-and-build` / `gitleaks` / `secret-scan` must go green before
   `gh pr merge --squash` (it reports `BLOCKED` until then).
 
@@ -49,10 +53,15 @@ Before opening a PR: `make build && make lint && make test` (CI runs the same, p
   `make build` is ad-hoc → its cdhash changes every build → TCC resets the grant. Ad-hoc builds
   are for compile/CI only. Debug builds use bundle id `com.aiscream.Azimuth.debug` — a separate
   TCC identity and defaults domain from the installed release copy (prevents grant clashes).
+- **Verify `HotkeyService` changes with an actual hotkey** — the status-bar menu path never goes
+  through it, so a passing menu command proves nothing. That split is also the fastest triage:
+  menu works but hotkeys dead → hotkey registration; both dead → Accessibility/TCC.
 - **`.docs/` is internal — never commit or push it** (it is gitignored).
 - **GUI smoke tests:** do not read other apps' `kCGWindowName` (Screen Recording TCC gate that
-  has frozen WindowServer). Confirm liveness via process + AX role checks. Never busy-loop to
-  wait — poll a condition.
+  has frozen WindowServer). Confirm liveness via process checks — a scratch/ad-hoc binary
+  **cannot** query another app's AX (the *querying* process needs its own grant; you get `-25211`
+  apiDisabled), so actual window behavior must be exercised by a human. Never busy-loop to wait —
+  poll a condition.
 
 ## Code conventions
 
@@ -66,8 +75,9 @@ Before opening a PR: `make build && make lint && make test` (CI runs the same, p
 - Keep multi-line `if` conditions on **one line** (≤120 cols; extract a local `Bool` if needed):
   SwiftFormat moves a wrapped condition's `{` to its own line, SwiftLint's `opening_brace` then
   rejects it, and the pre-commit hook deadlocks. (Multi-line `guard … else {` is fine.)
-- `--strict` promotes SwiftLint *default* rules to errors — notably **max 5 function params** and
-  **max 2-member tuples**; bundle into a struct or recompute locally instead.
+- `--strict` promotes SwiftLint *default* rules to errors — notably **max 5 function params**,
+  **max 2-member tuples**, and **cyclomatic complexity ≤ 10** (adding a `switch` to an already
+  branchy function trips it — extract a helper); bundle into a struct or recompute locally instead.
 - **Conventional Commits** (`feat(scope): …`, `fix: …`, `docs: …`, `refactor: …`, `chore: …`).
   Branch off `main`, keep PRs focused, **squash-merge**.
 - New source files under `Azimuth/` are auto-included via the Xcode **file-system synchronized
@@ -75,6 +85,10 @@ Before opening a PR: `make build && make lint && make test` (CI runs the same, p
   pbxproj / Xcode GUI. Deployment target: macOS **14.0**.
 - That auto-include does **not** reach the test harness: a new pure-logic file must be added to
   **both** `scripts/test.sh` and `scripts/coverage.sh` (hardcoded source lists) to be tested/measured.
+- Those lists are the **only** automatically tested code — `WindowAccess/**`, `WindowCommandExecutor`,
+  and `HotkeyService` are type-checked by `make build` and nothing more. To cover an AX failure mode,
+  extract the decision into a pure function (values in → decision out, e.g. `CommandOutcomePolicy`)
+  and test that; a protocol seam carrying `AXUIElement` cannot compile in the swiftc harness.
 
 ## Docs (`docs/` is the GitHub Pages source)
 
