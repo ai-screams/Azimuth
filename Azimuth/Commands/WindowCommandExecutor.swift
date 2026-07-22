@@ -57,21 +57,40 @@ enum WindowCommandExecutor {
         let outcome = WindowFrameWriter.apply(
             plan.target, to: resolved, workArea: anchorArea, anchor: command.frameAnchor
         )
-        if let achieved = outcome.achieved {
-            // 되돌리기용 직전 frame은 창이 "실제로" 변했을 때만 저장한다(achieved 기준 — 감사 H-1):
-            //  - 부분 실패라도 창이 이동했으면 기록(복원 지점 보존).
-            //  - 무시된 쓰기·no-op(예: 인접 디스플레이 없는 snapThrow/moveToDisplay)이면 미기록 → 직전
-            //    성공 명령의 undo를 무의미한 frame으로 덮지 않는다.
-            if FrameApply.changed(pre: preMoveFrame, achieved: achieved) {
-                undoStore.record(preMoveFrame, pid: resolved.pid, for: resolved.element)
-            }
-            // snapThrow는 이 명령 뒤 창이 스냅된 edge를 실제 frame으로 기록한다(다음 입력의 던지기 판정용).
-            // 기하만으로는 제약 앱을 인식하지 못하므로 상태로 보완한다(감사 H-2).
-            if let snappedEdge = plan.snappedEdge {
-                snapStore.record(edge: snappedEdge, frame: achieved, pid: resolved.pid, for: resolved.element)
-            }
-        }
+        // Undo·Snap 커밋 판단은 순수 계층에 위임한다 — 부분 적용·최종 read 실패 같은 조합을 AX 없이
+        // 전수 테스트할 수 있게 하기 위해서다(감사 H-2/H-3). 여기서는 결정을 적용만 한다.
+        let decision = CommandOutcomePolicy.decide(CommandOutcome(
+            pre: preMoveFrame,
+            achieved: outcome.achieved,
+            failed: outcome.error != nil,
+            mayHaveMutated: outcome.mayHaveMutated,
+            snappedEdge: plan.snappedEdge
+        ))
+        commit(decision, pre: preMoveFrame, resolved: resolved, undoStore: undoStore, snapStore: snapStore)
         return result(from: outcome, fallback: plan.target)
+    }
+
+    /// 결정을 상태 저장소에 적용한다. 판단은 `CommandOutcomePolicy`가 이미 끝냈고 여기서는 실행만 한다.
+    private static func commit(
+        _ decision: OutcomeDecision,
+        pre: CGRect,
+        resolved: ResolvedWindow,
+        undoStore: WindowUndoStore,
+        snapStore: SnapStateStore
+    ) {
+        if decision.recordUndo {
+            undoStore.record(pre, pid: resolved.pid, for: resolved.element)
+        }
+        switch decision.snap {
+        case .keep:
+            break
+        case let .record(edge, frame):
+            // snapThrow는 이 명령 뒤 창이 스냅된 edge를 실제 frame으로 기록한다(다음 입력의 던지기 판정용).
+            // 기하만으로는 제약 앱을 인식하지 못하므로 상태로 보완한다.
+            snapStore.record(edge: edge, frame: frame, pid: resolved.pid, for: resolved.element)
+        case .clear:
+            snapStore.clear(for: resolved.element, pid: resolved.pid)
+        }
     }
 
     /// FrameApplyResult → 공개 Result. error가 있으면 실패, 없으면 성공(achieved, 없으면 fallback).
