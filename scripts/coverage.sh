@@ -19,6 +19,7 @@ SRC=(
     "Azimuth/Commands/CommandPrimitives.swift"
     "Azimuth/Commands/WindowCommand.swift"
     "Azimuth/Commands/DisplayGeometry.swift"
+    "Azimuth/Commands/CommandOutcomePolicy.swift"
 )
 
 swiftc -profile-generate -profile-coverage-mapping "${SRC[@]}" "Tests/CommandEngineTests.swift" \

@@ -16,6 +16,7 @@ swiftc \
     "$ROOT_DIR/Azimuth/Commands/CommandPrimitives.swift" \
     "$ROOT_DIR/Azimuth/Commands/WindowCommand.swift" \
     "$ROOT_DIR/Azimuth/Commands/DisplayGeometry.swift" \
+    "$ROOT_DIR/Azimuth/Commands/CommandOutcomePolicy.swift" \
     "$ROOT_DIR/Tests/CommandEngineTests.swift" \
     -o "$BIN" || { rm -f "$BIN"; exit 1; }
 

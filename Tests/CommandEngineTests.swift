@@ -31,6 +31,7 @@ enum CommandEngineTests {
         testIsConstrained()
         testUsableFrame()
         testFrameApply()
+        testOutcomePolicy()
         testCommandGroups()
         testPrimitiveStrings()
         testCommandModel()
@@ -64,6 +65,14 @@ enum CommandEngineTests {
     private static func expectPoint(_ label: String, _ got: CGPoint, _ want: CGPoint) {
         checks += 1
         if !(approx(got.x, want.x) && approx(got.y, want.y)) {
+            failures += 1
+            print("FAIL \(label): got \(got) want \(want)")
+        }
+    }
+
+    private static func expectDecision(_ label: String, _ got: OutcomeDecision, _ want: OutcomeDecision) {
+        checks += 1
+        if got != want {
             failures += 1
             print("FAIL \(label): got \(got) want \(want)")
         }
@@ -550,6 +559,57 @@ enum CommandEngineTests {
         expectName("resize-only does not move", "\(FrameApply.movesOrigin(from: base, to: resized))", "false")
         expectName("identical frame neither moves nor resizes",
                    "\(FrameApply.movesOrigin(from: base, to: base) || FrameApply.resizesSize(from: base, to: base))", "false")
+    }
+
+    // 결과 커밋 정책 — AX 없이 부분 실패/읽기 실패 조합에서 Undo·Snap 상태를 어떻게 커밋하는지.
+    // 이 조합들이 자동 검증 밖에 있었다(감사 H-2/H-3).
+    private static func testOutcomePolicy() {
+        let pre = CGRect(x: 0, y: 25, width: 960, height: 1055)
+        let moved = CGRect(x: 960, y: 25, width: 960, height: 1055)
+        // 부분 적용: position은 반영되고 size 쓰기는 실패해 목표 절반에 못 미친 frame.
+        let partial = CGRect(x: 960, y: 25, width: 700, height: 1055)
+
+        func decide(_ achieved: CGRect?, failed: Bool, mutated: Bool, edge: SnapEdge?) -> OutcomeDecision {
+            CommandOutcomePolicy.decide(CommandOutcome(
+                pre: pre, achieved: achieved, failed: failed, mayHaveMutated: mutated, snappedEdge: edge
+            ))
+        }
+
+        // 성공 스냅: 복원점과 스냅 상태를 함께 커밋한다(기존 동작 유지).
+        expectDecision("successful snap records undo and snap state",
+                       decide(moved, failed: false, mutated: true, edge: .right),
+                       OutcomeDecision(recordUndo: true, snap: .record(.right, frame: moved)))
+        // 인접 디스플레이 없는 snapThrow: 창은 그대로지만 여전히 그 edge에 스냅돼 있다 →
+        // undo는 덮지 않고(무의미한 frame 방지) 스냅 상태만 갱신한다.
+        expectDecision("no-op snap keeps undo untouched but refreshes snap state",
+                       decide(pre, failed: false, mutated: false, edge: .left),
+                       OutcomeDecision(recordUndo: false, snap: .record(.left, frame: pre)))
+        // 핵심(H-2): position만 적용되고 size가 실패한 부분 frame을 "스냅 완료"로 커밋하면,
+        // 다음 같은 방향 입력이 창을 스냅된 것으로 오판해 다른 디스플레이로 던진다.
+        expectDecision("partially applied snap must not commit snap state",
+                       decide(partial, failed: true, mutated: true, edge: .right),
+                       OutcomeDecision(recordUndo: true, snap: .clear))
+        // transient 실패(Space 전환 등)로 창이 전혀 안 움직였으면 기존 스냅 상태는 아직 유효하다.
+        expectDecision("failed no-op keeps existing snap state",
+                       decide(pre, failed: true, mutated: false, edge: .right),
+                       OutcomeDecision(recordUndo: false, snap: .keep))
+        // 핵심(H-2): 쓰기는 반영됐는데 최종 read가 실패하면 결과를 모른다. 복원점을 남기지 않으면
+        // 직전 명령의 undo 항목이 살아남아 Undo 시 창이 한참 전 frame으로 튄다 → 보수적으로 기록.
+        expectDecision("write succeeded but final read failed still leaves a restore point",
+                       decide(nil, failed: true, mutated: true, edge: .right),
+                       OutcomeDecision(recordUndo: true, snap: .clear))
+        // 쓰기 자체가 안 먹었고 read도 실패 → 창이 변했다고 볼 근거가 없다. 아무것도 건드리지 않는다.
+        expectDecision("no write and no read leaves both stores untouched",
+                       decide(nil, failed: true, mutated: false, edge: .right),
+                       OutcomeDecision(recordUndo: false, snap: .keep))
+        // 스냅이 아닌 일반 명령(maximize 등)은 스냅 상태를 건드리지 않는다.
+        expectDecision("non-snap command does not touch snap state",
+                       decide(moved, failed: false, mutated: true, edge: nil),
+                       OutcomeDecision(recordUndo: true, snap: .keep))
+        // 일반 명령이 부분 적용되면 창은 더 이상 기록된 스냅 frame이 아니다 → 상태를 버린다.
+        expectDecision("partially applied non-snap command clears stale snap state",
+                       decide(partial, failed: true, mutated: true, edge: nil),
+                       OutcomeDecision(recordUndo: true, snap: .clear))
     }
 
     // CommandGroup 표시명·토큰과 command→group 매핑 전수.
