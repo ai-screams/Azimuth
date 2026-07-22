@@ -37,9 +37,12 @@ final class HotkeyService {
     }
 
     /// 모든 바인딩을 재등록하고, 등록에 실패한 바인딩(보통 시스템/타앱이 이미 점유)을 반환한다.
+    /// handler 설치가 실패하면 개별 등록은 어차피 전부 실패하므로 여기서 한 번만 시도하고 전부
+    /// 실패로 반환한다 — 바인딩 수(34개)만큼 같은 설치를 재시도하며 같은 로그를 쏟지 않게.
     @discardableResult
     func reload(_ bindings: [HotkeyBinding], perform: @escaping (WindowCommand) -> Void) -> [HotkeyBinding] {
         unregisterAll()
+        guard installEventHandlerIfNeeded() else { return bindings }
         var failed: [HotkeyBinding] = []
         for binding in bindings {
             let command = binding.command
