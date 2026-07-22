@@ -22,7 +22,7 @@ SRC=(
     "Azimuth/Commands/CommandOutcomePolicy.swift"
 )
 
-swiftc -profile-generate -profile-coverage-mapping "${SRC[@]}" "Tests/CommandEngineTests.swift" \
+swiftc -profile-generate -profile-coverage-mapping "${SRC[@]}" "Tests/CommandEngineTests.swift" "Tests/CommandEngineTests+Frames.swift" "Tests/CommandEngineTests+Displays.swift" "Tests/CommandEngineTests+Apply.swift" "Tests/CommandEngineTests+Model.swift" \
     -o "$TMP/tests" || { echo "build failed"; exit 1; }
 
 LLVM_PROFILE_FILE="$TMP/tests.profraw" "$TMP/tests" >/dev/null || { echo "tests failed"; exit 1; }
