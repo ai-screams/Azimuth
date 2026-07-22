@@ -17,6 +17,10 @@ import CoreGraphics
 nonisolated struct CommandOutcome: Equatable {
     /// 명령 실행 직전에 읽은 창 frame(복원점 후보).
     let pre: CGRect
+    /// 이 명령이 창을 놓으려 한 frame. `pre`와 같으면 **의도된 no-op**이다(예: 인접 디스플레이가
+    /// 없는 snapThrow — 창은 그대로지만 여전히 그 edge에 스냅돼 있다). 결과만으로는 이걸
+    /// "앱이 쓰기를 무시한 실패"와 구분할 수 없어서 의도를 값으로 받는다.
+    let target: CGRect
     /// 적용 후 마지막으로 읽은 실제 frame. 읽기 자체가 실패하면 nil(결과를 알 수 없음).
     let achieved: CGRect?
     /// 사용자에게 실패로 보고되는가(AX 쓰기 오류 또는 최종 read 실패).
@@ -62,6 +66,13 @@ nonisolated enum CommandOutcomePolicy {
         }
         guard let edge = outcome.snappedEdge else {
             return OutcomeDecision(recordUndo: changed, snap: .keep)
+        }
+        // AX가 .success를 돌려줬다는 건 호출을 받아들였다는 뜻이지 창이 목표에 도달했다는 보증이 아니다.
+        // 목표가 현재와 달랐는데도 창이 안 움직였다면 앱이 쓰기를 무시한 것 — 스냅된 적 없는 창을
+        // "스냅됨"으로 기록하면 다음 같은 방향 입력이 던지기로 오판한다.
+        let intendedNoOp = !FrameApply.changed(pre: outcome.pre, achieved: outcome.target)
+        guard changed || intendedNoOp else {
+            return OutcomeDecision(recordUndo: false, snap: .keep)
         }
         return OutcomeDecision(recordUndo: changed, snap: .record(edge, frame: achieved))
     }

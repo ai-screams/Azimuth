@@ -61,6 +61,7 @@ enum WindowCommandExecutor {
         // 전수 테스트할 수 있게 하기 위해서다(감사 H-2/H-3). 여기서는 결정을 적용만 한다.
         let decision = CommandOutcomePolicy.decide(CommandOutcome(
             pre: preMoveFrame,
+            target: plan.target,
             achieved: outcome.achieved,
             failed: outcome.error != nil,
             mayHaveMutated: outcome.mayHaveMutated,
