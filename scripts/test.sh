@@ -18,6 +18,10 @@ swiftc \
     "$ROOT_DIR/Azimuth/Commands/DisplayGeometry.swift" \
     "$ROOT_DIR/Azimuth/Commands/CommandOutcomePolicy.swift" \
     "$ROOT_DIR/Tests/CommandEngineTests.swift" \
+    "$ROOT_DIR/Tests/CommandEngineTests+Frames.swift" \
+    "$ROOT_DIR/Tests/CommandEngineTests+Displays.swift" \
+    "$ROOT_DIR/Tests/CommandEngineTests+Apply.swift" \
+    "$ROOT_DIR/Tests/CommandEngineTests+Model.swift" \
     -o "$BIN" || { rm -f "$BIN"; exit 1; }
 
 "$BIN"
