@@ -141,7 +141,7 @@ Example: `⌃⌥H` (left half) · `⌃⌥⌘K` (move up) · `⌃⌥⇧J` (shrink
 - **Move** — keeps the current size and nudges the window by its own width/height, clamping at the work-area edge. It never resizes or changes display; repeated presses push it to the edge. A window that already sits off-screen past an edge is recovered into the work area, so a directional Move can pull it back onto the screen rather than push it further out.
 - **Center** — keeps size, centers in the work area.
 - **Relative shrink (½ / ⅔)** — based on the *current window*, not the screen: pins the chosen edge and shrinks toward it. Arrow keys shrink to ½; `M , . /` shrink to ⅔ (M=left, ,=down, .=up, /=right). Effects compose: ⅔ then ½ lands on ⅓.
-- **Move to next display** — preserves shape, relative position, and size (capped/clamped so it never exceeds the target screen). No adjacent display → stays put.
+- **Move to next display** — preserves shape and relative position: a centered window stays centered even at a different resolution. It keeps its exact pixel size if it fits the target work area; if it doesn't, both axes shrink by the same factor, so the aspect ratio never changes. No adjacent display → stays put.
 - **Undo** — restores the previous frame (one step per window). Display reconfiguration discards undo history.
 - **Failure feedback** — a beep on failure (toggleable in Settings) plus a log entry, and the reason is recorded in the menu bar menu. You can also opt in to a notification on failure. Transient failures during Space switches or animations are skipped silently.
 
