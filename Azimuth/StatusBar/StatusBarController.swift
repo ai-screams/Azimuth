@@ -118,10 +118,20 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         Log.app.debug("Azimuth status item created.")
     }
 
+    /// 메뉴 구성은 세 구획으로 나눈다 — 권한 상태(진단), DEBUG 전용 도구, 일반 앱 동작.
+    /// 한 함수에 모으면 항목을 하나 추가할 때마다 function_body_length 한계(60)에 부딪힌다.
     private func makeStatusMenu() -> NSMenu {
         let menu = NSMenu()
         menu.delegate = self
+        addPermissionSection(to: menu)
+        menu.addItem(.separator())
+        addDebugSection(to: menu)
+        addAppSection(to: menu)
+        return menu
+    }
 
+    /// 권한 상태 행과 그 조치(설정 열기), 마지막 명령 실패 사유 행.
+    private func addPermissionSection(to menu: NSMenu) {
         permissionStatusMenuItem.isEnabled = false
         menu.addItem(permissionStatusMenuItem)
 
@@ -129,9 +139,10 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         menu.addItem(openAccessibilitySettingsMenuItem)
 
         menu.addItem(lastFailureMenuItem)
+    }
 
-        menu.addItem(.separator())
-
+    /// DEBUG 빌드 전용 진단 항목. Release에서는 통째로 사라지므로 구분선도 여기서 함께 붙인다.
+    private func addDebugSection(to menu: NSMenu) {
         #if DEBUG
             debugResolutionMenuItem.isEnabled = false
             debugResolutionMenuItem.title = "Focused window: open menu to check"
@@ -145,6 +156,14 @@ final class StatusBarController: NSObject, NSMenuDelegate {
             identifyItem.target = self
             menu.addItem(identifyItem)
 
+            menu.addItem(makeDebugCommandsItem())
+            menu.addItem(.separator())
+        #endif
+    }
+
+    #if DEBUG
+        /// `menuCommands` 전체를 서브메뉴로 나열한다. tag가 곧 배열 인덱스(핸들러가 역조회에 쓴다).
+        private func makeDebugCommandsItem() -> NSMenuItem {
             let commandsItem = NSMenuItem(title: "Window Commands (Debug)", action: nil, keyEquivalent: "")
             let commandsSubmenu = NSMenu()
             for (index, command) in WindowCommand.menuCommands.enumerated() {
@@ -158,10 +177,12 @@ final class StatusBarController: NSObject, NSMenuDelegate {
                 commandsSubmenu.addItem(item)
             }
             commandsItem.submenu = commandsSubmenu
-            menu.addItem(commandsItem)
-            menu.addItem(.separator())
-        #endif
+            return commandsItem
+        }
+    #endif
 
+    /// 설정·업데이트·종료 — 일반 사용자에게 노출되는 앱 동작.
+    private func addAppSection(to menu: NSMenu) {
         let settingsItem = NSMenuItem(
             title: "Open Settings…",
             action: #selector(openSettings(_:)),
@@ -189,8 +210,6 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         )
         quitItem.target = self
         menu.addItem(quitItem)
-
-        return menu
     }
 
     @objc private func openSettings(_ sender: Any?) {
