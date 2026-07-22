@@ -1,5 +1,6 @@
 import ApplicationServices
 import Cocoa
+import os
 
 nonisolated struct ResolvedWindow: Equatable {
     let element: AXUIElement
@@ -30,13 +31,13 @@ enum FocusedWindowResolver {
         }
 
         let appElement = AXUIElementCreateApplication(app.processIdentifier)
-        AXUIElementSetMessagingTimeout(appElement, messagingTimeout)
+        setMessagingTimeout(on: appElement, label: "app")
         let (windowOrNil, windowError) = AXAttribute.element(appElement, kAXFocusedWindowAttribute as String)
         guard windowError == .success, let window = windowOrNil else {
             return .failure(mapWindowLookupError(windowError))
         }
         // 타임아웃은 element 단위라 창 element에도 건다(이후 읽기 + WindowFrameWriter의 쓰기까지 적용).
-        AXUIElementSetMessagingTimeout(window, messagingTimeout)
+        setMessagingTimeout(on: window, label: "window")
 
         // 풀스크린은 subrole로 구분 불가 → subrole 검사보다 먼저, 비공개 "AXFullScreen" 속성으로 판별.
         if AXAttribute.bool(window, fullScreenAttribute) == true {
@@ -82,6 +83,15 @@ enum FocusedWindowResolver {
             return .failure(.noFrontmostApplication)
         }
         return resolveFocusedWindow(for: app)
+    }
+
+    /// 타임아웃 설정 실패를 삼키지 않는다 — 실패하면 이후 AX 호출이 의도한 2초가 아니라 기본
+    /// 타임아웃(6초)으로 메인 스레드를 막는데, 조용히 넘기면 "왜 멈췄나"를 사후에 알 수 없다.
+    /// 명령을 중단시키지는 않는다(기본 타임아웃으로도 동작은 한다).
+    private static func setMessagingTimeout(on element: AXUIElement, label: String) {
+        let error = AXUIElementSetMessagingTimeout(element, messagingTimeout)
+        guard error != .success else { return }
+        Log.windows.error("SetMessagingTimeout(\(label)) failed (\(error.rawValue)) — default timeout applies")
     }
 
     private static func mapWindowLookupError(_ error: AXError) -> WindowResolutionError {
