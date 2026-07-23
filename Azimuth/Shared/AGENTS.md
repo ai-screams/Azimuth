@@ -1,5 +1,5 @@
 <!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-06-19 | Updated: 2026-07-01 -->
+<!-- Generated: 2026-06-19 | Updated: 2026-07-23 -->
 
 # Shared
 
@@ -11,7 +11,7 @@
 |------|-------------|
 | `CoordinateSpace.swift` | `@MainActor`. AX(좌상단 원점, Y↓) ↔ Cocoa(좌하단 원점, Y↑) 사각형 변환. **전역 원점(0,0)을 소유한 디스플레이** 높이를 기준으로 Y를 뒤집는 involution(`flip`이 양방향 공통). `axWorkArea(of:)`로 NSScreen visibleFrame→AX 작업영역 변환(0 크기 가드 포함, `WorkAreaResolver`·`WindowAccess/DisplayResolver` 공유) |
 | `BundleVersion.swift` | `Bundle` 확장 `displayVersion(prefix:)`. `CFBundleShortVersionString`(+빌드)를 표시용 버전 문자열로 조합. `AboutWindowController`·`ViewController`가 공유(버전 문자열 중복 제거) |
-| `WindowFrame.swift` | `nonisolated`. `WindowFrame`(origin/size→rect) 값 타입 + `WindowResolutionError`(권한/풀스크린/subrole/AX 코드 등 + 영어 `userFacingMessage`) |
+| `WindowFrame.swift` | `nonisolated`. `WindowFrame`(origin/size→rect) 값 타입 + `WindowResolutionError`(권한/풀스크린/subrole/messaging-timeout/AX 코드 등 + 영어 `userFacingMessage`) |
 | `WindowCommandError.swift` | `nonisolated`. 명령 실행 상위 에러(`resolution`/`workAreaUnavailable`/`notMovable`/`applyFailed`/`noUndoState`) + `userFacingMessage` |
 | `Log.swift` | `os.Logger` 카테고리(`app`, `windows`), subsystem `com.aiscream.Azimuth` |
 

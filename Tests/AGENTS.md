@@ -1,5 +1,5 @@
 <!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-06-19 | Updated: 2026-07-01 -->
+<!-- Generated: 2026-06-19 | Updated: 2026-07-23 -->
 
 # Tests
 
@@ -9,12 +9,16 @@
 ## Key Files
 | File | Description |
 |------|-------------|
-| `CommandEngineTests.swift` | `@main` 실행형 테스트. 순수 로직(`FrameCalculator`·`WindowCommand`·`DisplayGeometry`)을 검증: 절대 배치/축 독립 합성/이동(클램프)/상대 반분/상대 2/3(relativeTwoThird)/shrink 하한/여백 최대화·고정폭 판정(isConstrained)/유효 frame(isUsableFrame)/인접 디스플레이 선택/snapHalves·스냅 판정(isAlreadySnapped)/displayMove/anchorOrigin·anchoredOrigin/frame 적용 판정(FrameApply)/명령 모델(34개)·식별자·helpText 전수. 실패 시 비0 종료. AppKit/AX 비의존 |
+| `CommandEngineTests.swift` | `@main` 실행형 테스트와 공용 `expect*` 헬퍼. 도메인별 테스트 함수를 호출하고 실패 시 비0 종료 |
+| `CommandEngineTests+Frames.swift` | 절대 배치·축 독립 합성·이동·상대 축소·여백 최대화 등 frame 계산 테스트 |
+| `CommandEngineTests+Displays.swift` | snap 판정·displayMove·인접 디스플레이 선택 테스트 |
+| `CommandEngineTests+Apply.swift` | anchor·FrameApply·CommandOutcomePolicy 테스트. 부분 AX 적용·무시된 성공 쓰기·최종 read 실패의 상태 커밋을 값으로 검증 |
+| `CommandEngineTests+Model.swift` | 명령 그룹·primitive 문자열·명령 모델·식별자·helpText 전수 테스트 |
 
 ## For AI Agents
 
 ### Working In This Directory
-- 여기서 검증 가능한 건 **AppKit/AX에 의존하지 않는 순수 로직**뿐이다. `scripts/test.sh`가 `Commands/FrameCalculator.swift` + `Commands/CommandPrimitives.swift` + `Commands/WindowCommand.swift` + 이 파일만 `swiftc`로 컴파일하므로, 테스트가 import하는 소스에 AppKit/AX import를 추가하면 빌드가 깨진다.
+- 여기서 검증 가능한 건 **AppKit/AX에 의존하지 않는 순수 로직**뿐이다. `scripts/test.sh`와 `scripts/coverage.sh`가 `Commands`의 순수 소스 6개와 `CommandEngineTests*.swift` 5개를 직접 `swiftc`로 컴파일한다. 목록은 두 스크립트에 하드코딩되어 있으므로 순수 소스나 테스트 파일을 추가할 때 양쪽을 함께 갱신한다. 테스트 대상 소스에 AppKit/AX import를 추가하면 하네스가 깨진다.
 - 기하/명령 변경 시 여기 케이스를 추가한다. 작업영역은 `CGRect(x:0,y:25,w:1920,h:1055)` 기준 픽스처.
 
 ### Testing Requirements
@@ -27,7 +31,7 @@
 ## Dependencies
 
 ### Internal
-- `Azimuth/Commands/FrameCalculator.swift`, `Azimuth/Commands/CommandPrimitives.swift`, `Azimuth/Commands/WindowCommand.swift`(직접 컴파일 대상).
+- `Azimuth/Commands/FrameCalculator.swift`, `FrameApply.swift`, `CommandPrimitives.swift`, `WindowCommand.swift`, `DisplayGeometry.swift`, `CommandOutcomePolicy.swift`(직접 컴파일 대상).
 
 ### External
 - CoreGraphics, Foundation.

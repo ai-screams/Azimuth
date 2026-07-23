@@ -1,4 +1,4 @@
-<!-- Generated: 2026-06-19 | Updated: 2026-07-01 -->
+<!-- Generated: 2026-06-19 | Updated: 2026-07-23 -->
 
 # Azimuth
 
@@ -51,7 +51,7 @@ Azimuth는 macOS 메뉴바 **윈도우 매니저**다 (Magnet/Rectangle 류). Ac
 ## Dependencies
 
 ### Internal
-- 명령 실행 데이터 흐름: 단축키/메뉴 → `Commands/WindowCommandExecutor` → `WindowAccess`(앱/창 해석·쓰기) + `Commands/FrameCalculator`(기하) + `WindowAccess/WindowUndoStore`(되돌리기).
+- 명령 실행 데이터 흐름: 단축키/메뉴 → `Commands/WindowCommandExecutor` → `WindowAccess`(앱/창 해석·쓰기) + `Commands/FrameCalculator`(기하) → `Commands/CommandOutcomePolicy`(실제 AX 결과 기반 커밋 판단) → `WindowUndoStore`/`SnapStateStore`.
 
 ### External
 - AppKit / Cocoa, ApplicationServices(AX), CoreGraphics, Carbon.HIToolbox(전역 단축키), ServiceManagement(로그인 자동 실행).

@@ -41,8 +41,17 @@ Before opening a PR: `make build && make lint && make test` (CI runs the same, p
   bundle under the live process, invalidating its signature, and macOS silently drops the app's
   Accessibility grant. Every command then dies while System Settings still shows it enabled.
   `codesign -dvvv` on the built app showing `flags=…adhoc…` confirms it; quit, `rm -rf`, `make run`.
+- To compile-check **while** a signed app runs, build into a throwaway DerivedData so the live
+  bundle is untouched: `xcodebuild -project Azimuth.xcodeproj -scheme Azimuth -configuration Debug
+  -destination platform=macOS -derivedDataPath /tmp/az-check CODE_SIGNING_ALLOWED=NO build`.
+  `#if DEBUG` differs by configuration, so verify both `-configuration Debug` **and** `Release`
+  when a change touches a `#if DEBUG` block.
 - `main` is branch-protected: `lint-and-build` / `gitleaks` / `secret-scan` must go green before
   `gh pr merge --squash` (it reports `BLOCKED` until then).
+- Squash-merge **deletes the head branch**, so a PR stacked on it auto-closes on merge and GitHub
+  won't let you reopen or re-target it — recreate it against `main`. And when one PR moves code
+  another edits (e.g. splitting a test file that a second PR patches), merge the **content change
+  first, the move last**, or the mechanical PR conflicts.
 
 ## Non-negotiable rules
 
