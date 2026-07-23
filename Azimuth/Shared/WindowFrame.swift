@@ -17,6 +17,7 @@ nonisolated enum WindowResolutionError: Error, Equatable {
     case unsupportedWindowType(subrole: String?)
     case fullscreenWindow
     case invalidFrame
+    case messagingTimeoutConfigurationFailed(code: Int32)
     case axError(code: Int32)
 
     /// UI(상태바 메뉴·알림)에 그대로 노출된다 — 나머지 UI와 같이 영어로 유지(현지화는 추후 일괄).
@@ -36,6 +37,8 @@ nonisolated enum WindowResolutionError: Error, Equatable {
             "Full screen windows aren't supported"
         case .invalidFrame:
             "The window reported an invalid size or position"
+        case let .messagingTimeoutConfigurationFailed(code):
+            "Couldn't configure Accessibility messaging (error \(code))"
         case let .axError(code):
             "Couldn't access the window (error \(code))"
         }

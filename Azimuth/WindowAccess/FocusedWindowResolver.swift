@@ -31,13 +31,17 @@ enum FocusedWindowResolver {
         }
 
         let appElement = AXUIElementCreateApplication(app.processIdentifier)
-        setMessagingTimeout(on: appElement, label: "app")
+        if case let .failure(error) = setMessagingTimeout(on: appElement, label: "app") {
+            return .failure(error)
+        }
         let (windowOrNil, windowError) = AXAttribute.element(appElement, kAXFocusedWindowAttribute as String)
         guard windowError == .success, let window = windowOrNil else {
             return .failure(mapWindowLookupError(windowError))
         }
         // 타임아웃은 element 단위라 창 element에도 건다(이후 읽기 + WindowFrameWriter의 쓰기까지 적용).
-        setMessagingTimeout(on: window, label: "window")
+        if case let .failure(error) = setMessagingTimeout(on: window, label: "window") {
+            return .failure(error)
+        }
 
         // 풀스크린은 subrole로 구분 불가 → subrole 검사보다 먼저, 비공개 "AXFullScreen" 속성으로 판별.
         if AXAttribute.bool(window, fullScreenAttribute) == true {
@@ -85,13 +89,16 @@ enum FocusedWindowResolver {
         return resolveFocusedWindow(for: app)
     }
 
-    /// 타임아웃 설정 실패를 삼키지 않는다 — 실패하면 이후 AX 호출이 의도한 2초가 아니라 기본
-    /// 타임아웃(6초)으로 메인 스레드를 막는데, 조용히 넘기면 "왜 멈췄나"를 사후에 알 수 없다.
-    /// 명령을 중단시키지는 않는다(기본 타임아웃으로도 동작은 한다).
-    private static func setMessagingTimeout(on element: AXUIElement, label: String) {
+    /// 타임아웃 설정 실패 시 기본 6초 경로로 진행하지 않는다. SDK가 명시한 실패는 잘못된 양수 인자와
+    /// 무효 element뿐이다. 값은 상수 2.0이므로 어느 쪽이든 이후 AX 호출을 계속할 근거가 없다.
+    private static func setMessagingTimeout(
+        on element: AXUIElement,
+        label: String
+    ) -> Result<Void, WindowResolutionError> {
         let error = AXUIElementSetMessagingTimeout(element, messagingTimeout)
-        guard error != .success else { return }
-        Log.windows.error("SetMessagingTimeout(\(label)) failed (\(error.rawValue)) — default timeout applies")
+        guard error != .success else { return .success(()) }
+        Log.windows.error("SetMessagingTimeout(\(label)) failed (\(error.rawValue)) — resolution aborted")
+        return .failure(.messagingTimeoutConfigurationFailed(code: error.rawValue))
     }
 
     private static func mapWindowLookupError(_ error: AXError) -> WindowResolutionError {
