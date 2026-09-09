@@ -112,4 +112,16 @@ extension CommandEngineTests {
         expectName("undo identifier", WindowCommand.undo.identifier, "undo")
         expectName("unknown identifier is nil", "\(WindowCommand.command(forIdentifier: "nope") == nil)", "true")
     }
+
+    /// AX messaging timeout 정책의 불변식. `write`가 `resolve`보다 작아지면 WindowFrameWriter의
+    /// 상향이 이름과 반대로 상한을 *내리는* 동작이 되어, 쓰기 타임아웃이 `.transient`(조용한 스킵)로
+    /// 떨어지는 것을 막으려던 목적이 정확히 뒤집힌다. 컴파일 에러가 나지 않으므로 여기서 잡는다.
+    static func testMessagingTimeoutPolicy() {
+        expectName("write >= resolve", "\(AXMessagingTimeout.write >= AXMessagingTimeout.resolve)", "true")
+        expectName("invariantHolds", "\(AXMessagingTimeout.invariantHolds)", "true")
+        // 양수여야 한다 — AXUIElementSetMessagingTimeout은 0을 "전역 기본값(6초)으로 복귀"로 해석하고,
+        // 음수는 kAXErrorIllegalArgument다. 둘 다 이 설계가 막으려는 것이다.
+        expectName("resolve is positive", "\(AXMessagingTimeout.resolve > 0)", "true")
+        expectName("write is positive", "\(AXMessagingTimeout.write > 0)", "true")
+    }
 }

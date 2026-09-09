@@ -13,6 +13,7 @@
 | `BundleVersion.swift` | `Bundle` 확장 `displayVersion(prefix:)`. `CFBundleShortVersionString`(+빌드)를 표시용 버전 문자열로 조합. `AboutWindowController`·`ViewController`가 공유(버전 문자열 중복 제거) |
 | `WindowFrame.swift` | `nonisolated`. `WindowFrame`(origin/size→rect) 값 타입 + `WindowResolutionError`(권한/풀스크린/subrole/messaging-timeout/AX 코드 등 + 영어 `userFacingMessage`) |
 | `WindowCommandError.swift` | `nonisolated`. 명령 실행 상위 에러(`resolution`/`workAreaUnavailable`/`notMovable`/`applyFailed`/`noUndoState`) + `userFacingMessage` |
+| `AXMessagingTimeout.swift` | `nonisolated`. AX messaging timeout 값(`resolve` 0.5초 / `write` 2.0초)과 **둘의 대소 불변식**을 소유한다. 적용은 `WindowAccess/FocusedWindowResolver`(해석 진입)와 `WindowFrameWriter`(set 직전)로 나뉘지만 값은 여기 하나뿐이다. import 없는 순수 상수라 테스트 하네스에 포함되며, `write >= resolve`를 `make test`가 강제한다(어기면 상향이 상한을 *내리는* 동작이 되는데 컴파일 에러가 안 난다) |
 | `Log.swift` | `os.Logger` 카테고리(`app`, `windows`), subsystem `com.aiscream.Azimuth` |
 
 ## For AI Agents

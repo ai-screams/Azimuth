@@ -1,5 +1,6 @@
 import ApplicationServices
 import Foundation
+import os
 
 /// frame 적용 결과. achieved(마지막으로 읽은 실제 frame)를 성공·실패 양쪽에서 실어, Executor가
 /// "창이 실제로 변했는가"로 Undo를 판정하게 한다(부분 실패로 이동한 창의 복원 지점을 잃지 않고,
@@ -66,7 +67,22 @@ enum WindowFrameWriter {
             return FrameApplyResult(achieved: current, error: nil, mayHaveMutated: false)
         }
 
+        // 상한 상향은 여기서부터다 — 위 isSettable 2회는 해석 단계의 짧은 상한 그대로 돌았다.
+        // 상향의 근거는 "쓰기 타임아웃이 `.transient`(조용한 스킵)로 매핑된다"인데, 그 성질을 갖는
+        // 것은 `applyError`가 읽는 position/size **set 뿐**이다. isSettable 실패는 `.notMovable`/
+        // `.notResizable`로 사용자에게 보이므로 오히려 빨리 실패하는 편이 낫다 — 근거가 없는 곳까지
+        // 상한을 넓히면 예산 검사 어디에도 안 걸리는 대기만 늘어난다.
+        //
+        // 억제 probe/쓰기는 대상 앱 element를 쓴다. 이쪽까지 짧게 잡으면 느린 Electron 앱에서 억제가
+        // 걸리지 않아 KI-002 깜빡임이 나므로(억제가 필요한 바로 그 부류다) 넉넉한 상한을 준다.
+        //
+        // 상향 실패 시 중단하지 않는 것이 의도다: element는 해석 단계가 걸어둔 짧은 상한을 그대로
+        // 유지하므로 기본 6초로 되돌아가는 일이 없다 — WindowAccess/AGENTS.md가 금지하는 것은 그
+        // 6초 폴백이고, 0을 넘겨야 그렇게 된다. 짧은 상한으로 계속하는 편이 항상 더 안전하므로
+        // 중단으로 "고치지" 말 것.
+        raiseMessagingTimeout(on: resolved.appElement, label: "app")
         let didSuppress = suppressor.suppress(appElement: resolved.appElement, pid: resolved.pid)
+        raiseMessagingTimeout(on: element, label: "window")
         let result = writeFrame(target, to: element, current: current, workArea: workArea, anchor: anchor)
         if didSuppress { suppressor.scheduleRestore(pid: resolved.pid) }
         return result
@@ -195,6 +211,15 @@ enum WindowFrameWriter {
         else { return nil }
         let frame = CGRect(origin: origin, size: size)
         return FrameCalculator.isUsableFrame(frame) ? frame : nil
+    }
+
+    /// 쓰기 단계용 messaging timeout 상향. 실패는 로그만 남기고 진행한다(위 apply의 주석 참고).
+    private static func raiseMessagingTimeout(on element: AXUIElement, label: String) {
+        let error = AXUIElementSetMessagingTimeout(element, AXMessagingTimeout.write)
+        guard error != .success else { return }
+        Log.windows.error(
+            "SetMessagingTimeout(write/\(label)) failed (\(error.rawValue)) — keeping the shorter resolve timeout"
+        )
     }
 
     private static func isSettable(_ element: AXUIElement, _ attribute: String) -> Bool {

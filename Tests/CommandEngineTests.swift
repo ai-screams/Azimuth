@@ -37,6 +37,7 @@ enum CommandEngineTests {
         testCommandModel()
         testCommandHelpText()
         testCommandIdentifiers()
+        testMessagingTimeoutPolicy()
 
         if failures == 0 {
             print("PASS — all \(checks) checks")

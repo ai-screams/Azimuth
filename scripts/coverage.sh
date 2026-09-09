@@ -20,6 +20,7 @@ SRC=(
     "Azimuth/Commands/WindowCommand.swift"
     "Azimuth/Commands/DisplayGeometry.swift"
     "Azimuth/Commands/CommandOutcomePolicy.swift"
+    "Azimuth/Shared/AXMessagingTimeout.swift"
 )
 
 swiftc -profile-generate -profile-coverage-mapping "${SRC[@]}" "Tests/CommandEngineTests.swift" "Tests/CommandEngineTests+Frames.swift" "Tests/CommandEngineTests+Displays.swift" "Tests/CommandEngineTests+Apply.swift" "Tests/CommandEngineTests+Model.swift" \
