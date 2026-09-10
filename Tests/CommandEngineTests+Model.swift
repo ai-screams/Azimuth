@@ -185,6 +185,21 @@ extension CommandEngineTests {
         expectName("first visible has no separator",
                    "\(searching[firstVisible ?? .core]?.isSeparatorVisible == false)", "true")
 
+        // 구분선 양성 분기: 보이는 그룹 사이에 숨은 그룹이 끼어도 다음 보이는 그룹에 구분선이 붙는다.
+        // (CommandGroup 순서: core, halves, thirds, twoThirds, move, relative, display)
+        let separated = ShortcutListPolicy.display(
+            matchedCounts: [.thirds: 1, .relative: 1],
+            isSearching: true,
+            expanded: []
+        )
+        let actual = [separated[.thirds], separated[.twoThirds], separated[.relative]]
+        let expected: [ShortcutGroupDisplay?] = [
+            ShortcutGroupDisplay(isHeaderVisible: true, isExpanded: true, isSeparatorVisible: false),
+            ShortcutGroupDisplay(isHeaderVisible: false, isExpanded: false, isSeparatorVisible: false),
+            ShortcutGroupDisplay(isHeaderVisible: true, isExpanded: true, isSeparatorVisible: true)
+        ]
+        expectName("separators only between visible groups", "\(actual == expected)", "true")
+
         // 매칭 0건이면 아무 헤더도 보이지 않는다(빈 결과 라벨은 뷰가 처리).
         let none = ShortcutListPolicy.display(
             matchedCounts: Dictionary(uniqueKeysWithValues: all.map { ($0, 0) }),
