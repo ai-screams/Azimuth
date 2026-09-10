@@ -17,6 +17,7 @@ swiftc \
     "$ROOT_DIR/Azimuth/Commands/WindowCommand.swift" \
     "$ROOT_DIR/Azimuth/Commands/DisplayGeometry.swift" \
     "$ROOT_DIR/Azimuth/Commands/CommandOutcomePolicy.swift" \
+    "$ROOT_DIR/Azimuth/Shared/AXMessagingTimeout.swift" \
     "$ROOT_DIR/Tests/CommandEngineTests.swift" \
     "$ROOT_DIR/Tests/CommandEngineTests+Frames.swift" \
     "$ROOT_DIR/Tests/CommandEngineTests+Displays.swift" \
