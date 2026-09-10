@@ -11,7 +11,7 @@
 import Cocoa
 
 @MainActor
-final class ViewController: NSViewController {
+final class ViewController: NSViewController, SettingsPane {
     enum Layout {
         static let windowSize = NSSize(width: 560, height: 640)
         static let shortcutsContentWidth: CGFloat = 480
@@ -155,6 +155,14 @@ final class ViewController: NSViewController {
     func naturalContentHeight() -> CGFloat {
         view.layoutSubtreeIfNeeded()
         return documentView.frame.height
+    }
+
+    var paneTitle: String {
+        "General"
+    }
+
+    var paneSymbolName: String {
+        "gearshape"
     }
 
     override func viewDidLoad() {
