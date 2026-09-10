@@ -38,6 +38,8 @@ enum CommandEngineTests {
         testCommandHelpText()
         testCommandIdentifiers()
         testMessagingTimeoutPolicy()
+        testResolveTimeoutClamp()
+        testResolveTimeoutChoices()
 
         if failures == 0 {
             print("PASS — all \(checks) checks")

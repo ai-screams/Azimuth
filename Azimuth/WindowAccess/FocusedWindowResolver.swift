@@ -46,6 +46,11 @@ enum FocusedWindowResolver {
     // AX IPC는 동기라 응답 없는 앱이 메인 스레드를 막을 수 있다(기본 6초). 상한 값과 쓰기 단계와의
     // 대소 관계는 Shared/AXMessagingTimeout이 소유한다.
 
+    /// 해석 단계 messaging timeout(초). 기본값은 `AXMessagingTimeout.resolve`이고, 고급 설정에서
+    /// 바꾸면 `AppDelegate`가 **클램프된** 값을 주입한다(클램프는 `PreferencesStore`가 한다).
+    /// 여기에 원시 사용자 입력을 직접 대입하지 말 것 — 0은 AX가 6초 기본값 복귀로 해석한다.
+    static var resolveTimeout: Float = AXMessagingTimeout.resolve
+
     static func resolveFocusedWindow(for app: NSRunningApplication) -> Result<ResolvedWindow, WindowResolutionError> {
         guard AccessibilityPermissionService.currentStatus().isTrusted else {
             return .failure(.permissionDenied)
@@ -169,7 +174,7 @@ enum FocusedWindowResolver {
         on element: AXUIElement,
         label: String
     ) -> Result<Void, WindowResolutionError> {
-        let error = AXUIElementSetMessagingTimeout(element, AXMessagingTimeout.resolve)
+        let error = AXUIElementSetMessagingTimeout(element, resolveTimeout)
         guard error != .success else { return .success(()) }
         Log.windows.error("SetMessagingTimeout(\(label)) failed (\(error.rawValue)) — resolution aborted")
         return .failure(.messagingTimeoutConfigurationFailed(code: error.rawValue))

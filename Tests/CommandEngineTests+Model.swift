@@ -124,4 +124,35 @@ extension CommandEngineTests {
         expectName("resolve is positive", "\(AXMessagingTimeout.resolve > 0)", "true")
         expectName("write is positive", "\(AXMessagingTimeout.write > 0)", "true")
     }
+
+    /// 고급 설정에서 온 값의 클램프. 저장된 defaults는 손으로 편집될 수 있어 신뢰하지 않는 입력이다.
+    /// 특히 0은 AX가 "전역 기본값(6초) 복귀"로 해석하므로 반드시 걸러야 한다.
+    static func testResolveTimeoutClamp() {
+        let clamp = AXMessagingTimeout.clampedResolve
+        expectName("0 falls back to default", "\(clamp(0))", "\(AXMessagingTimeout.resolve)")
+        expectName("negative falls back", "\(clamp(-1))", "\(AXMessagingTimeout.resolve)")
+        expectName("NaN falls back", "\(clamp(Float.nan))", "\(AXMessagingTimeout.resolve)")
+        expectName("infinity falls back", "\(clamp(Float.infinity))", "\(AXMessagingTimeout.resolve)")
+        expectName("below floor clamps up", "\(clamp(0.01))", "\(AXMessagingTimeout.minResolve)")
+        expectName("above write clamps down", "\(clamp(99))", "\(AXMessagingTimeout.write)")
+        expectName("in-range passes through", "\(clamp(0.75))", "0.75")
+        // 클램프 결과는 언제나 쓰기 상한 이하여야 한다 — 넘으면 상향이 상한을 내리는 동작이 된다.
+        let violations = [Float(-5), 0, 0.01, 0.25, 0.5, 1, 2, 99, .nan].filter { clamp($0) > AXMessagingTimeout.write }
+        expectName("clamp never exceeds write", "\(violations.count)", "0")
+    }
+
+    /// 선택지의 값과 문구가 같이 움직이는지, 임의의 저장값에서도 팝업이 하나를 고르는지.
+    static func testResolveTimeoutChoices() {
+        expectName("choice count", "\(ResolveTimeoutChoice.allCases.count)", "3")
+        expectName("default is balanced", ResolveTimeoutChoice.default.rawValue, "balanced")
+        expectName("default seconds match resolve",
+                   "\(ResolveTimeoutChoice.default.seconds)", "\(AXMessagingTimeout.resolve)")
+        // 모든 선택지가 클램프를 통과해야 한다 — 통과 못 하면 UI가 고를 수 없는 값을 보여주는 것이다.
+        let unclampable = ResolveTimeoutChoice.allCases.filter { AXMessagingTimeout.clampedResolve($0.seconds) != $0.seconds }
+        expectName("every choice survives clamp", "\(unclampable.count)", "0")
+        expectName("nearest to 0.3 is quick", ResolveTimeoutChoice.nearest(toSeconds: 0.3).rawValue, "quick")
+        expectName("nearest to 5 is patient", ResolveTimeoutChoice.nearest(toSeconds: 5).rawValue, "patient")
+        expectName("titles are unique",
+                   "\(Set(ResolveTimeoutChoice.allCases.map { $0.title }).count)", "3")
+    }
 }
