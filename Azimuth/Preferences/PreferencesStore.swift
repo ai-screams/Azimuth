@@ -17,6 +17,7 @@ final class PreferencesStore {
     private let disabledGroupsKey = "disabledGroupTokens"
     private let menuBarIconHiddenKey = "menuBarIconHidden"
     private let didCompleteFirstRunKey = "didCompleteFirstRun"
+    private let resolveTimeoutKey = "resolveTimeout"
     private let migratedAbsoluteHalfRemovedKey = "migration.absoluteHalfRemoved.v1"
 
     /// feat/snap-throw-display: absolute half 명령 4개가 menuCommands에서 제거됨.
@@ -27,6 +28,17 @@ final class PreferencesStore {
         "absolute.vertical.half.first",
         "absolute.vertical.half.last"
     ]
+
+    /// 고급 설정: AX 해석 단계 messaging timeout(초). 저장 값은 손으로 편집될 수 있으므로
+    /// 읽을 때도 쓸 때도 클램프한다 — 0은 AX가 "전역 기본값(6초) 복귀"로 해석해서, 그대로 두면
+    /// 이 설정이 있다는 이유로 기본 동작이 조용히 나빠진다.
+    var resolveTimeout: Float {
+        get {
+            guard defaults.object(forKey: resolveTimeoutKey) != nil else { return AXMessagingTimeout.resolve }
+            return AXMessagingTimeout.clampedResolve(defaults.float(forKey: resolveTimeoutKey))
+        }
+        set { defaults.set(AXMessagingTimeout.clampedResolve(newValue), forKey: resolveTimeoutKey) }
+    }
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults

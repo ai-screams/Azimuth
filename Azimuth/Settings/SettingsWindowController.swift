@@ -14,6 +14,7 @@ final class SettingsWindowController {
     private let registrationFailures: () -> Set<String>
     private let setHotkeysSuspended: (Bool) -> Void
     private let setMenuBarIconHidden: (Bool) -> Void
+    private let setResolveTimeout: (Float) -> Void
     private let checkForUpdates: () -> Void
     private let requestNotificationAuthorization: () async -> NotificationAuthorizationResult
 
@@ -24,6 +25,7 @@ final class SettingsWindowController {
         registrationFailures: @escaping () -> Set<String>,
         setHotkeysSuspended: @escaping (Bool) -> Void,
         setMenuBarIconHidden: @escaping (Bool) -> Void,
+        setResolveTimeout: @escaping (Float) -> Void,
         checkForUpdates: @escaping () -> Void,
         requestNotificationAuthorization: @escaping () async -> NotificationAuthorizationResult
     ) {
@@ -33,6 +35,7 @@ final class SettingsWindowController {
         self.registrationFailures = registrationFailures
         self.setHotkeysSuspended = setHotkeysSuspended
         self.setMenuBarIconHidden = setMenuBarIconHidden
+        self.setResolveTimeout = setResolveTimeout
         self.checkForUpdates = checkForUpdates
         self.requestNotificationAuthorization = requestNotificationAuthorization
     }
@@ -69,6 +72,7 @@ final class SettingsWindowController {
             registrationFailures: registrationFailures,
             setHotkeysSuspended: setHotkeysSuspended,
             setMenuBarIconHidden: setMenuBarIconHidden,
+            setResolveTimeout: setResolveTimeout,
             checkForUpdates: checkForUpdates,
             requestNotificationAuthorization: requestNotificationAuthorization
         )

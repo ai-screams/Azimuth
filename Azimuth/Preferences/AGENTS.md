@@ -32,3 +32,6 @@
 - Foundation(UserDefaults).
 
 <!-- MANUAL: -->
+
+<!-- MANUAL -->
+- `resolveTimeout`(Float, 고급 설정): AX 해석 단계 messaging timeout(초). **읽기·쓰기 양쪽에서 `AXMessagingTimeout.clampedResolve`를 통과시킨다** — 저장 값은 손으로 편집될 수 있고, 0은 AX가 "전역 기본값(6초) 복귀"로 해석해서 그대로 두면 설정이 있다는 이유로 기본 동작이 조용히 나빠진다.

@@ -32,3 +32,6 @@
 - Cocoa(NSWindowController/NSWindow/NSScreen).
 
 <!-- MANUAL: -->
+
+<!-- MANUAL -->
+- Settings 카드 순서: Permissions → Shortcuts → Behavior → Updates → **Advanced**. Advanced는 기본값을 건드릴 필요가 없다는 신호로 맨 아래에 둔다(해석 상한 팝업 + 설명). 값 변경은 `setResolveTimeout` 클로저로 앱에 전달한다 — ViewController가 `WindowAccess`를 직접 건드리지 않는 기존 패턴(`setMenuBarIconHidden`)을 따른다.
