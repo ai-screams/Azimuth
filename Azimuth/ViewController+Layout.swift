@@ -88,8 +88,7 @@ extension ViewController {
             permissionsSection,
             shortcutsSection,
             behaviorSection,
-            updatesSection,
-            advancedSection
+            updatesSection
         ])
         stackView.alignment = .leading
         stackView.orientation = .vertical
@@ -99,28 +98,6 @@ extension ViewController {
     }
 
     /// 권한 상태 아이콘(✓/⚠) + 상태 텍스트를 한 줄로 묶는다.
-    /// 고급 설정: 해석 상한 선택. 값과 문구는 `ResolveTimeoutChoice`가 짝지어 소유하므로
-    /// 여기서는 인덱스가 아니라 `representedObject`로 선택지를 실어 어긋남을 막는다.
-    func makeResolveTimeoutPopUp() -> NSPopUpButton {
-        let popUp = NSPopUpButton(frame: .zero, pullsDown: false)
-        for choice in ResolveTimeoutChoice.allCases {
-            popUp.addItem(withTitle: choice.title)
-            popUp.lastItem?.representedObject = choice.rawValue
-        }
-        popUp.target = self
-        popUp.action = #selector(resolveTimeoutChanged(_:))
-        return popUp
-    }
-
-    func makeResolveTimeoutRow() -> NSStackView {
-        let label = NSTextField(labelWithString: "Wait for unresponsive apps:")
-        let row = NSStackView(views: [label, resolveTimeoutPopUp])
-        row.orientation = .horizontal
-        row.alignment = .firstBaseline
-        row.spacing = 8
-        return row
-    }
-
     func makePermissionStatusRow() -> NSStackView {
         statusIcon.imageScaling = .scaleProportionallyDown
         statusIcon.setAccessibilityElement(false) // 장식용 — 권한 상태는 statusLabel 텍스트가 전달한다

@@ -27,9 +27,6 @@ final class ViewController: NSViewController, SettingsPane {
     private let registrationFailures: () -> Set<String>
     private let setHotkeysSuspended: (Bool) -> Void
     let setMenuBarIconHidden: (Bool) -> Void
-    /// 고급 설정의 해석 상한 변경을 앱에 반영한다. ViewController가 WindowAccess를 직접
-    /// 건드리지 않도록 클로저로 받는다(setMenuBarIconHidden과 같은 패턴).
-    let setResolveTimeout: (Float) -> Void
     /// "Check for Updates…" 버튼 액션. Sparkle 업데이터를 모르도록(결합 회피) 클로저로 받는다.
     let checkForUpdates: () -> Void
     /// 알림 권한 요청 결과. UserNotifications를 모르도록 클로저로 받는다 —
@@ -43,7 +40,6 @@ final class ViewController: NSViewController, SettingsPane {
         registrationFailures: @escaping () -> Set<String>,
         setHotkeysSuspended: @escaping (Bool) -> Void,
         setMenuBarIconHidden: @escaping (Bool) -> Void,
-        setResolveTimeout: @escaping (Float) -> Void,
         checkForUpdates: @escaping () -> Void,
         requestNotificationAuthorization: @escaping () async -> NotificationAuthorizationResult
     ) {
@@ -53,7 +49,6 @@ final class ViewController: NSViewController, SettingsPane {
         self.registrationFailures = registrationFailures
         self.setHotkeysSuspended = setHotkeysSuspended
         self.setMenuBarIconHidden = setMenuBarIconHidden
-        self.setResolveTimeout = setResolveTimeout
         self.checkForUpdates = checkForUpdates
         self.requestNotificationAuthorization = requestNotificationAuthorization
         super.init(nibName: nil, bundle: nil)
@@ -127,18 +122,6 @@ final class ViewController: NSViewController, SettingsPane {
         title: "Updates",
         bodyViews: [versionLabel, checkForUpdatesButton]
     )
-    lazy var resolveTimeoutPopUp = makeResolveTimeoutPopUp()
-    lazy var resolveTimeoutRow = makeResolveTimeoutRow()
-    let resolveTimeoutHintLabel = NSTextField(wrappingLabelWithString:
-        "Shorter keeps Azimuth's menus responsive when an app hangs. "
-            + "Longer gives slow apps more time to answer. Leave this alone unless commands "
-            + "fail on apps that are merely slow.")
-    /// 기본값을 건드릴 필요가 없다는 신호로 맨 아래에 둔다.
-    lazy var advancedSection = SettingsCard.make(
-        symbolName: "slider.horizontal.3",
-        title: "Advanced",
-        bodyViews: [resolveTimeoutRow, resolveTimeoutHintLabel]
-    )
     lazy var contentStackView = makeContentStackView()
 
     /// 모든 콘텐츠를 담는 바깥 세로 스크롤뷰. 창을 콘텐츠보다 낮게 줄여도 하단 섹션이
@@ -207,9 +190,6 @@ final class ViewController: NSViewController, SettingsPane {
     /// 화면 표시·앱 활성화(didBecomeActive) 시점에 폴링해 갱신한다. 설정창이 떠 있는 채로
     /// System Settings에서 토글하면 다시 활성화될 때까지 갱신이 지연될 수 있다.
     func updateBehaviorUI() {
-        // 고급 설정: 저장된 값에 가장 가까운 선택지를 고른다(defaults가 손으로 편집됐어도 항상 하나).
-        let choice = ResolveTimeoutChoice.nearest(toSeconds: preferencesStore.resolveTimeout)
-        resolveTimeoutPopUp.selectItem(withTitle: choice.title)
         soundFeedbackButton.state = preferencesStore.soundFeedbackEnabled ? .on : .off
         notifyOnFailureButton.state = preferencesStore.notifyOnCommandFailure ? .on : .off
         // 창을 다시 열거나 앱이 활성화될 때마다 이전에 띄운 알림 권한 안내를 정리한다

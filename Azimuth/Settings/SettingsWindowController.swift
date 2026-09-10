@@ -70,7 +70,6 @@ final class SettingsWindowController {
             registrationFailures: registrationFailures,
             setHotkeysSuspended: setHotkeysSuspended,
             setMenuBarIconHidden: setMenuBarIconHidden,
-            setResolveTimeout: setResolveTimeout,
             checkForUpdates: checkForUpdates,
             requestNotificationAuthorization: requestNotificationAuthorization
         )
@@ -83,7 +82,11 @@ final class SettingsWindowController {
         window.title = "Azimuth Settings"
         // 컨트롤러가 창을 재사용하므로 닫을 때(⌘W·빨간버튼) 해제하지 않는다(ARC 과해제/재오픈 크래시 방지).
         window.isReleasedWhenClosed = false
-        let tabController = SettingsTabController(panes: [viewController])
+        let advancedPane = AdvancedPaneViewController(
+            preferencesStore: preferencesStore,
+            setResolveTimeout: setResolveTimeout
+        )
+        let tabController = SettingsTabController(panes: [viewController, advancedPane])
         window.contentViewController = tabController
         applyResizeLimits(to: window, tabController: tabController)
         window.center()
