@@ -31,6 +31,34 @@ final class AnimationSuppressor {
 
     init(restoreDelay: TimeInterval = 0.25) {
         self.restoreDelay = restoreDelay
+        NSWorkspace.shared.notificationCenter.addObserver(
+            self,
+            selector: #selector(appTerminated(_:)),
+            name: NSWorkspace.didTerminateApplicationNotification,
+            object: nil
+        )
+    }
+
+    deinit {
+        NSWorkspace.shared.notificationCenter.removeObserver(self)
+    }
+
+    /// 앱이 죽으면 그 PID의 억제 상태와 보류 중인 복원을 버린다.
+    ///
+    /// 이것이 PID 재사용에 대한 **실제** 방어다. `AXUIElementCreateApplication(pid)`는 그 PID를
+    /// 누가 점유하고 있든 CFEqual한 application element를 돌려주므로(아무도 점유한 적 없는 PID로
+    /// 만든 둘조차 CFEqual이다), element 동일성 비교로는 재사용을 걸러낼 수 없다. 종료 알림이
+    /// 프로세스 인스턴스 교체를 알 수 있는 유일한 지점이다.
+    ///
+    /// 죽은 앱에 복원을 쓰는 것은 어차피 무의미하고(`.invalidUIElement`), PID가 재사용됐다면
+    /// 적극적으로 틀린 쓰기다 — 취소하는 쪽이 양쪽 모두 옳다.
+    @objc private func appTerminated(_ notification: Notification) {
+        guard let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
+        else { return }
+        let pid = app.processIdentifier
+        pendingRestores[pid]?.cancel()
+        pendingRestores[pid] = nil
+        suppressed[pid] = nil
     }
 
     /// 쓰기 전 애니메이션 속성을 끈다. 복원 스케줄이 필요하면 true 반환(호출자가 쓰기 후 `scheduleRestore` 호출).
@@ -38,9 +66,14 @@ final class AnimationSuppressor {
     func suppress(appElement: AXUIElement, pid: pid_t) -> Bool {
         // VoiceOver 사용 중엔 토글하지 않는다(화면낭독 연결이 끊겨 멈추는 것 방지 — 스냅 정밀도보다 우선).
         if NSWorkspace.shared.isVoiceOverEnabled { return false }
-        // 연속 입력: 이미 끈 상태이므로 복원만 다시 미루면 된다. 단, pid 재사용(원래 앱이 죽고 같은 pid의
-        // 다른 앱)일 수 있으니 엘리먼트 동일성으로 확인한다.
-        if let existing = suppressed[pid], existing.appElement == appElement { return true }
+        // 연속 입력 병합: 이미 끈 상태이므로 복원만 다시 미루면 된다(호출자가 scheduleRestore를 다시
+        // 부른다). 여기서 조기 반환하는 진짜 이유는 **원본 값 보존**이다 — 라이브 값이 이미 false라
+        // 재판정하면 "원래부터 false였다"고 오판해 복원 정보를 영구히 잃는다.
+        //
+        // 이 분기는 pid 재사용을 방어하지 **않는다.** 예전 주석은 엘리먼트 동일성으로 걸러낸다고 했으나
+        // application element는 pid의 순수 함수라 점유자가 바뀌어도 CFEqual이다(그래서 그 조건절은
+        // 항상 참인 항진명제였다). 재사용 방어는 위 `appTerminated`가 한다.
+        if suppressed[pid] != nil { return true }
         let enhanced = AXAttribute.bool(appElement, enhancedUIAttribute) == true
         let manual = AXAttribute.bool(appElement, manualAccessibilityAttribute) == true
         // 둘 다 꺼져있거나 없으면(네이티브 AppKit 앱) 건드릴 필요 없음 — 부작용·IPC 0.
