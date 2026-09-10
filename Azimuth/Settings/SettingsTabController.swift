@@ -22,12 +22,10 @@ protocol SettingsPane: NSViewController {
 
 @MainActor
 final class SettingsTabController: NSTabViewController {
-    private let panes: [SettingsPane]
     /// 창 높이 하한. 이보다 낮아지면 페인 내부 스크롤뷰가 콘텐츠를 스크롤한다.
     static let minWindowHeight: CGFloat = 400
 
     init(panes: [SettingsPane]) {
-        self.panes = panes
         super.init(nibName: nil, bundle: nil)
         tabStyle = .toolbar
         for pane in panes {
@@ -44,15 +42,21 @@ final class SettingsTabController: NSTabViewController {
     }
 
     /// 선택된 페인의 자연 높이(최소 높이 이상). 창 사이징에 쓴다.
+    ///
+    /// `tabViewItems`(프레임워크가 소유)에서 직접 꺼낸다 — 별도 배열을 들고 인덱스로 맞추면
+    /// 범위는 맞는데 페인이 어긋나는 상태가 조용히 생길 수 있다(상속받은 addTabViewItem 등은
+    /// final 클래스에서도 외부 호출이 열려 있다).
     func preferredWindowHeight() -> CGFloat {
-        guard selectedTabViewItemIndex >= 0, selectedTabViewItemIndex < panes.count else {
-            // addTabViewItem이 뷰 로드 여부와 무관하게 첫 탭을 즉시 선택하므로(스탠드얼론 프로브로 확인)
-            // 정상 경로에서는 이 분기에 닿지 않는다. 그런데도 닿으면 400pt 창이 "성공"처럼 보이므로
-            // Debug 빌드에서만 알린다(Release에서는 assertionFailure가 no-op).
-            assertionFailure("selectedTabViewItemIndex out of range — falling back to minWindowHeight")
+        let items = tabViewItems
+        guard selectedTabViewItemIndex >= 0, selectedTabViewItemIndex < items.count,
+              let pane = items[selectedTabViewItemIndex].viewController as? SettingsPane
+        else {
+            // 정상 경로에서는 닿지 않는다(addTabViewItem이 첫 탭을 즉시 선택한다). 그런데도 닿으면
+            // 400pt 창이 "성공"처럼 보이므로 Debug 빌드에서만 알린다(Release는 no-op).
+            assertionFailure("no SettingsPane for selected tab — falling back to minWindowHeight")
             return Self.minWindowHeight
         }
-        return max(panes[selectedTabViewItemIndex].naturalContentHeight(), Self.minWindowHeight)
+        return max(pane.naturalContentHeight(), Self.minWindowHeight)
     }
 
     /// 탭을 바꾸면 창 높이를 그 페인에 맞춘다. 폭은 고정이라 건드리지 않는다.

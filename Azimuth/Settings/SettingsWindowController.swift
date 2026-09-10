@@ -94,7 +94,11 @@ final class SettingsWindowController {
     /// 최소 높이 아래로 줄여도 페인 내부 스크롤뷰가 콘텐츠를 스크롤하므로 어떤 섹션도 잘리지 않는다.
     /// 최대 높이는 선택된 페인의 자연 높이로 두어, 그 이상 늘려 빈 공간이 생기지 않게 한다.
     private func applyResizeLimits(to window: NSWindow, tabController: SettingsTabController) {
-        window.setContentSize(NSSize(width: Self.windowWidth, height: 640)) // 폭을 확정한 뒤 자연 높이 측정.
+        // 폭을 확정한 뒤 자연 높이를 잰다. 탭 컨트롤러 도입 후로 이 호출은 방어가 아니라 **필수**다 —
+        // 탭뷰에 막 추가된 페인 뷰의 기본 프레임은 560x640이 아니라 500x500이고, 이 setContentSize가
+        // 탭뷰를 통해 페인을 창 폭에 맞추는 유일한 트리거다. 지우면 자연 높이가 틀린 폭 기준으로
+        // 계산되어 라벨 줄바꿈이 달라지는데, 이 값을 테스트하는 하네스가 없어 아무 것도 못 잡는다.
+        window.setContentSize(NSSize(width: Self.windowWidth, height: 640))
         let height = tabController.preferredWindowHeight()
         window.contentMinSize = NSSize(width: Self.windowWidth, height: SettingsTabController.minWindowHeight)
         window.contentMaxSize = NSSize(width: Self.windowWidth, height: height)
