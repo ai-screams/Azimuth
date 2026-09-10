@@ -10,6 +10,27 @@ nonisolated struct ResolvedWindow: Equatable {
     let subrole: String
     let pid: pid_t
     let frame: WindowFrame
+
+    /// `FocusedWindowResolver`만 만들 수 있다. 자동 생성되는 internal memberwise init을 막는 것이
+    /// 목적이다 — 모듈 안 누구나 raw `AXUIElement`로 하나 만들 수 있으면 그 element에는 해석 단계의
+    /// messaging timeout이 걸려 있지 않아 AX 호출이 기본 6초로 나간다.
+    ///
+    /// `WindowFrameWriter.apply`가 상한 상향에 실패해도 중단하지 않는 근거("element는 해석 단계가
+    /// 걸어둔 짧은 상한을 유지한다")가 바로 이 불변식에 기대고 있고, `WindowAccess/AGENTS.md`는
+    /// 그 6초 폴백을 금지한다. 관례가 아니라 컴파일러가 지키게 한다.
+    fileprivate init(
+        element: AXUIElement,
+        appElement: AXUIElement,
+        subrole: String,
+        pid: pid_t,
+        frame: WindowFrame
+    ) {
+        self.element = element
+        self.appElement = appElement
+        self.subrole = subrole
+        self.pid = pid
+        self.frame = frame
+    }
 }
 
 @MainActor
