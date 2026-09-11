@@ -14,7 +14,6 @@ import Cocoa
 final class ViewController: NSViewController, SettingsPane {
     enum Layout {
         static let windowSize = NSSize(width: 560, height: 640)
-        static let shortcutsContentWidth: CGFloat = 480
         static let contentInset: CGFloat = 24
         static let sectionSpacing: CGFloat = 16
         static let titleFontSize: CGFloat = 22
@@ -23,9 +22,6 @@ final class ViewController: NSViewController, SettingsPane {
 
     let preferencesStore: PreferencesStore
     let launchService: LaunchAtLoginService
-    private let onHotkeysChanged: () -> Void
-    private let registrationFailures: () -> Set<String>
-    private let setHotkeysSuspended: (Bool) -> Void
     let setMenuBarIconHidden: (Bool) -> Void
     /// "Check for Updates…" 버튼 액션. Sparkle 업데이터를 모르도록(결합 회피) 클로저로 받는다.
     let checkForUpdates: () -> Void
@@ -36,18 +32,12 @@ final class ViewController: NSViewController, SettingsPane {
     init(
         preferencesStore: PreferencesStore,
         launchService: LaunchAtLoginService,
-        onHotkeysChanged: @escaping () -> Void,
-        registrationFailures: @escaping () -> Set<String>,
-        setHotkeysSuspended: @escaping (Bool) -> Void,
         setMenuBarIconHidden: @escaping (Bool) -> Void,
         checkForUpdates: @escaping () -> Void,
         requestNotificationAuthorization: @escaping () async -> NotificationAuthorizationResult
     ) {
         self.preferencesStore = preferencesStore
         self.launchService = launchService
-        self.onHotkeysChanged = onHotkeysChanged
-        self.registrationFailures = registrationFailures
-        self.setHotkeysSuspended = setHotkeysSuspended
         self.setMenuBarIconHidden = setMenuBarIconHidden
         self.checkForUpdates = checkForUpdates
         self.requestNotificationAuthorization = requestNotificationAuthorization
@@ -70,13 +60,6 @@ final class ViewController: NSViewController, SettingsPane {
     lazy var actionButton = makeActionButton()
     lazy var permissionStatusRow = makePermissionStatusRow()
 
-    lazy var shortcutsSectionView = ShortcutsSectionView(
-        preferencesStore: preferencesStore,
-        onHotkeysChanged: onHotkeysChanged,
-        registrationFailures: registrationFailures,
-        setHotkeysSuspended: setHotkeysSuspended
-    )
-
     lazy var soundFeedbackButton = makeSoundFeedbackButton()
     lazy var notifyOnFailureButton = makeNotifyOnFailureButton()
     /// 알림 권한이 거부/실패라 토글을 켜지 못했을 때 System Settings로 안내하는 라벨
@@ -97,11 +80,6 @@ final class ViewController: NSViewController, SettingsPane {
         symbolName: "lock.shield",
         title: "Permissions",
         bodyViews: [permissionStatusRow, detailLabel, actionButton]
-    )
-    lazy var shortcutsSection = SettingsCard.make(
-        symbolName: "keyboard",
-        title: "Shortcuts",
-        bodyViews: [shortcutsSectionView]
     )
     lazy var behaviorSection = SettingsCard.make(
         symbolName: "gearshape",
@@ -166,7 +144,6 @@ final class ViewController: NSViewController, SettingsPane {
         super.viewWillAppear()
         updatePermissionUI()
         updateBehaviorUI()
-        shortcutsSectionView.refresh()
     }
 
     deinit {

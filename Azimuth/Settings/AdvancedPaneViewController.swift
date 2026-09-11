@@ -69,7 +69,13 @@ final class AdvancedPaneViewController: NSViewController, SettingsPane {
 
     func naturalContentHeight() -> CGFloat {
         view.layoutSubtreeIfNeeded()
-        return documentView?.frame.height ?? 0
+        guard let documentView else {
+            // 0을 그대로 흘리면 max(0, 400)이 400pt 창을 만들어 "짧아졌다"가 성공처럼 보인다.
+            // 실은 측정 실패다. Debug 빌드에서만 알린다(Release는 no-op).
+            assertionFailure("documentView not installed — height measurement unavailable")
+            return SettingsTabController.minWindowHeight
+        }
+        return documentView.frame.height
     }
 
     /// 저장된 값에 가장 가까운 선택지를 고른다(defaults가 손으로 편집됐어도 항상 하나).

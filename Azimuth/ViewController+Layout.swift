@@ -24,10 +24,6 @@ extension ViewController {
         scrollView.documentView = documentView
         view.addSubview(scrollView)
 
-        shortcutsSectionView.widthAnchor.constraint(
-            equalToConstant: Layout.shortcutsContentWidth
-        ).isActive = true
-
         NSLayoutConstraint.activate([
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
@@ -86,7 +82,6 @@ extension ViewController {
             titleLabel,
             subtitleLabel,
             permissionsSection,
-            shortcutsSection,
             behaviorSection,
             updatesSection
         ])
