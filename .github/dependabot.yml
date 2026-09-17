@@ -14,9 +14,9 @@ updates:
     open-pull-requests-limit: 5
     commit-message:
       prefix: "ci"
-    labels:
-      - "dependencies"
-      - "github-actions"
+    # 라벨은 Dependabot 기본값(dependencies)에 맡긴다. labels: 로 지정한 커스텀 라벨은 리포에
+    # 미리 없으면 조용히 무시되지만, 기본 라벨은 Dependabot이 필요할 때 직접 만든다.
+    # https://docs.github.com/code-security/dependabot/working-with-dependabot/dependabot-options-reference#labels
     # PR 노이즈를 줄이기 위해 minor/patch 업데이트를 한 PR로 묶는다.
     groups:
       actions-minor-patch:
