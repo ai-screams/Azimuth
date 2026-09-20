@@ -70,7 +70,7 @@ final class SettingsTabController: NSTabViewController {
 
     func resizeWindowToSelectedPane() {
         guard let window = view.window else { return }
-        let width = window.contentLayoutRect.width
+        let width = Self.windowWidth // contentMinSize 와 같은 출처 — 어긋나면 min/max 폭이 갈린다
         let height = preferredWindowHeight()
         window.contentMaxSize = NSSize(width: width, height: height)
         window.setContentSize(NSSize(width: width, height: height))

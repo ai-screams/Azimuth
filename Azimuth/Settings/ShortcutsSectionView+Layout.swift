@@ -93,17 +93,28 @@ extension ShortcutsSectionView {
     }
 
     /// 그룹 경계 구분선. 첫 그룹 위에는 두지 않는다(필터링 시 applyFilter가 다시 계산).
+    ///
+    /// 위 간격은 구분선 컨테이너 **안에** 넣는다. 앞 그룹의 마지막 행에 "after" 간격을 걸면 그 행이
+    /// 숨을 때(접힘·검색) NSStackView가 간격도 함께 버려 위 6pt/아래 12pt로 어긋난다 — 접힘이 기본
+    /// 상태가 되면서 그게 평소 모습이 된다. 컨테이너 여백은 위에 무엇이 보이든 일정하다.
     func addGroupSeparator(for group: CommandGroup, isFirst: Bool) {
         let separator = NSBox()
         separator.boxType = .separator
         separator.translatesAutoresizingMaskIntoConstraints = false
-        separator.isHidden = isFirst
-        let previous = rowsStack.arrangedSubviews.last
-        rowsStack.addArrangedSubview(separator)
-        separator.widthAnchor.constraint(equalTo: rowsStack.widthAnchor).isActive = true
-        if let previous { rowsStack.setCustomSpacing(Metric.groupGap, after: previous) }
-        rowsStack.setCustomSpacing(Metric.groupGap, after: separator)
-        groupSeparators[group.token] = separator
+        let container = NSView()
+        container.translatesAutoresizingMaskIntoConstraints = false
+        container.addSubview(separator)
+        container.isHidden = isFirst
+        rowsStack.addArrangedSubview(container)
+        NSLayoutConstraint.activate([
+            container.widthAnchor.constraint(equalTo: rowsStack.widthAnchor),
+            separator.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            separator.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            separator.topAnchor.constraint(equalTo: container.topAnchor, constant: Metric.groupGap - Metric.rowSpacing),
+            separator.bottomAnchor.constraint(equalTo: container.bottomAnchor)
+        ])
+        rowsStack.setCustomSpacing(Metric.groupGap, after: container)
+        groupSeparators[group.token] = container
     }
 
     /// 그룹 헤더는 컨트롤 두 개를 나란히 둔다. **의미가 다르므로** 접근성 레이블로 구분한다.
@@ -114,7 +125,7 @@ extension ShortcutsSectionView {
         disclosure.bezelStyle = .disclosure
         disclosure.setButtonType(.onOff)
         disclosure.state = .off
-        disclosure.setAccessibilityLabel("Show \(group.displayName) shortcuts")
+        disclosure.setAccessibilityLabel("\(group.displayName) shortcuts") // 펼침/접힘은 disclosure 역할이 전달한다
         groupDisclosures[group.token] = disclosure
 
         let toggle = NSButton(checkboxWithTitle: group.displayName, target: self, action: #selector(groupToggled(_:)))
@@ -247,7 +258,9 @@ extension ShortcutsSectionView {
             groupContainers[group.token]?.isHidden = !state.isHeaderVisible
             groupSeparators[group.token]?.isHidden = !state.isSeparatorVisible
             // 검색 중에는 자동으로 펼쳐지므로 삼각형도 그 상태를 반영해야 어긋나 보이지 않는다.
+            // 그 상태는 사용자가 고른 것이 아니므로 검색 중엔 삼각형을 비활성화한다(누르면 모델과 어긋난다).
             groupDisclosures[group.token]?.state = state.isExpanded ? .on : .off
+            groupDisclosures[group.token]?.isEnabled = !isSearching
         }
         emptyLabel.isHidden = !matchedCounts.isEmpty || !isSearching
     }
@@ -280,12 +293,22 @@ extension ShortcutsSectionView {
     }
 
     /// 삼각형 토글. 표시만 바꾸고 핫키 등록은 건드리지 않는다(체크박스와 독립).
+    ///
+    /// 위젯 상태(`sender.state`)가 아니라 모델(`expandedGroups`)을 기준으로 뒤집는다. 검색 중에는
+    /// `applyFilter`가 매칭 그룹의 삼각형을 모델과 무관하게 `.on`으로 두므로, 위젯을 믿으면 클릭 한 번이
+    /// 모델을 조용히 지우고(검색을 지운 뒤 펼쳐 뒀던 그룹이 접혀 있음) 창까지 다시 맞춘다.
+    /// 검색 중에는 삼각형을 비활성화하므로 여기 오지 않지만, 같은 이유로 방어적으로 한 번 더 거른다.
     @objc func groupDisclosureToggled(_ sender: NSButton) {
         guard let token = groupDisclosures.first(where: { $0.value == sender })?.key,
               let group = CommandGroup.allCases.first(where: { $0.token == token })
         else { return }
-        if sender.state == .on { expandedGroups.insert(group) } else { expandedGroups.remove(group) }
-        applyFilter(searchField.stringValue)
+        let query = searchField.stringValue.trimmingCharacters(in: .whitespaces)
+        guard query.isEmpty else {
+            applyFilter(query) // 위젯 상태를 정책대로 되돌린다
+            return
+        }
+        if expandedGroups.contains(group) { expandedGroups.remove(group) } else { expandedGroups.insert(group) }
+        applyFilter("")
         onExpansionChanged?()
     }
 
