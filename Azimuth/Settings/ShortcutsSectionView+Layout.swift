@@ -3,7 +3,7 @@
 //  Azimuth
 //
 //  ShortcutsSectionView의 레이아웃 구성·검색 필터·프리셋/행 액션. 본문 스크롤은 갖지 않고
-//  바깥 설정창 스크롤(ViewController)에 맡긴다 — 스크롤 중첩을 피한다.
+//  바깥 설정창 스크롤(GeneralPaneViewController)에 맡긴다 — 스크롤 중첩을 피한다.
 //
 
 import Cocoa

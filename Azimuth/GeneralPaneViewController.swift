@@ -1,17 +1,17 @@
 //
-//  ViewController.swift
+//  GeneralPaneViewController.swift
 //  Azimuth
 //
 //  Created by hanyul on 3/31/26.
 //
-//  설정창 본체: 프로퍼티·생명주기·상태 갱신. 레이아웃 구성과 팩토리는 `ViewController+Layout`,
-//  @objc 액션 핸들러는 `ViewController+Actions`에 분리한다(파일 비대화 방지, ShortcutsSectionView 규약).
+//  General 탭: 권한 상태 · 동작 설정 · 업데이트. 레이아웃 팩토리는 `GeneralPane+Layout`,
+//  @objc 액션은 `GeneralPane+Actions`에 둔다(파일 비대화 방지, ShortcutsSectionView 규약).
 //
 
 import Cocoa
 
 @MainActor
-final class ViewController: NSViewController, SettingsPane {
+final class GeneralPaneViewController: NSViewController, SettingsPane {
     enum Layout {
         static let windowSize = NSSize(width: 560, height: 640)
         static let contentInset: CGFloat = 24

@@ -1,14 +1,14 @@
 //
-//  ViewController+Layout.swift
+//  GeneralPane+Layout.swift
 //  Azimuth
 //
-//  설정창 레이아웃 구성(스크롤뷰·콘텐츠 스택)·폰트·서브뷰 팩토리. 본체는 ViewController,
-//  @objc 액션은 ViewController+Actions에 둔다.
+//  General 탭 레이아웃 구성(스크롤뷰·콘텐츠 스택)·폰트·서브뷰 팩토리. 본체는 GeneralPaneViewController,
+//  @objc 액션은 GeneralPane+Actions에 둔다.
 //
 
 import Cocoa
 
-extension ViewController {
+extension GeneralPaneViewController {
     func configureView() {
         configureFonts()
 

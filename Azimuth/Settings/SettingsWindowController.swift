@@ -63,7 +63,7 @@ final class SettingsWindowController {
     }
 
     private func makeWindowController() -> NSWindowController {
-        let viewController = ViewController(
+        let generalPane = GeneralPaneViewController(
             preferencesStore: preferencesStore,
             launchService: launchService,
             setMenuBarIconHidden: setMenuBarIconHidden,
@@ -89,7 +89,7 @@ final class SettingsWindowController {
             preferencesStore: preferencesStore,
             setResolveTimeout: setResolveTimeout
         )
-        let tabController = SettingsTabController(panes: [viewController, shortcutsPane, advancedPane])
+        let tabController = SettingsTabController(panes: [generalPane, shortcutsPane, advancedPane])
         window.contentViewController = tabController
         applyResizeLimits(to: window, tabController: tabController)
         window.center()

@@ -1,15 +1,15 @@
 //
-//  ViewController+Actions.swift
+//  GeneralPane+Actions.swift
 //  Azimuth
 //
-//  설정창 @objc 액션 핸들러(권한·사운드·메뉴바 아이콘·로그인 항목). UI 구성은 ViewController+Layout,
-//  상태 갱신(updatePermissionUI/updateBehaviorUI)은 ViewController 본체에 둔다.
+//  General 탭 @objc 액션 핸들러(권한·사운드·메뉴바 아이콘·로그인 항목). UI 구성은 GeneralPane+Layout,
+//  상태 갱신(updatePermissionUI/updateBehaviorUI)은 GeneralPaneViewController 본체에 둔다.
 //
 
 import Cocoa
 import os
 
-extension ViewController {
+extension GeneralPaneViewController {
     @objc func openAccessibilitySettings(_ sender: Any?) {
         _ = AccessibilityPermissionService.requestPrompt()
 
