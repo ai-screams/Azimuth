@@ -2,8 +2,8 @@
 //  ShortcutsSectionView+Layout.swift
 //  Azimuth
 //
-//  ShortcutsSectionView의 레이아웃 구성·검색 필터·프리셋/행 액션. 본문 스크롤은 갖지 않고
-//  바깥 설정창 스크롤(GeneralPaneViewController)에 맡긴다 — 스크롤 중첩을 피한다.
+//  ShortcutsSectionView의 레이아웃 구성·검색 필터·접기·프리셋/행 액션. 본문 스크롤은 갖지 않고
+//  바깥 페인 스크롤(ShortcutsPaneViewController)에 맡긴다 — 스크롤 중첩을 피한다.
 //
 
 import Cocoa
@@ -106,13 +106,24 @@ extension ShortcutsSectionView {
         groupSeparators[group.token] = separator
     }
 
+    /// 그룹 헤더는 컨트롤 두 개를 나란히 둔다. **의미가 다르므로** 접근성 레이블로 구분한다.
+    ///  - 삼각형: 하위 명령 행을 보이거나 감춘다(표시 전용).
+    ///  - 체크박스: 그 그룹의 핫키 등록을 켜고 끈다(기능). 접힘과 무관하게 동작한다.
     func addGroupHeader(_ group: CommandGroup) {
+        let disclosure = NSButton(title: "", target: self, action: #selector(groupDisclosureToggled(_:)))
+        disclosure.bezelStyle = .disclosure
+        disclosure.setButtonType(.onOff)
+        disclosure.state = .off
+        disclosure.setAccessibilityLabel("Show \(group.displayName) shortcuts")
+        groupDisclosures[group.token] = disclosure
+
         let toggle = NSButton(checkboxWithTitle: group.displayName, target: self, action: #selector(groupToggled(_:)))
         toggle.font = .systemFont(ofSize: Metric.captionFontSize, weight: .bold)
         groupToggles[group.token] = toggle
 
-        let container = NSStackView(views: [toggle])
+        let container = NSStackView(views: [disclosure, toggle])
         container.orientation = .horizontal
+        container.spacing = 4
         container.translatesAutoresizingMaskIntoConstraints = false
         rowsStack.addArrangedSubview(container)
         container.widthAnchor.constraint(equalTo: rowsStack.widthAnchor).isActive = true
@@ -214,31 +225,31 @@ extension ShortcutsSectionView {
         return control
     }
 
-    /// 검색어로 행·그룹 헤더·구분선 표시를 토글한다(빈 검색이면 모두 표시).
-    /// 구분선은 "보이는 그룹들 사이"에만 둔다 — 첫 보이는 그룹 위에는 두지 않는다.
+    /// 검색어와 접힘 상태로 행·헤더·구분선 표시를 정한다. 판정은 `ShortcutListPolicy`가 하고
+    /// 여기서는 뷰에 적용만 한다 — 검색과 접힘의 상호작용은 테스트로 고정돼 있다.
     func applyFilter(_ rawQuery: String) {
-        let query = rawQuery.trimmingCharacters(in: .whitespaces).lowercased()
-        var anyVisible = false
-        var seenVisibleGroup = false
-        for group in CommandGroup.allCases {
-            let groupRows = rows.filter { $0.command.group == group }
-            guard !groupRows.isEmpty else { continue }
-            var groupVisible = false
-            for row in groupRows {
-                let match = query.isEmpty
-                    || row.command.displayName.lowercased().contains(query)
-                    || group.displayName.lowercased().contains(query)
-                row.container.isHidden = !match
-                if match {
-                    groupVisible = true
-                    anyVisible = true
-                }
-            }
-            groupContainers[group.token]?.isHidden = !groupVisible
-            groupSeparators[group.token]?.isHidden = !(groupVisible && seenVisibleGroup)
-            if groupVisible { seenVisibleGroup = true }
+        let query = rawQuery.trimmingCharacters(in: .whitespaces)
+        let isSearching = !query.isEmpty
+        var matchedCounts: [CommandGroup: Int] = [:]
+        for row in rows where ShortcutListPolicy.matches(query: query, command: row.command) {
+            matchedCounts[row.command.group, default: 0] += 1
         }
-        emptyLabel.isHidden = anyVisible || query.isEmpty
+        let display = ShortcutListPolicy.display(
+            matchedCounts: matchedCounts, isSearching: isSearching, expanded: expandedGroups
+        )
+        for row in rows {
+            let group = display[row.command.group]
+            let matched = ShortcutListPolicy.matches(query: query, command: row.command)
+            row.container.isHidden = !(matched && group?.isExpanded == true)
+        }
+        for group in CommandGroup.allCases {
+            guard let state = display[group] else { continue }
+            groupContainers[group.token]?.isHidden = !state.isHeaderVisible
+            groupSeparators[group.token]?.isHidden = !state.isSeparatorVisible
+            // 검색 중에는 자동으로 펼쳐지므로 삼각형도 그 상태를 반영해야 어긋나 보이지 않는다.
+            groupDisclosures[group.token]?.state = state.isExpanded ? .on : .off
+        }
+        emptyLabel.isHidden = !matchedCounts.isEmpty || !isSearching
     }
 
     func capture(_ shortcut: HotkeyShortcut, for command: WindowCommand) {
@@ -266,6 +277,16 @@ extension ShortcutsSectionView {
         preferencesStore.clearAllShortcuts()
         onHotkeysChanged()
         refresh()
+    }
+
+    /// 삼각형 토글. 표시만 바꾸고 핫키 등록은 건드리지 않는다(체크박스와 독립).
+    @objc func groupDisclosureToggled(_ sender: NSButton) {
+        guard let token = groupDisclosures.first(where: { $0.value == sender })?.key,
+              let group = CommandGroup.allCases.first(where: { $0.token == token })
+        else { return }
+        if sender.state == .on { expandedGroups.insert(group) } else { expandedGroups.remove(group) }
+        applyFilter(searchField.stringValue)
+        onExpansionChanged?()
     }
 
     @objc func groupToggled(_ sender: NSButton) {
