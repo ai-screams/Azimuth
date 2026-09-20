@@ -1,15 +1,15 @@
 //
-//  ViewController+Actions.swift
+//  GeneralPane+Actions.swift
 //  Azimuth
 //
-//  설정창 @objc 액션 핸들러(권한·사운드·메뉴바 아이콘·로그인 항목). UI 구성은 ViewController+Layout,
-//  상태 갱신(updatePermissionUI/updateBehaviorUI)은 ViewController 본체에 둔다.
+//  General 탭 @objc 액션 핸들러(권한·사운드·메뉴바 아이콘·로그인 항목). UI 구성은 GeneralPane+Layout,
+//  상태 갱신(updatePermissionUI/updateBehaviorUI)은 GeneralPaneViewController 본체에 둔다.
 //
 
 import Cocoa
 import os
 
-extension ViewController {
+extension GeneralPaneViewController {
     @objc func openAccessibilitySettings(_ sender: Any?) {
         _ = AccessibilityPermissionService.requestPrompt()
 
@@ -96,17 +96,5 @@ extension ViewController {
 
     @objc func checkForUpdatesClicked(_ sender: Any?) {
         checkForUpdates()
-    }
-
-    /// 고급 설정: 해석 상한 변경. 선택지는 `representedObject`로 실려 있어 팝업 순서가 바뀌어도
-    /// 값이 어긋나지 않는다. 저장은 `PreferencesStore`가 클램프해서 하고, 실행 중인 앱에는
-    /// 주입 클로저로 즉시 반영한다(재시작 없이 다음 명령부터 적용된다).
-    @objc func resolveTimeoutChanged(_ sender: NSPopUpButton) {
-        guard let raw = sender.selectedItem?.representedObject as? String,
-              let choice = ResolveTimeoutChoice(rawValue: raw)
-        else { return }
-        preferencesStore.resolveTimeout = choice.seconds
-        setResolveTimeout(preferencesStore.resolveTimeout)
-        Log.app.info("Resolve timeout set to \(choice.rawValue, privacy: .public)")
     }
 }

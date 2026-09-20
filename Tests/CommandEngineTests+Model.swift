@@ -155,4 +155,64 @@ extension CommandEngineTests {
         expectName("titles are unique",
                    "\(Set(ResolveTimeoutChoice.allCases.map { $0.title }).count)", "3")
     }
+
+    /// 검색·접힘 상호작용. 이 판정이 틀리면 "검색했는데 결과가 접혀서 안 보인다"가 된다.
+    static func testShortcutListPolicy() {
+        let all = CommandGroup.allCases
+        // 검색 없음: 헤더는 다 보이고, 펼침은 expanded 집합만 따른다.
+        let idle = ShortcutListPolicy.display(
+            matchedCounts: Dictionary(uniqueKeysWithValues: all.map { ($0, 1) }),
+            isSearching: false,
+            expanded: [.halves]
+        )
+        expectName("idle: halves expanded", "\(idle[.halves]?.isExpanded == true)", "true")
+        expectName("idle: thirds collapsed", "\(idle[.thirds]?.isExpanded == false)", "true")
+        expectName("idle: header visible", "\(idle[.thirds]?.isHeaderVisible == true)", "true")
+
+        // 검색 중: 매칭된 그룹만 보이고 자동으로 펼쳐진다(expanded 집합과 무관).
+        let searching = ShortcutListPolicy.display(
+            matchedCounts: [.halves: 2, .thirds: 0],
+            isSearching: true,
+            expanded: []
+        )
+        expectName("search: matched auto-expands", "\(searching[.halves]?.isExpanded == true)", "true")
+        expectName("search: matched header shown", "\(searching[.halves]?.isHeaderVisible == true)", "true")
+        expectName("search: unmatched hidden", "\(searching[.thirds]?.isHeaderVisible == false)", "true")
+        expectName("search: unmatched not expanded", "\(searching[.thirds]?.isExpanded == false)", "true")
+
+        // 구분선은 "보이는 그룹들 사이"에만. 첫 보이는 그룹 위에는 없다.
+        let firstVisible = all.first { searching[$0]?.isHeaderVisible == true }
+        expectName("first visible has no separator",
+                   "\(searching[firstVisible ?? .core]?.isSeparatorVisible == false)", "true")
+
+        // 구분선 양성 분기: 보이는 그룹 사이에 숨은 그룹이 끼어도 다음 보이는 그룹에 구분선이 붙는다.
+        // (CommandGroup 순서: core, halves, thirds, twoThirds, move, relative, display)
+        let separated = ShortcutListPolicy.display(
+            matchedCounts: [.thirds: 1, .relative: 1],
+            isSearching: true,
+            expanded: []
+        )
+        let actual = [separated[.thirds], separated[.twoThirds], separated[.relative]]
+        let expected: [ShortcutGroupDisplay?] = [
+            ShortcutGroupDisplay(isHeaderVisible: true, isExpanded: true, isSeparatorVisible: false),
+            ShortcutGroupDisplay(isHeaderVisible: false, isExpanded: false, isSeparatorVisible: false),
+            ShortcutGroupDisplay(isHeaderVisible: true, isExpanded: true, isSeparatorVisible: true)
+        ]
+        expectName("separators only between visible groups", "\(actual == expected)", "true")
+
+        // 매칭 0건이면 아무 헤더도 보이지 않는다(빈 결과 라벨은 뷰가 처리).
+        let none = ShortcutListPolicy.display(
+            matchedCounts: Dictionary(uniqueKeysWithValues: all.map { ($0, 0) }),
+            isSearching: true,
+            expanded: [.halves]
+        )
+        expectName("no match: nothing visible", "\(none.values.filter { $0.isHeaderVisible }.count)", "0")
+
+        // matches: 명령명과 그룹명 양쪽에 걸린다(기존 applyFilter 동작 유지).
+        let leftHalf = WindowCommand.snapThrow(.left)
+        expectName("matches command name", "\(ShortcutListPolicy.matches(query: "left", command: leftHalf))", "true")
+        expectName("matches group name", "\(ShortcutListPolicy.matches(query: "halves", command: leftHalf))", "true")
+        expectName("empty query matches all", "\(ShortcutListPolicy.matches(query: "  ", command: leftHalf))", "true")
+        expectName("no match", "\(ShortcutListPolicy.matches(query: "zzz", command: leftHalf))", "false")
+    }
 }

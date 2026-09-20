@@ -149,9 +149,10 @@ Example: `⌃⌥H` (left half) · `⌃⌥⌘K` (move up) · `⌃⌥⇧J` (shrink
 
 ## Settings
 
-Open Settings from the menu bar item or with `⌘,`:
+Open Settings from the menu bar item or with `⌘,`. It has three tabs — **General** (permissions, behavior, updates), **Shortcuts**, and **Advanced**:
 
 - Switch preset (Standard / Vim).
+- Shortcut groups start collapsed; expand a group with its disclosure triangle, or type in the filter to expand matches automatically.
 - Record custom shortcuts per command, with conflict warnings and per-command Reset.
 - Enable/disable command groups, or unbind individual commands.
 - Toggle failure beep, failure notifications, launch-at-login, and hide the menu bar icon.

@@ -3,7 +3,8 @@
 //  Azimuth
 //
 //  Shortcuts 설정 섹션 본문: 프리셋 선택(세그먼트) + 검색 필터 + 명령별 단축키
-//  레코더 목록 + 변경 점(•) + 충돌/점유 배지. 레이아웃·액션은 +Layout 확장 파일에 둔다.
+//  레코더 목록 + 변경 점(•) + 충돌/점유 배지. 그룹은 삼각형으로 접고 펼친다(기본 접힘).
+//  레이아웃·액션은 +Layout 확장 파일에 둔다.
 //
 
 import Cocoa
@@ -35,7 +36,16 @@ final class ShortcutsSectionView: NSView {
     var rows: [Row] = []
     var groupToggles: [String: NSButton] = [:]
     var groupContainers: [String: NSView] = [:]
-    var groupSeparators: [String: NSBox] = [:]
+    /// 그룹 위 구분선(위 여백을 품은 컨테이너). 첫 보이는 그룹 위에는 숨긴다.
+    var groupSeparators: [String: NSView] = [:]
+    /// 사용자가 삼각형으로 펼친 그룹. **저장하지 않는다** — 창을 열 때마다 전부 접힘으로
+    /// 시작해야 창 높이가 예측 가능하고, 저장 키와 마이그레이션이 늘지 않는다.
+    var expandedGroups: Set<CommandGroup> = []
+    var groupDisclosures: [String: NSButton] = [:]
+    /// 삼각형으로 펼침 상태가 바뀌어 콘텐츠 높이가 달라졌을 때. 호스트(페인)가 창 높이를 다시 맞춘다 —
+    /// 창의 최대 높이가 탭 선택 시점의 자연 높이에 고정되므로, 여기서 알리지 않으면 펼친 그룹이
+    /// 늘릴 수 없는 창 안에서 스크롤로만 보인다. 검색은 창을 흔들지 않도록 여기 포함하지 않는다.
+    var onExpansionChanged: (() -> Void)?
     let emptyLabel = NSTextField(labelWithString: "No shortcuts match your search.")
 
     struct Row {
@@ -68,6 +78,14 @@ final class ShortcutsSectionView: NSView {
     @available(*, unavailable)
     required init?(coder: NSCoder) {
         fatalError("init(coder:) is not supported")
+    }
+
+    /// 창을 열 때마다 전부 접힘으로 되돌린다. 상태를 저장하지 않으므로 창 높이가 항상 예측 가능하다.
+    /// 검색어도 지운다 — 남아 있으면 매칭 그룹이 자동으로 펼쳐져 "전부 접힘"이 아니게 된다.
+    func collapseAllGroups() {
+        expandedGroups.removeAll()
+        searchField.stringValue = ""
+        applyFilter("")
     }
 
     /// 실효 바인딩·활성 상태·충돌·등록 실패를 다시 계산해 그룹 토글과 각 행을 갱신한다.

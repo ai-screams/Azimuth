@@ -40,6 +40,7 @@ enum CommandEngineTests {
         testMessagingTimeoutPolicy()
         testResolveTimeoutClamp()
         testResolveTimeoutChoices()
+        testShortcutListPolicy()
 
         if failures == 0 {
             print("PASS — all \(checks) checks")

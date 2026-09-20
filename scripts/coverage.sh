@@ -20,6 +20,7 @@ SRC=(
     "Azimuth/Commands/WindowCommand.swift"
     "Azimuth/Commands/DisplayGeometry.swift"
     "Azimuth/Commands/CommandOutcomePolicy.swift"
+    "Azimuth/Commands/ShortcutListPolicy.swift"
     "Azimuth/Shared/AXMessagingTimeout.swift"
 )
 

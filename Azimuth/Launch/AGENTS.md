@@ -16,7 +16,7 @@
 ### Working In This Directory
 - **공식 SMAppService API만 사용.** 등록 실패·`requiresApproval` 시 우회하지 말고 `openSystemSettingsLoginItems()`로 사용자 승인을 유도한다.
 - `unregister`는 비동기다. 직후 동기적으로 상태를 읽지 말고 completion 콜백 후 UI를 갱신(메인액터 hop). `register()`는 동기.
-- SMAppService는 상태 변경 알림이 없다 → UI는 `didBecomeActive`/표시 시점 폴링으로 동기화(소비처 `ViewController` 참조).
+- SMAppService는 상태 변경 알림이 없다 → UI는 `didBecomeActive`/표시 시점 폴링으로 동기화(소비처 `GeneralPaneViewController` 참조).
 
 ### Testing Requirements
 - `make run`(서명 빌드)으로 체크 후 **System Settings › 일반 › 로그인 항목**에 Azimuth 표시 확인. 서명이 안정적이어야 정상 동작.
@@ -27,7 +27,7 @@
 ## Dependencies
 
 ### Internal
-- 소비처: `Settings`(주입)·`ViewController`(토글 UI), `Shared/Log`.
+- 소비처: `Settings`(주입)·`GeneralPaneViewController`(토글 UI), `Shared/Log`.
 
 ### External
 - ServiceManagement(SMAppService), os.

@@ -4,7 +4,7 @@
 //
 //  명령 실패 알림용 UNUserNotificationCenter 어댑터. 알림 권한은 절대 선요청하지 않는다 —
 //  Settings의 "Notify when a command fails" 토글을 켜는 순간에만 requestAuthorization이
-//  불린다(opt-in). 거부되면 호출부(ViewController)가 토글을 되돌린다.
+//  불린다(opt-in). 거부되면 호출부(GeneralPaneViewController)가 토글을 되돌린다.
 //
 
 import os
