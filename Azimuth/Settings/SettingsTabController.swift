@@ -22,6 +22,9 @@ protocol SettingsPane: NSViewController {
 
 @MainActor
 final class SettingsTabController: NSTabViewController {
+    /// 창 폭(고정, 가로 리사이즈 없음). 페인 콘텐츠 폭(480/512)에 맞춰 튜닝된 값이라 창과 페인이
+    /// 같은 수를 봐야 한다 — 어긋나면 자연 높이가 틀린 폭 기준으로 계산되는데 하네스가 잡지 못한다.
+    static let windowWidth: CGFloat = 560
     /// 창 높이 하한. 이보다 낮아지면 페인 내부 스크롤뷰가 콘텐츠를 스크롤한다.
     static let minWindowHeight: CGFloat = 400
 

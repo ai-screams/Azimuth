@@ -2,9 +2,6 @@ import Cocoa
 
 @MainActor
 final class SettingsWindowController {
-    /// 폭은 고정(가로 리사이즈 비활성). 콘텐츠 내부 폭(480/512)에 맞춰 튜닝된 값이다.
-    private static let windowWidth: CGFloat = 560
-
     private var windowController: NSWindowController?
     private let preferencesStore: PreferencesStore
     private let launchService: LaunchAtLoginService
@@ -71,7 +68,7 @@ final class SettingsWindowController {
             requestNotificationAuthorization: requestNotificationAuthorization
         )
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: Self.windowWidth, height: 640),
+            contentRect: NSRect(x: 0, y: 0, width: SettingsTabController.windowWidth, height: 640),
             styleMask: [.titled, .closable, .miniaturizable, .resizable],
             backing: .buffered,
             defer: false
@@ -96,7 +93,7 @@ final class SettingsWindowController {
         return NSWindowController(window: window)
     }
 
-    /// 폭은 디자인 값(560)으로 고정하고, 세로만 리사이즈를 허용한다.
+    /// 폭은 디자인 값(`SettingsTabController.windowWidth`)으로 고정하고, 세로만 리사이즈를 허용한다.
     /// 최소 높이 아래로 줄여도 페인 내부 스크롤뷰가 콘텐츠를 스크롤하므로 어떤 섹션도 잘리지 않는다.
     /// 최대 높이는 선택된 페인의 자연 높이로 두어, 그 이상 늘려 빈 공간이 생기지 않게 한다.
     private func applyResizeLimits(to window: NSWindow, tabController: SettingsTabController) {
@@ -104,10 +101,11 @@ final class SettingsWindowController {
         // 탭뷰에 막 추가된 페인 뷰의 기본 프레임은 560x640이 아니라 500x500이고, 이 setContentSize가
         // 탭뷰를 통해 페인을 창 폭에 맞추는 유일한 트리거다. 지우면 자연 높이가 틀린 폭 기준으로
         // 계산되어 라벨 줄바꿈이 달라지는데, 이 값을 테스트하는 하네스가 없어 아무 것도 못 잡는다.
-        window.setContentSize(NSSize(width: Self.windowWidth, height: 640))
+        let width = SettingsTabController.windowWidth
+        window.setContentSize(NSSize(width: width, height: 640))
         let height = tabController.preferredWindowHeight()
-        window.contentMinSize = NSSize(width: Self.windowWidth, height: SettingsTabController.minWindowHeight)
-        window.contentMaxSize = NSSize(width: Self.windowWidth, height: height)
-        window.setContentSize(NSSize(width: Self.windowWidth, height: height))
+        window.contentMinSize = NSSize(width: width, height: SettingsTabController.minWindowHeight)
+        window.contentMaxSize = NSSize(width: width, height: height)
+        window.setContentSize(NSSize(width: width, height: height))
     }
 }

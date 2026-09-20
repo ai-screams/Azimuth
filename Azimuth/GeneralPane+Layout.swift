@@ -2,50 +2,13 @@
 //  GeneralPane+Layout.swift
 //  Azimuth
 //
-//  General 탭 레이아웃 구성(스크롤뷰·콘텐츠 스택)·폰트·서브뷰 팩토리. 본체는 GeneralPaneViewController,
+//  General 탭 폰트·서브뷰 팩토리. 스크롤뷰·콘텐츠 스택은 SettingsPaneScaffold, 본체는 GeneralPaneViewController,
 //  @objc 액션은 GeneralPane+Actions에 둔다.
 //
 
 import Cocoa
 
 extension GeneralPaneViewController {
-    func configureView() {
-        configureFonts()
-
-        scrollView.translatesAutoresizingMaskIntoConstraints = false
-        scrollView.hasVerticalScroller = true
-        scrollView.hasHorizontalScroller = false
-        scrollView.autohidesScrollers = true
-        scrollView.drawsBackground = false
-        scrollView.contentView.drawsBackground = false
-
-        documentView.translatesAutoresizingMaskIntoConstraints = false
-        documentView.addSubview(contentStackView)
-        scrollView.documentView = documentView
-        view.addSubview(scrollView)
-
-        NSLayoutConstraint.activate([
-            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            scrollView.topAnchor.constraint(equalTo: view.topAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-
-            // 문서 폭을 보이는 영역(clip view)에 맞춰 가로 스크롤을 막는다. 폭은 창에 고정되어 있다.
-            documentView.widthAnchor.constraint(equalTo: scrollView.contentView.widthAnchor),
-
-            contentStackView.leadingAnchor.constraint(
-                equalTo: documentView.leadingAnchor, constant: Layout.contentInset
-            ),
-            contentStackView.trailingAnchor.constraint(
-                equalTo: documentView.trailingAnchor, constant: -Layout.contentInset
-            ),
-            contentStackView.topAnchor.constraint(equalTo: documentView.topAnchor, constant: Layout.contentInset),
-            contentStackView.bottomAnchor.constraint(
-                equalTo: documentView.bottomAnchor, constant: -Layout.contentInset
-            )
-        ])
-    }
-
     func configureFonts() {
         titleLabel.font = .systemFont(ofSize: Layout.titleFontSize, weight: .semibold)
         subtitleLabel.textColor = .secondaryLabelColor
@@ -77,19 +40,9 @@ extension GeneralPaneViewController {
         Bundle.main.displayVersion(prefix: "Azimuth")
     }
 
-    func makeContentStackView() -> NSStackView {
-        let stackView = NSStackView(views: [
-            titleLabel,
-            subtitleLabel,
-            permissionsSection,
-            behaviorSection,
-            updatesSection
-        ])
-        stackView.alignment = .leading
-        stackView.orientation = .vertical
-        stackView.spacing = Layout.sectionSpacing
-        stackView.translatesAutoresizingMaskIntoConstraints = false
-        return stackView
+    /// 스크롤 문서에 위에서부터 쌓을 콘텐츠. 스택·스크롤뷰 구성은 `SettingsPaneScaffold`가 한다.
+    var contentViews: [NSView] {
+        [titleLabel, subtitleLabel, permissionsSection, behaviorSection, updatesSection]
     }
 
     /// 권한 상태 아이콘(✓/⚠) + 상태 텍스트를 한 줄로 묶는다.

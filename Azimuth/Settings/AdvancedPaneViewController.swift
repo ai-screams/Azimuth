@@ -42,7 +42,7 @@ final class AdvancedPaneViewController: NSViewController, SettingsPane {
     private var documentView: NSView?
 
     override func loadView() {
-        view = NSView(frame: NSRect(x: 0, y: 0, width: 560, height: 240))
+        view = NSView(frame: NSRect(x: 0, y: 0, width: SettingsTabController.windowWidth, height: 240))
     }
 
     override func viewDidLoad() {

@@ -13,9 +13,6 @@ import Cocoa
 @MainActor
 final class GeneralPaneViewController: NSViewController, SettingsPane {
     enum Layout {
-        static let windowSize = NSSize(width: 560, height: 640)
-        static let contentInset: CGFloat = 24
-        static let sectionSpacing: CGFloat = 16
         static let titleFontSize: CGFloat = 22
         static let statusFontSize: CGFloat = 13
     }
@@ -100,21 +97,22 @@ final class GeneralPaneViewController: NSViewController, SettingsPane {
         title: "Updates",
         bodyViews: [versionLabel, checkForUpdatesButton]
     )
-    lazy var contentStackView = makeContentStackView()
-
-    /// 모든 콘텐츠를 담는 바깥 세로 스크롤뷰. 창을 콘텐츠보다 낮게 줄여도 하단 섹션이
-    /// 잘리지 않고 스크롤된다(폭은 창에 고정되어 가로 스크롤은 발생하지 않는다).
-    let scrollView = NSScrollView()
-    /// 스크롤 문서 뷰. 위에서부터 콘텐츠가 채워지도록 뒤집힌(flipped) 좌표계를 쓴다.
-    let documentView = FlippedView()
+    /// 스캐폴드가 설치한 스크롤 문서 뷰(자연 높이 측정용). 다른 페인과 같은 패턴.
+    private var documentView: NSView?
 
     override func loadView() {
-        view = NSView(frame: NSRect(origin: .zero, size: Layout.windowSize))
+        view = NSView(frame: NSRect(x: 0, y: 0, width: SettingsTabController.windowWidth, height: 640))
     }
 
     /// 콘텐츠 전체를 다 보여주기 위한 자연 높이(스크롤 없이 필요한 높이). 창 초기/최대 높이 산정에 쓴다.
     func naturalContentHeight() -> CGFloat {
         view.layoutSubtreeIfNeeded()
+        guard let documentView else {
+            // 0을 그대로 흘리면 max(0, 400)이 400pt 창을 만들어 "짧아졌다"가 성공처럼 보인다.
+            // 실은 측정 실패다. Debug 빌드에서만 알린다(Release는 no-op).
+            assertionFailure("documentView not installed — height measurement unavailable")
+            return SettingsTabController.minWindowHeight
+        }
         return documentView.frame.height
     }
 
@@ -128,7 +126,10 @@ final class GeneralPaneViewController: NSViewController, SettingsPane {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        configureView()
+        configureFonts()
+        documentView = SettingsPaneScaffold.install(
+            in: view, contentStack: SettingsPaneScaffold.makeContentStack(contentViews)
+        )
         updatePermissionUI()
         updateBehaviorUI()
 

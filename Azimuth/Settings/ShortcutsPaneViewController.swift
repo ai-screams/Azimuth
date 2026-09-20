@@ -10,7 +10,7 @@ import Cocoa
 
 @MainActor
 final class ShortcutsPaneViewController: NSViewController, SettingsPane {
-    /// 카드 내부 콘텐츠 폭. 컬럼 정렬이 흔들리지 않도록 고정한다(창 폭 560에 맞춰 튜닝된 값).
+    /// 카드 내부 콘텐츠 폭. 컬럼 정렬이 흔들리지 않도록 고정한다(`SettingsTabController.windowWidth`에 맞춰 튜닝된 값).
     private static let contentWidth: CGFloat = 480
 
     private let preferencesStore: PreferencesStore
@@ -53,7 +53,7 @@ final class ShortcutsPaneViewController: NSViewController, SettingsPane {
     private var documentView: NSView?
 
     override func loadView() {
-        view = NSView(frame: NSRect(x: 0, y: 0, width: 560, height: 560))
+        view = NSView(frame: NSRect(x: 0, y: 0, width: SettingsTabController.windowWidth, height: 560))
     }
 
     override func viewDidLoad() {
