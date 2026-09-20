@@ -26,7 +26,7 @@
 ## Dependencies
 
 ### Internal
-- `Hotkeys/HotkeyPreset`(활성 프리셋 타입). 소비처: `AppDelegate`(핫키 reload·비프음 게이팅), `Settings/ViewController`(UI).
+- `Hotkeys/HotkeyPreset`(활성 프리셋 타입). 소비처: `AppDelegate`(핫키 reload·비프음 게이팅), `GeneralPaneViewController`·`Settings/ShortcutsSectionView`(UI).
 
 ### External
 - Foundation(UserDefaults).
