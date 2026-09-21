@@ -191,8 +191,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if feedback.beep {
             NSSound.beep()
         }
-        if feedback.notify, let failure = lastCommandFailure {
-            failureNotifier.postCommandFailure(commandName: failure.commandName, message: failure.message)
+        // 알림 문구는 **정책이 준 값**에서 읽는다. `lastCommandFailure`를 읽어도 오늘은 맞지만
+        // (`notify`가 참인 경우는 항상 `.set` 직후라) 그 안전이 두 필드의 우연한 합의에 기댄다 —
+        // `.keep`과 `notify`가 함께 참이 되는 조합이 생기면 **지난 실패 문구가 새 알림으로** 나간다.
+        if feedback.notify, case let .set(message) = feedback.lastFailure {
+            failureNotifier.postCommandFailure(commandName: command.displayName, message: message)
         }
         if feedback.nudgeForPermission {
             nudgeForPermission()
