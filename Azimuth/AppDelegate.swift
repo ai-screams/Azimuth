@@ -54,10 +54,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     )
     private let firstRunGuidePresenter = FirstRunGuidePresenter()
 
+    /// 기동 순서. 각 단계가 무엇인지 이름으로 읽히도록 블록별로 나눠 두었다 —
+    /// **순서가 의미를 갖는다**: 메뉴·상태바가 있어야 온보딩 팝오버가 앵커할 곳이 생기고,
+    /// 해석 상한을 반영한 뒤여야 첫 단축키가 올바른 상한으로 돈다.
     func applicationDidFinishLaunching(_ notification: Notification) {
         configureActivationPolicy()
-        // 표준 메인 메뉴(App·Edit·Window)를 설치한다. 없으면 ⌘Q·⌘W·텍스트 편집이
-        // 어디서도 처리되지 않아 경고음만 난다(.accessory 빌드도 키 equivalent는 동작).
+        installMainMenu()
+        installStatusBar()
+        // 고급 설정의 해석 상한을 기동 시 한 번 반영한다(저장 값은 PreferencesStore가 클램프한다).
+        FocusedWindowResolver.resolveTimeout = preferencesStore.resolveTimeout
+        reloadHotkeys()
+        showFirstRunOnboardingIfNeeded()
+        registerAppObservers()
+        // DEBUG에서 설정창을 띄웠을 수 있으니 현재 창 상태에 맞춰 정책을 한 번 동기화한다.
+        updateActivationPolicy()
+    }
+
+    /// 표준 메인 메뉴(App·Edit·Window). 없으면 ⌘Q·⌘W·텍스트 편집이 어디서도 처리되지 않아
+    /// 경고음만 난다(.accessory 빌드도 키 equivalent는 동작한다).
+    private func installMainMenu() {
         NSApp.mainMenu = MainMenuBuilder.make(
             appName: "Azimuth",
             actions: .init(
@@ -68,6 +83,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 checkForUpdates: #selector(SPUStandardUpdaterController.checkForUpdates(_:))
             )
         )
+    }
+
+    /// 메뉴바 항목과 그 메뉴가 앱에 되묻는 세 경로(설정 열기·업데이트 확인·마지막 실패 사유).
+    /// 클로저로 주입하는 이유는 `StatusBarController`가 Sparkle과 앱 상태를 모르게 하기 위해서다.
+    private func installStatusBar() {
         statusBarController.onOpenSettings = { [weak self] in
             self?.settingsWindowController.show()
         }
@@ -81,11 +101,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         statusBarController.install()
         statusBarController.setVisible(!preferencesStore.menuBarIconHidden)
-        // 고급 설정의 해석 상한을 기동 시 한 번 반영한다(저장 값은 PreferencesStore가 클램프한다).
-        FocusedWindowResolver.resolveTimeout = preferencesStore.resolveTimeout
-        reloadHotkeys()
-        showFirstRunOnboardingIfNeeded()
+    }
 
+    /// 앱 수명 동안 유지되는 알림 구독. 해제는 `deinit`의 `removeObserver(self)`가 한꺼번에 한다.
+    private func registerAppObservers() {
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(handleDidBecomeActive(_:)),
@@ -111,8 +130,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             name: NSWindow.willCloseNotification,
             object: nil
         )
-        // DEBUG에서 설정창을 띄웠을 수 있으니 현재 창 상태에 맞춰 정책을 한 번 동기화한다.
-        updateActivationPolicy()
     }
 
     func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
