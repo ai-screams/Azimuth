@@ -1,4 +1,5 @@
 import Cocoa
+import os
 
 @MainActor
 enum WindowCommandExecutor {
