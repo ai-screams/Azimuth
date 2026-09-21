@@ -91,9 +91,19 @@ enum WindowCommandExecutor {
         }
 
         let preMoveFrame = resolved.frame.rect
-        let plan = targetPlan(
-            for: command, current: preMoveFrame, workArea: workArea, resolved: resolved, snapStore: snapStore
-        )
+        // 목표 frame 결정(snapThrow 상태기계·moveToDisplay 목적지)은 순수 계층에 위임한다 — 인접 작업영역과
+        // 스냅 기록은 둘 다 값이라, 창을 옆 모니터로 던지는 동작을 AX 없이 전수 테스트할 수 있다.
+        // 여기서는 그 두 값을 읽어 넘기기만 한다.
+        let adjacent = command.adjacentEdge.flatMap {
+            DisplayResolver.adjacentWorkArea(forAXWindowFrame: preMoveFrame, edge: $0)
+        }
+        let plan = CommandPlanPolicy.decide(CommandPlanInput(
+            command: command,
+            current: preMoveFrame,
+            workArea: workArea,
+            recorded: snapStore.state(for: resolved.element, pid: resolved.pid),
+            adjacentWorkArea: adjacent
+        ))
         // anchor 보정은 "target이 놓일 화면"의 작업영역 기준이어야 한다(디스플레이 간 throw 시 목적지 화면).
         // 같은 화면 명령이면 결과적으로 source와 동일. 못 구하면 source로 폴백.
         let anchorArea = WorkAreaResolver.workArea(forAXWindowFrame: plan.target) ?? workArea
@@ -147,55 +157,6 @@ enum WindowCommandExecutor {
             return .failure(error)
         }
         return .success(outcome.achieved ?? fallback)
-    }
-
-    /// 명령의 목표 frame과, snapThrow인 경우 이 명령 뒤 창이 스냅될 edge(기록용)를 함께 정한다.
-    /// snapThrow·moveToDisplay만 인접 디스플레이·스냅 상태를 알아야 하므로 여기서 분기하고, 나머지는
-    /// 순수 FrameCalculator에 위임한다.
-    private static func targetPlan(
-        for command: WindowCommand,
-        current: CGRect,
-        workArea: CGRect,
-        resolved: ResolvedWindow,
-        snapStore: SnapStateStore
-    ) -> (target: CGRect, snappedEdge: SnapEdge?) {
-        switch command {
-        case let .snapThrow(edge):
-            let recorded = snapStore.state(for: resolved.element, pid: resolved.pid)
-            return snapThrowPlan(edge, current: current, workArea: workArea, recorded: recorded)
-        case let .moveToDisplay(edge):
-            return (moveToDisplayTarget(edge, current: current, workArea: workArea), nil)
-        case .maximize, .maximizeGaps, .absolute, .move, .relativeHalf, .relativeTwoThird, .undo:
-            return (FrameCalculator.targetFrame(for: command, current: current, workArea: workArea), nil)
-        }
-    }
-
-    /// 이미 그 방향에 스냅돼 있으면(엄격 기하 또는 Azimuth가 스냅한 기록) 인접 디스플레이의 반대쪽 절반으로
-    /// 던지고, 아니면 현재 화면의 그 절반으로 스냅한다. 인접 디스플레이가 없으면 현 위치를 그대로 유지한다
-    /// (재스냅으로 미세하게 밀지 않음 — README "No adjacent display → stays put". 감사 M-1).
-    /// 반환하는 edge는 이 명령 뒤 창이 스냅되는 방향(스냅/유지=진입 edge, 던지기=반대쪽 edge).
-    private static func snapThrowPlan(
-        _ edge: SnapEdge,
-        current: CGRect,
-        workArea: CGRect,
-        recorded: SnapRecord?
-    ) -> (target: CGRect, snappedEdge: SnapEdge?) {
-        guard FrameCalculator.isAlreadySnapped(current: current, edge: edge, workArea: workArea, recorded: recorded)
-        else {
-            return (FrameCalculator.halfRect(edge, workArea: workArea), edge)
-        }
-        guard let adjacent = DisplayResolver.adjacentWorkArea(forAXWindowFrame: current, edge: edge) else {
-            return (current, edge)
-        }
-        return (FrameCalculator.halfRect(edge.opposite, workArea: adjacent), edge.opposite)
-    }
-
-    /// 모양과 무관하게 그 방향 인접 디스플레이로 상대 위치·크기를 유지해 이동. 인접 없으면 현 위치 유지.
-    private static func moveToDisplayTarget(_ edge: SnapEdge, current: CGRect, workArea: CGRect) -> CGRect {
-        guard let destination = DisplayResolver.adjacentWorkArea(forAXWindowFrame: current, edge: edge) else {
-            return current
-        }
-        return FrameCalculator.displayMoveRect(current, from: workArea, to: destination)
     }
 
     static func run(
