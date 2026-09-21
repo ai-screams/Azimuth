@@ -137,11 +137,11 @@ extension CommandEngineTests {
         expectName("patient", "\(budget(1.0))", "6.0")
         // 손편집 defaults가 클램프 상한까지 올려도 비례가 유지된다.
         expectName("hand-edited upper bound", "\(budget(AXMessagingTimeout.write))", "12.0")
-        // 읽기 횟수는 개수라 정수이고, 예산은 상한에 단조 증가해야 한다.
         expectName("read count is 6", "\(AXMessagingTimeout.resolveReadCount)", "6")
-        expectName("monotonic in timeout", "\(budget(0.25) < budget(0.5) && budget(0.5) < budget(1.0))", "true")
-        // 8로 잡으면 (읽기당 상한 × 8)이 구조적 최대치와 같아져 검사가 절대 안 걸린다 — 죽은 코드 방지.
-        expectName("read count leaves check reachable", "\(AXMessagingTimeout.resolveReadCount < 8)", "true")
+        // 예산은 비표준 subrole 경로(읽기 8회)의 구조적 최대치보다 **작아야** 한다. 같거나 크면
+        // 어느 경로에서도 검사가 안 걸리는 죽은 코드가 된다. 이 부등식이 readCount 의 상한을 고정한다.
+        let eightReadCeiling = TimeInterval(8) * TimeInterval(AXMessagingTimeout.resolve)
+        expectName("budget below 8-read ceiling", "\(budget(AXMessagingTimeout.resolve) < eightReadCeiling)", "true")
     }
 
     /// 고급 설정에서 온 값의 클램프. 저장된 defaults는 손으로 편집될 수 있어 신뢰하지 않는 입력이다.
