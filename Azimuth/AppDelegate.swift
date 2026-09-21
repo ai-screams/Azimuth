@@ -167,33 +167,57 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let result = WindowCommandExecutor.run(
             command, tracker: frontmostAppTracker, undoStore: windowUndoStore, snapStore: windowSnapStore
         )
-        switch result {
-        case .success:
+        let error = result.commandError
+        let feedback = CommandFeedbackPolicy.decide(
+            error: error,
+            soundEnabled: preferencesStore.soundFeedbackEnabled,
+            notifyEnabled: preferencesStore.notifyOnCommandFailure,
+            alreadyNudgedThisSession: didNudgeForPermissionThisSession
+        )
+        apply(feedback, for: command)
+        logOutcome(error, for: command)
+    }
+
+    /// 정책이 내린 결정을 실행만 한다. 판단은 `CommandFeedbackPolicy`가 이미 끝냈다.
+    private func apply(_ feedback: CommandFeedback, for command: WindowCommand) {
+        switch feedback.lastFailure {
+        case .clear:
             lastCommandFailure = nil
-        case .failure(.transient):
-            // Space 전환·애니메이션 중 일시적 실패는 비프 없이 조용히 무시한다(메뉴 노출도 제외).
-            Log.windows.debug("Hotkey \(command.displayName, privacy: .public) -> transient, skipped")
-        case let .failure(error):
-            lastCommandFailure = (command.displayName, error.userFacingMessage)
-            if preferencesStore.soundFeedbackEnabled {
-                NSSound.beep()
-            }
-            if preferencesStore.notifyOnCommandFailure {
-                failureNotifier.postCommandFailure(commandName: command.displayName, message: error.userFacingMessage)
-            }
-            Log.windows.debug(
-                "Hotkey \(command.displayName, privacy: .public) -> FAIL \(error.userFacingMessage, privacy: .public)"
-            )
-            nudgeForPermissionIfNeeded()
+        case .keep:
+            break
+        case let .set(message):
+            lastCommandFailure = (command.displayName, message)
+        }
+        if feedback.beep {
+            NSSound.beep()
+        }
+        if feedback.notify, let failure = lastCommandFailure {
+            failureNotifier.postCommandFailure(commandName: failure.commandName, message: failure.message)
+        }
+        if feedback.nudgeForPermission {
+            nudgeForPermission()
         }
     }
 
-    /// 단축키가 "권한 미부여" 때문에 실패한 상황이면, 침묵의 beep 루프에 갇히지 않도록 세션당 1회
-    /// Settings를 띄워 권한 안내로 연결한다(권한이 이미 있으면 다른 원인이므로 건드리지 않는다).
-    private func nudgeForPermissionIfNeeded() {
-        guard !didNudgeForPermissionThisSession,
-              !AccessibilityPermissionService.currentStatus().isTrusted
-        else { return }
+    /// 조용한 스킵과 실패는 진단 가치가 달라 로그를 구분해 남긴다(정책이 아니라 부수효과라 여기 둔다).
+    private func logOutcome(_ error: WindowCommandError?, for command: WindowCommand) {
+        guard let error else { return }
+        if error == .transient {
+            Log.windows.debug("Hotkey \(command.displayName, privacy: .public) -> transient, skipped")
+        } else {
+            Log.windows.debug(
+                "Hotkey \(command.displayName, privacy: .public) -> FAIL \(error.userFacingMessage, privacy: .public)"
+            )
+        }
+    }
+
+    /// 권한 미부여로 단축키가 실패했을 때 세션당 1회 Settings를 띄워 안내로 연결한다.
+    ///
+    /// "권한이 없는가"는 여기서 **다시 조회하지 않는다** — `CommandFeedbackPolicy`가 에러를 보고 이미
+    /// 판정했다. 예전에는 이 자리에서 `currentStatus()`를 읽었는데, 그 캐시는 앱 활성화·메뉴 열기에서만
+    /// 무효화되고 이 함수가 도는 순간은 정확히 그 둘 다 일어나지 않은 때라, 실행 중 권한이 풀린 경우
+    /// 낡은 `true`를 읽고 안내를 건너뛰었다 — 막으려던 침묵의 beep 루프가 그대로 일어났다.
+    private func nudgeForPermission() {
         didNudgeForPermissionThisSession = true
         settingsWindowController.show()
         Log.app.debug("Hotkey failed without Accessibility permission — nudged to settings (once/session).")

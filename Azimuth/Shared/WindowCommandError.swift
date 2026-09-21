@@ -30,3 +30,11 @@ nonisolated enum WindowCommandError: Error, Equatable {
         }
     }
 }
+
+nonisolated extension Result where Failure == WindowCommandError {
+    /// 실패면 에러, 성공이면 nil. 피드백 판정은 성공값을 쓰지 않으므로 입력을 이만큼만 좁힌다.
+    var commandError: WindowCommandError? {
+        guard case let .failure(error) = self else { return nil }
+        return error
+    }
+}
