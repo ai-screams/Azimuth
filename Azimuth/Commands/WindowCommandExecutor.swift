@@ -27,6 +27,10 @@ enum WindowCommandExecutor {
     /// (`WindowFrameWriter`의 쓰기 경계 가드는 `mayHaveMutated: false`) 부분 적용 상태가 없다.
     /// 권한이 정말 없으면 갱신된 조회가 false라 재실행조차 하지 않는다.
     ///
+    /// 재시도가 **느린 앱의 프리즈를 두 배로 만들지 않는다.** 해석 예산 타이머는 시도마다 새로 시작하지만,
+    /// 응답 없는 앱이 내는 `.cannotComplete`는 `.appUnresponsive`로 매핑되지 `.permissionDenied`가 되지 않는다.
+    /// 즉 재시도 조건은 느림이 아니라 **OS 수준의 권한 거부**이고, 그건 대기 없이 즉시 반환된다.
+    ///
     /// 여기(`run` 안)에 두는 이유: DEBUG 상태바 메뉴도 이 함수를 직접 호출한다. 호출자 쪽에 두면
     /// 같은 primitive의 두 경로가 낡은 캐시에서 다르게 동작한다. 권한 안내(창 띄우기)는 UX라 앱이 맡는다.
     static func run(

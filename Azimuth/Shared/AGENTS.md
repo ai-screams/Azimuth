@@ -12,7 +12,7 @@
 | `CoordinateSpace.swift` | `@MainActor`. AX(좌상단 원점, Y↓) ↔ Cocoa(좌하단 원점, Y↑) 사각형 변환. **전역 원점(0,0)을 소유한 디스플레이** 높이를 기준으로 Y를 뒤집는 involution(`flip`이 양방향 공통). `axWorkArea(of:)`로 NSScreen visibleFrame→AX 작업영역 변환(0 크기 가드 포함, `WorkAreaResolver`·`WindowAccess/DisplayResolver` 공유) |
 | `BundleVersion.swift` | `Bundle` 확장 `displayVersion(prefix:)`. `CFBundleShortVersionString`(+빌드)를 표시용 버전 문자열로 조합. `AboutWindowController`·`GeneralPaneViewController`가 공유(버전 문자열 중복 제거) |
 | `WindowFrame.swift` | **(하네스 포함)**  `nonisolated`. `WindowFrame`(origin/size→rect) 값 타입 + `WindowResolutionError`(권한/풀스크린/subrole/messaging-timeout/AX 코드 등 + 영어 `userFacingMessage`) |
-| `WindowCommandError.swift` | `nonisolated`. 명령 실행 상위 에러(`resolution`/`workAreaUnavailable`/`notMovable`/`applyFailed`/`noUndoState`) + `userFacingMessage` |
+| `WindowCommandError.swift` | **(하네스 포함)** `nonisolated`. 명령 실행 상위 에러(`resolution`/`workAreaUnavailable`/`notMovable`/`applyFailed`/`noUndoState`) + `userFacingMessage`. `Result.commandError`(실패면 에러, 성공이면 nil) 확장도 여기 — 피드백 정책의 입력을 만든다 |
 | `AXMessagingTimeout.swift` | `nonisolated`. AX messaging timeout 값(`resolve` 0.5초 / `write` 2.0초)과 **둘의 대소 불변식**을 소유한다. 고급 설정용 `clampedResolve`(0·음수·NaN·범위 밖을 안전하게 접는다 — 0은 AX가 "6초 기본값 복귀"로 해석)와 선택지 `ResolveTimeoutChoice`(값+표시 문구를 한곳에 묶어 인덱스 어긋남 방지)도 여기 있다. 적용은 `WindowAccess/FocusedWindowResolver`(해석 진입)와 `WindowFrameWriter`(set 직전)로 나뉘지만 값은 여기 하나뿐이다. import 없는 순수 상수라 테스트 하네스에 포함되며, `write >= resolve`를 `make test`가 강제한다(어기면 상향이 상한을 *내리는* 동작이 되는데 컴파일 에러가 안 난다) |
 | `Log.swift` | `os.Logger` 카테고리(`app`, `windows`), subsystem `com.aiscream.Azimuth` |
 
