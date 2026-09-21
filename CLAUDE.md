@@ -27,7 +27,7 @@ Sparkle 2 and ships Developer ID–signed, Apple-notarized, and EdDSA-verified.
 |---------|-----|
 | `make run` | Build a **signed** app and launch it — use for anything needing Accessibility |
 | `make build` | Compile-only (ad-hoc signed; CI/compile checks) — **not** for permission testing |
-| `make test` | Pure-logic command-engine tests (swiftc, AppKit-free); prints `PASS — all N checks` |
+| `make test` | Pure-logic tests (swiftc). Sources listed in `scripts/harness-sources.sh` — **one place**, shared with `make coverage`. Not "AppKit-free": the bar is whether a type can be built as a *value* (an `AXUIElement`-carrying one cannot), so `Hotkeys/CarbonModifier.swift` is in despite `import AppKit`. Prints `PASS — all N checks` |
 | `make coverage` | LLVM source-based line coverage on the pure-logic layer; gate **≥90%** (`COVERAGE_MIN`) |
 | `make lint` / `make format` | SwiftLint (strict) / SwiftFormat |
 | `make secrets` | gitleaks secret scan |
@@ -93,7 +93,7 @@ Before opening a PR: `make build && make lint && make test` (CI runs the same, p
   group** — no `.pbxproj` edit needed. Adding a new target or SPM dependency still needs the
   pbxproj / Xcode GUI. Deployment target: macOS **14.0**.
 - That auto-include does **not** reach the test harness: a new pure-logic file must be added to
-  **both** `scripts/test.sh` and `scripts/coverage.sh` (hardcoded source lists) to be tested/measured.
+  `scripts/harness-sources.sh` (the single list both `make test` and `make coverage` read).
 - Those lists are the **only** automatically tested code — `WindowAccess/**`, `WindowCommandExecutor`,
   and `HotkeyService` are type-checked by `make build` and nothing more. To cover an AX failure mode,
   extract the decision into a pure function (values in → decision out, e.g. `CommandOutcomePolicy`)

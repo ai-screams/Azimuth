@@ -42,6 +42,7 @@ enum CommandEngineTests {
         testResolveTimeoutChoices()
         testShortcutListPolicy()
         testPresetCoverage()
+        testPresetKeyAssignments()
         testBindingOverrides()
         testEnabledFiltering()
         testConflictDetection()

@@ -19,7 +19,7 @@
 
 ### Working In This Directory
 - 여기서 검증 가능한 건 **값으로 만들 수 있는 로직**이다. 컴파일 대상 목록은 `scripts/harness-sources.sh`가 단일 출처이고(`HARNESS_SRC`·`HARNESS_TESTS`), `test.sh`·`coverage.sh`가 그것을 source 한다 — 새 파일은 **한 곳만** 고치면 된다.
-- **넣을 수 없는 기준은 "AppKit을 import 하는가"가 아니다.** 예전 문서는 "AppKit/AX import를 추가하면 하네스가 깨진다"고 적었으나 **사실이 아니다** — `Hotkeys/CarbonModifier.swift`는 `import AppKit`인 채로 하네스에서 컴파일·실행된다. 진짜 제약은 **`AXUIElement`를 운반하는 타입**이다: 값으로 만들 수 없으니 실행할 수 없다. 그래서 AX 계층은 판정을 값 in/값 out 함수로 뽑아 그것만 넣는다(`CommandOutcomePolicy`·`ShortcutListPolicy`·`CommandFeedbackPolicy`가 그 예).
+- **넣을 수 없는 기준은 "AppKit을 import 하는가"가 아니다.** 예전 문서는 "AppKit/AX import를 추가하면 하네스가 깨진다"고 적었으나 **사실이 아니다** — `Hotkeys/CarbonModifier.swift`는 `import AppKit`인 채로 하네스에서 컴파일·실행된다. 진짜 제약은 **`AXUIElement`를 운반하는 타입**이다: 값으로 만들 수 없으니 실행할 수 없다. 그래서 AX 계층은 판정을 값 in/값 out 함수로 뽑아 그것만 넣는다(`CommandOutcomePolicy`·`ShortcutListPolicy`가 그 예).
 - 기하/명령 변경 시 여기 케이스를 추가한다. 작업영역은 `CGRect(x:0,y:25,w:1920,h:1055)` 기준 픽스처.
 
 ### Testing Requirements

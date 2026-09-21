@@ -31,6 +31,24 @@ extension CommandEngineTests {
         expectName("vim displayName", HotkeyPreset.vim.displayName, "Vim")
     }
 
+    /// **어떤 명령이 어떤 키에 묶였는가.** 앞의 커버리지 테스트로는 이걸 잡지 못한다 — 34개가 한 번씩
+    /// 들어 있고 충돌만 없으면 통과하므로, 두 바인딩의 키코드가 서로 뒤바뀌어도 초록이다.
+    /// 전부 고정하면 저신호 테스트가 68줄 늘어나므로, 계열마다 대표 하나씩만 못 박는다.
+    static func testPresetKeyAssignments() {
+        func keyCode(_ preset: HotkeyPreset, _ identifier: String) -> UInt32 {
+            preset.bindings.first { $0.command.identifier == identifier }?.keyCode ?? 0
+        }
+        // Standard: 화살표 계열과 Return.
+        expectName("standard maximize = Return", "\(keyCode(.standard, WindowCommand.maximize.identifier))", "\(UInt32(kVK_Return))")
+        expectName("standard snap left = ←", "\(keyCode(.standard, WindowCommand.snapThrow(.left).identifier))", "\(UInt32(kVK_LeftArrow))")
+        expectName("standard snap right = →", "\(keyCode(.standard, WindowCommand.snapThrow(.right).identifier))", "\(UInt32(kVK_RightArrow))")
+        // Vim: 같은 명령이 HJKL 로 간다. 네 방향이 서로 뒤바뀌면 여기서 잡힌다.
+        expectName("vim snap left = H", "\(keyCode(.vim, WindowCommand.snapThrow(.left).identifier))", "\(UInt32(kVK_ANSI_H))")
+        expectName("vim snap bottom = J", "\(keyCode(.vim, WindowCommand.snapThrow(.bottom).identifier))", "\(UInt32(kVK_ANSI_J))")
+        expectName("vim snap top = K", "\(keyCode(.vim, WindowCommand.snapThrow(.top).identifier))", "\(UInt32(kVK_ANSI_K))")
+        expectName("vim snap right = L", "\(keyCode(.vim, WindowCommand.snapThrow(.right).identifier))", "\(UInt32(kVK_ANSI_L))")
+    }
+
     /// override 병합. 프리셋에 있는 명령만 덮어쓰고, 없는 identifier 는 무시한다(문서화된 불변식).
     static func testBindingOverrides() {
         let preset = HotkeyPreset.standard
@@ -136,8 +154,19 @@ extension CommandEngineTests {
         expectName("플래그 → 마스크(control)", "\(CarbonModifier.mask(from: .control))", "\(UInt32(controlKey))")
         let combo: NSEvent.ModifierFlags = [.control, .option, .shift, .command]
         expectName("플래그 → 마스크(전체)", "\(CarbonModifier.mask(from: combo))", "\(UInt32(controlKey | optionKey | shiftKey | cmdKey))")
-        // device-independent 마스킹: capsLock 같은 비수정자 비트는 무시되어야 한다.
-        expectName("capsLock 은 무시", "\(CarbonModifier.mask(from: [.control, .capsLock]))", "\(UInt32(controlKey))")
+        // capsLock 처럼 표에 없는 플래그는 결과에 영향을 주지 않는다.
+        // ⚠️ 기전에 주의: 이것이 참인 이유는 `table` 에 capsLock 항목이 없기 때문이지
+        // `mask(from:)` 의 `.intersection(.deviceIndependentFlagsMask)` 때문이 **아니다**.
+        // `OptionSet.contains` 는 요구 비트만 보므로 그 교집합은 어떤 입력에서도 결과를 바꾸지 않는다
+        // (즉 죽은 코드다 — followups). 이 검사로는 마스킹 회귀를 잡을 수 없다.
+        expectName("표에 없는 플래그는 무시", "\(CarbonModifier.mask(from: [.control, .capsLock]))", "\(UInt32(controlKey))")
+        // 개별 격리: 넷을 한꺼번에만 보면 option/shift/command 가 서로 뒤바뀐 표도 같은 값을 낸다.
+        expectName("플래그 → 마스크(option)", "\(CarbonModifier.mask(from: .option))", "\(UInt32(optionKey))")
+        expectName("플래그 → 마스크(shift)", "\(CarbonModifier.mask(from: .shift))", "\(UInt32(shiftKey))")
+        expectName("플래그 → 마스크(command)", "\(CarbonModifier.mask(from: .command))", "\(UInt32(cmdKey))")
+        expectName("글리프(option)", CarbonModifier.glyphs(for: UInt32(optionKey)), "⌥")
+        expectName("글리프(shift)", CarbonModifier.glyphs(for: UInt32(shiftKey)), "⇧")
+        expectName("글리프(command)", CarbonModifier.glyphs(for: UInt32(cmdKey)), "⌘")
         // 두 방향이 서로의 역이어야 한다.
         expectName("왕복", CarbonModifier.glyphs(for: CarbonModifier.mask(from: [.command, .shift])), "⇧⌘")
     }

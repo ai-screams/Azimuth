@@ -16,8 +16,9 @@
 |------|-------------|
 | `build.sh` | `xcodebuild ... CODE_SIGNING_ALLOWED=NO build`. **ad-hoc 산출물 → 컴파일/CI 검증 전용**(권한 테스트엔 부적합) |
 | `run.sh` | Apple Development 서명(`CODE_SIGN_STYLE=Automatic`, `DEVELOPMENT_TEAM` env 재정의 가능)으로 빌드 후 `.app` 실행. **권한 필요한 실행/테스트는 반드시 이걸로**(안정 DR → TCC 권한 유지) |
-| `test.sh` | `swiftc`로 명령 엔진 순수 로직 SRC(`CommandPrimitives`·`WindowCommand`·`FrameCalculator`·`DisplayGeometry`)+`Tests` 컴파일·실행 |
-| `coverage.sh` | 같은 순수 로직 SRC를 `swiftc -profile-generate`로 빌드·실행해 llvm-cov 라인 커버리지 측정. 게이트 **≥90%**(`COVERAGE_MIN` env로 조정) |
+| `harness-sources.sh` | **컴파일 대상 목록의 단일 출처**(`HARNESS_SRC`·`HARNESS_TESTS`). `test.sh`·`coverage.sh`가 source 한다 — 새 순수 파일은 여기 한 곳만 추가. 배열만 정의하고 `set` 줄을 넣지 않는다(아래 참조) |
+| `test.sh` | `harness-sources.sh`의 목록을 `swiftc`로 컴파일·실행. 종료코드를 그대로 전달 |
+| `coverage.sh` | **같은 목록**을 `swiftc -profile-generate`로 빌드·실행해 llvm-cov 라인 커버리지 측정. 게이트 **≥90%**(`COVERAGE_MIN` env로 조정) |
 | `lint.sh` | `swiftlint lint --strict --no-cache --config .swiftlint.yml` |
 | `format.sh` | SwiftFormat 실행 |
 | `secret-scan.sh` | gitleaks 시크릿 스캔 |
