@@ -41,6 +41,13 @@ enum CommandEngineTests {
         testResolveTimeoutClamp()
         testResolveTimeoutChoices()
         testShortcutListPolicy()
+        testPresetCoverage()
+        testBindingOverrides()
+        testEnabledFiltering()
+        testConflictDetection()
+        testShortcutDisplay()
+        testShortcutCodableRoundTrip()
+        testCarbonModifier()
 
         if failures == 0 {
             print("PASS — all \(checks) checks")

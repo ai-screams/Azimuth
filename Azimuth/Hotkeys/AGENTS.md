@@ -24,7 +24,9 @@
 - 프리셋 변경 시 재등록은 `HotkeyService.reload`. `AppDelegate.reloadHotkeys`가 `PreferencesStore.activePreset`을 읽어 호출.
 
 ### Testing Requirements
-- 등록은 권한/시스템 충돌 영향을 받으므로 `make run` 라이브 검증. 바인딩 유일성은 빌드 시점에 확인(겹치면 일부 등록 실패 로그).
+- 등록은 권한/시스템 충돌 영향을 받으므로 `make run` 라이브 검증.
+- **바인딩 유일성은 `make test`가 검사한다**(`Tests/CommandEngineTests+Hotkeys.swift`): 두 프리셋이 `menuCommands` 34개를 정확히 한 번씩 덮는지, 프리셋 안에 같은 조합이 없는지. 예전 문서는 "빌드 시점에 확인"이라 적었으나 그런 검사는 없었다 — 실제로는 런타임에 `RegisterEventHotKey`가 개별 실패하고 로그만 남았다.
+- `BindingResolver`·`HotkeyPreset`·`HotkeyShortcut`·`CarbonModifier`는 하네스에 포함된다(`scripts/harness-sources.sh`). override 병합·비활성 필터·충돌 검출·표시 문자열·Codable 왕복이 테스트로 고정돼 있다.
 
 ### Common Patterns
 - 등록 실패(`RegisterEventHotKey != noErr`)는 로그 + 스킵(앱 전체를 막지 않음). 시스템/타앱과 겹치는 조합은 자연 스킵 → 7c에서 커스터마이즈 예정.

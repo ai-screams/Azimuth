@@ -21,7 +21,7 @@
 ## For AI Agents
 
 ### Working In This Directory
-- `CommandPrimitives.swift`·`WindowCommand.swift`·`FrameCalculator.swift`·`FrameApply.swift`·`DisplayGeometry.swift`·`CommandOutcomePolicy.swift`·`ShortcutListPolicy.swift`는 **AppKit/AX import 금지**(순수 로직 유지). 이들은 `scripts/test.sh`·`scripts/coverage.sh`가 직접 컴파일하므로 import를 추가하면 테스트/커버리지 빌드가 깨진다(CoreGraphics는 허용).
+- `CommandPrimitives.swift`·`WindowCommand.swift`·`FrameCalculator.swift`·`FrameApply.swift`·`DisplayGeometry.swift`·`CommandOutcomePolicy.swift`·`ShortcutListPolicy.swift`는 **AppKit/AX import 금지**(순수 로직 유지, CoreGraphics는 허용). 단 그 이유는 "하네스가 깨져서"가 **아니다** — 하네스는 AppKit을 import하는 파일도 문제없이 컴파일한다(`Hotkeys/CarbonModifier.swift`가 실제로 그렇게 들어가 있다). 이 디렉터리에 거는 규칙은 **계층 규율**이다: 명령 모델·기하·정책은 UI를 몰라야 한다. 실행이 불가능해지는 진짜 경계는 `AXUIElement`를 운반하는 타입이다(`Tests/AGENTS.md` 참조).
 - 새 명령 추가 시: `WindowCommand`에 케이스 + `displayName`, `FrameCalculator.targetFrame`에 분기, 필요하면 `menuCommands`와 `Hotkeys/HotkeyPreset` 바인딩에도 추가.
 - 모든 frame은 **AX 좌표(좌상단 원점)** 기준. Cocoa 변환은 호출부(`WorkAreaResolver`)에서 처리됨.
 

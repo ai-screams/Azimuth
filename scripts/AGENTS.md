@@ -30,7 +30,8 @@
 ### Working In This Directory
 - **`build` vs `run` 구분이 핵심.** `build.sh`는 ad-hoc(cdhash 불안정 → TCC 권한 꼬임), `run.sh`는 안정 서명. 권한 동작 검증은 `make run`.
 - `run.sh`는 산출물 경로를 빌드 설정(`BUILT_PRODUCTS_DIR`/`FULL_PRODUCT_NAME`)에서 읽는다 — 경로 하드코딩 금지.
-- 스크립트는 `set -euo pipefail`(test.sh는 종료코드 보존 위해 `-uo`) + `ROOT_DIR` 기준 경로 패턴 유지.
+- 스크립트는 `set -euo pipefail`(test.sh·coverage.sh는 종료코드 보존 위해 `-uo`) + `ROOT_DIR` 기준 경로 패턴 유지.
+- `harness-sources.sh`는 **배열만 정의한다. `set` 줄을 넣지 말 것** — `source`는 호출자 셸에서 실행되므로 `-e`가 두 스크립트에 주입되어 위의 의도적 선택이 조용히 깨진다.
 
 ### Testing Requirements
 - 변경 후 해당 `make` 타깃으로 직접 실행해 동작 확인.
