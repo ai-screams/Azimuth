@@ -125,6 +125,25 @@ extension CommandEngineTests {
         expectName("write is positive", "\(AXMessagingTimeout.write > 0)", "true")
     }
 
+    /// 해석 단계 예산은 사용자가 고른 상한에 비례해야 한다. 고정 3초이던 시절에는 Patient(1.0초)를
+    /// 고른 사용자가 해석에 성공하고도 예산에 걸려 **조용히** 버려졌다 — "느린 앱을 기다리겠다"는
+    /// 선택이 침묵 실패를 늘리는 뒤집힌 인센티브였다.
+    static func testResolveBudget() {
+        let budget = AXMessagingTimeout.resolveBudget
+        // 기본값에서 이전 하드코딩 상수(3초)와 정확히 같다 = Balanced 사용자 동작 변화 0.
+        // 이 등식이 깨지면 기본 사용자에게 조용한 동작 변화가 생긴 것이므로 반드시 실패해야 한다.
+        expectName("balanced == previous constant", "\(budget(AXMessagingTimeout.resolve))", "3.0")
+        expectName("quick", "\(budget(AXMessagingTimeout.minResolve))", "1.5")
+        expectName("patient", "\(budget(1.0))", "6.0")
+        // 손편집 defaults가 클램프 상한까지 올려도 비례가 유지된다.
+        expectName("hand-edited upper bound", "\(budget(AXMessagingTimeout.write))", "12.0")
+        // 읽기 횟수는 개수라 정수이고, 예산은 상한에 단조 증가해야 한다.
+        expectName("read count is 6", "\(AXMessagingTimeout.resolveReadCount)", "6")
+        expectName("monotonic in timeout", "\(budget(0.25) < budget(0.5) && budget(0.5) < budget(1.0))", "true")
+        // 8로 잡으면 (읽기당 상한 × 8)이 구조적 최대치와 같아져 검사가 절대 안 걸린다 — 죽은 코드 방지.
+        expectName("read count leaves check reachable", "\(AXMessagingTimeout.resolveReadCount < 8)", "true")
+    }
+
     /// 고급 설정에서 온 값의 클램프. 저장된 defaults는 손으로 편집될 수 있어 신뢰하지 않는 입력이다.
     /// 특히 0은 AX가 "전역 기본값(6초) 복귀"로 해석하므로 반드시 걸러야 한다.
     static func testResolveTimeoutClamp() {

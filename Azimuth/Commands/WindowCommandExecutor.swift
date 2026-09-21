@@ -2,19 +2,14 @@ import Cocoa
 
 @MainActor
 enum WindowCommandExecutor {
-    /// 응답 지연 앱에서 명령 해석(다수의 AX 읽기)이 이 상한을 넘으면, 쓰기 단계의 추가 AX 호출로
-    /// MainActor 프리즈를 키우지 않고 조용히 중단한다(감사 H-3 부분 완화 — AX 호출은 동기라 개별
-    /// 호출은 못 끊으므로 호출 경계에서만 검사한다).
-    ///
-    /// 이 값은 해석 타임아웃이 2초였을 때 정해졌고 그때는 최악 해석 시간(6~8회 × 2초)보다 훨씬
-    /// 아래였다. `FocusedWindowResolver.resolveTimeout`을 0.5초로 낮춘 뒤로는 최악 해석 시간이
-    /// 3~4초라 이 예산이 거의 그 경계에 놓인다 — 즉 지금은 "해석이 끝난 뒤의 사후 안전망"에 가깝고,
-    /// 실효 상한은 타임아웃 쪽이다. 값은 그대로 두되 그 역할이 바뀐 것을 기록해 둔다.
-    ///
-    /// 완전 비블로킹을 "백그라운드 AX 워커"로 풀려던 계획은 전제가 확인되지 않아 재범위화했다 —
-    /// AX 함수의 스레딩은 SDK 헤더에 문서화돼 있지 않고, 동종 윈도우 매니저는 메인스레드를 유지한 채
-    /// 타임아웃을 바운드한다. 자세한 근거는 `.docs/review/ax-main-thread-blocking-audit-2026-09-09.md`.
-    private static let resolveBudgetSeconds: CFTimeInterval = 3
+    // 해석 예산은 상수가 아니라 `AXMessagingTimeout.resolveBudget(for:)`이 사용자의 해석 상한에서
+    // 계산한다. 개별 읽기는 상한으로 묶이지만 합은 묶이지 않기 때문이고, 상한을 고급 설정에서 바꿀 수
+    // 있으므로 예산도 같이 움직여야 한다. 고정 3초이던 시절에는 Patient(1.0초)를 고른 사용자가 해석에
+    // 성공하고도 예산에 걸려 조용히 버려졌다 — "느린 앱을 기다리겠다"는 선택이 침묵 실패를 늘렸다.
+    //
+    // 완전 비블로킹을 "백그라운드 AX 워커"로 풀려던 계획은 전제가 확인되지 않아 재범위화했다 —
+    // AX 함수의 스레딩은 SDK 헤더에 문서화돼 있지 않고, 동종 윈도우 매니저는 메인스레드를 유지한 채
+    // 타임아웃을 바운드한다. 자세한 근거는 `.docs/review/ax-main-thread-blocking-audit-2026-09-09.md`.
 
     static func run(
         _ command: WindowCommand,
@@ -31,8 +26,11 @@ enum WindowCommandExecutor {
             return .failure(.resolution(error))
         }
         // 응답 지연 앱: 해석이 예산을 넘겼으면 쓰기 단계의 추가 AX 호출로 프리즈를 키우지 않는다(H-3).
-        if ProcessInfo.processInfo.systemUptime - startedAt > resolveBudgetSeconds {
-            return .failure(.transient)
+        // 해석은 **성공했는데** 느려서 중단하는 경우라 `.transient`(조용한 스킵)로 보내지 않는다 —
+        // 다시 눌러도 똑같이 재현되므로, 침묵은 사용자에게 "단축키가 고장 났다"고 가르친다.
+        let budget = AXMessagingTimeout.resolveBudget(for: FocusedWindowResolver.resolveTimeout)
+        if ProcessInfo.processInfo.systemUptime - startedAt > budget {
+            return .failure(.resolveBudgetExceeded)
         }
 
         if command == .undo {

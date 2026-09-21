@@ -6,10 +6,14 @@
 //  적용(누가 언제 거는가)은 나뉜 채로 둔다 — timeout은 element 단위라 해석 진입에서 한 번,
 //  쓰기 진입에서 한 번 거는 것이 자연스럽다. 합쳐야 하는 것은 메커니즘이 아니라 값이다.
 //
-//  ⚠️ 순수 상수 파일 — AppKit/AX를 import하지 말 것(scripts/test.sh가 swiftc로 직접 컴파일).
+//  ⚠️ 순수 파일 — AppKit/AX를 import하지 말 것(scripts/test.sh가 swiftc로 직접 컴파일).
+//  Foundation은 허용된다(`Commands/ShortcutListPolicy`도 Foundation만 쓴다). TimeInterval이
+//  Foundation 타입이라 없으면 "cannot find type in scope"로 하네스 컴파일이 깨진다.
 //  두 값의 대소 관계가 설계의 전제라서, 떨어져 있으면 한쪽만 바꿔도 컴파일이 통과해 버린다.
 //  그래서 하네스에 넣고 `make test`가 불변식을 검사하게 했다.
 //
+
+import Foundation
 
 nonisolated enum AXMessagingTimeout {
     /// 해석 단계 상한(초). 창을 아직 건드리지 않는 읽기뿐이고, 실패가 `.appUnresponsive`
@@ -30,6 +34,31 @@ nonisolated enum AXMessagingTimeout {
 
     /// 사용자가 고를 수 있는 하한. 이보다 짧으면 정상 앱에서도 조기 실패가 잦아진다.
     static let minResolve: Float = 0.25
+
+    /// 해석 단계에서 **대상 앱의 응답을 기다리는** AX 왕복 횟수(표준 창 기준):
+    /// focusedWindow · AXFullScreen · minimized · subrole · position · size = 6.
+    /// 비표준 subrole이면 `isMovableAndResizable`의 settable 2회가 더 붙어 8이 된다
+    /// (근거 표: `.docs/review/ax-main-thread-blocking-audit-2026-09-09.md`의 resolve 행 "6~8").
+    ///
+    /// ⚠️ 호출부를 세면 `AXUIElementSetMessagingTimeout` 2회가 더 보이지만 **세지 않는다.**
+    /// 그 함수는 대상 앱에 메시지를 보내지 않아 `.cannotComplete`로 실패하지 않는다 — SDK가 명시한
+    /// 실패는 잘못된 양수 인자와 무효 element뿐이다. 즉 타임아웃에 묶이는 호출이 아니다.
+    /// 이 문단이 없으면 호출부를 다시 센 누군가가 8로 "고쳐" 아래 불변식을 깬다.
+    ///
+    /// 8로 잡으면 (읽기당 상한 × 8)이 구조적 최대치와 같아져 예산 검사가 절대 안 걸리는 죽은 코드가 된다.
+    /// 6은 그 8회 경로와 "느리지만 응답하는" 읽기를 겨냥한다 — 대신 비표준 subrole 창은 같은 지연에서
+    /// 표준 창보다 먼저 걸린다(의도된 비대칭).
+    ///
+    /// **개수이므로 `Int`다.** `Float`이면 "5.5회 AX 호출" 같은 무의미한 값이 조용히 컴파일된다 —
+    /// 이 파일이 `clampedResolve`로 막으려는 바로 그 종류의 실수다.
+    static let resolveReadCount: Int = 6
+
+    /// 해석 단계 전체 예산(초). 개별 읽기는 `timeout`으로 묶이지만 합은 묶이지 않으므로, 합의 상한을
+    /// 사용자가 고른 `timeout`에 비례시킨다. 기본값에서 6 × 0.5 = 3.0으로 **이전 하드코딩 상수와 같다**
+    /// — 기본(Balanced) 사용자에게는 동작 변화가 없다는 뜻이고, `make test`가 그 동일성을 지킨다.
+    static func resolveBudget(for timeout: Float) -> TimeInterval {
+        TimeInterval(resolveReadCount) * TimeInterval(timeout)
+    }
 
     /// 두 값의 관계가 유지되는가. 테스트가 검사하는 불변식을 코드로 표현해 둔다.
     static var invariantHolds: Bool {

@@ -41,7 +41,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         registrationFailures: { [weak self] in self?.registrationFailureIdentifiers ?? [] },
         setHotkeysSuspended: { [weak self] suspended in self?.setHotkeysSuspended(suspended) },
         setMenuBarIconHidden: { [weak self] hidden in self?.statusBarController.setVisible(!hidden) },
-        setResolveTimeout: { seconds in FocusedWindowResolver.resolveTimeout = seconds },
+        setResolveTimeout: { seconds in FocusedWindowResolver.setResolveTimeout(seconds) },
         checkForUpdates: { [weak self] in self?.updaterController.checkForUpdates(nil) },
         requestNotificationAuthorization: { [weak self] in
             await self?.failureNotifier.requestAuthorization() ?? .failed
@@ -81,8 +81,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         statusBarController.install()
         statusBarController.setVisible(!preferencesStore.menuBarIconHidden)
-        // 고급 설정의 해석 상한을 기동 시 한 번 반영한다(저장 값은 PreferencesStore가 클램프한다).
-        FocusedWindowResolver.resolveTimeout = preferencesStore.resolveTimeout
+        // 고급 설정의 해석 상한을 기동 시 한 번 반영한다(setter 가 다시 클램프하므로 이중 안전).
+        FocusedWindowResolver.setResolveTimeout(preferencesStore.resolveTimeout)
         reloadHotkeys()
         showFirstRunOnboardingIfNeeded()
 
