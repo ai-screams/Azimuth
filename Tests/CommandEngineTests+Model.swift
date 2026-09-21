@@ -133,13 +133,19 @@ extension CommandEngineTests {
         // 기본값에서 이전 하드코딩 상수(3초)와 정확히 같다 = Balanced 사용자 동작 변화 0.
         // 이 등식이 깨지면 기본 사용자에게 조용한 동작 변화가 생긴 것이므로 반드시 실패해야 한다.
         expectName("balanced == previous constant", "\(budget(AXMessagingTimeout.resolve))", "3.0")
-        expectName("quick", "\(budget(AXMessagingTimeout.minResolve))", "1.5")
+        // Quick 은 바닥값에 걸린다. 순수 비례면 1.5초인데, 이전 예산(3초)보다 짧아지면
+        // 이전에 성공하던 명령이 실패하게 된다 — 버그 수정이 새 실패 모드를 들이지 않게 한다.
+        expectName("quick clamps to legacy floor", "\(budget(AXMessagingTimeout.minResolve))", "3.0")
+        expectName("floor equals previous constant", "\(AXMessagingTimeout.legacyResolveBudget)", "3.0")
+        // 바닥 덕분에 Quick 에서는 8회 경로의 구조적 최대치로도 예산에 도달할 수 없다(= 이전과 같다).
+        let quickCeiling = TimeInterval(8) * TimeInterval(AXMessagingTimeout.minResolve)
+        expectName("quick stays unreachable", "\(quickCeiling < budget(AXMessagingTimeout.minResolve))", "true")
         expectName("patient", "\(budget(1.0))", "6.0")
         // 손편집 defaults가 클램프 상한까지 올려도 비례가 유지된다.
         expectName("hand-edited upper bound", "\(budget(AXMessagingTimeout.write))", "12.0")
         expectName("read count is 6", "\(AXMessagingTimeout.resolveReadCount)", "6")
-        // 예산은 비표준 subrole 경로(읽기 8회)의 구조적 최대치보다 **작아야** 한다. 같거나 크면
-        // 어느 경로에서도 검사가 안 걸리는 죽은 코드가 된다. 이 부등식이 readCount 의 상한을 고정한다.
+        // Balanced 이상에서는 예산이 8회 경로의 구조적 최대치보다 **작아야** 한다. 같거나 크면
+        // 그 설정에서 검사가 안 걸린다. 이 부등식이 readCount 의 상한을 고정한다.
         let eightReadCeiling = TimeInterval(8) * TimeInterval(AXMessagingTimeout.resolve)
         expectName("budget below 8-read ceiling", "\(budget(AXMessagingTimeout.resolve) < eightReadCeiling)", "true")
     }

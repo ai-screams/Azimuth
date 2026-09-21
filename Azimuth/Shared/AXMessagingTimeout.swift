@@ -57,11 +57,19 @@ nonisolated enum AXMessagingTimeout {
     /// 이 파일이 `clampedResolve`로 막으려는 바로 그 종류의 실수다.
     static let resolveReadCount: Int = 6
 
+    /// 이전 하드코딩 예산(초). 바닥값으로 남겨 둔다 — 아래 참조.
+    static let legacyResolveBudget: TimeInterval = 3
+
     /// 해석 단계 전체 예산(초). 개별 읽기는 `timeout`으로 묶이지만 합은 묶이지 않으므로, 합의 상한을
-    /// 사용자가 고른 `timeout`에 비례시킨다. 기본값에서 6 × 0.5 = 3.0으로 **이전 하드코딩 상수와 같다**
-    /// — 기본(Balanced) 사용자에게는 동작 변화가 없다는 뜻이고, `make test`가 그 동일성을 지킨다.
+    /// 사용자가 고른 `timeout`에 비례시킨다. 기본값에서 6 × 0.5 = 3.0으로 **이전 하드코딩 상수와 같다.**
+    ///
+    /// **이전 값보다 짧아지지는 않는다(바닥 3초).** 순수 비례로 두면 Quick(0.25초)의 예산이 1.5초가 되는데,
+    /// 이전에는 3초라 8회 경로의 구조적 최대치(8 × 0.25 = 2.0초)로도 **도달할 수 없었다.** 즉 Quick
+    /// 사용자는 예산에 걸린 적이 없다가 갑자기 걸리게 되고, 그 실패는 이제 눈에 보이므로 —
+    /// **이전에 성공하던 명령이 beep과 함께 실패한다.** 고치려는 결함은 Patient가 과소 예산이라는
+    /// 것이었지 Quick이 과대 예산이라는 게 아니었다. 버그 수정이 새 실패 모드를 들이지 않게 바닥을 둔다.
     static func resolveBudget(for timeout: Float) -> TimeInterval {
-        TimeInterval(resolveReadCount) * TimeInterval(timeout)
+        max(TimeInterval(resolveReadCount) * TimeInterval(timeout), legacyResolveBudget)
     }
 
     /// 두 값의 관계가 유지되는가. 테스트가 검사하는 불변식을 코드로 표현해 둔다.
