@@ -9,7 +9,7 @@ Accessibility(AX) 권한 상태 조회·요청·System Settings 안내. **정공
 ## Key Files
 | File | Description |
 |------|-------------|
-| `AccessibilityPermissionService.swift` | `nonisolated`. `currentStatus()`(`AXIsProcessTrusted`), `requestPrompt()`(`AXIsProcessTrustedWithOptions` + prompt), `openSystemSettings()`(Privacy_Accessibility URL). `AccessibilityPermissionStatus`(granted/required + 메뉴·설정창 표시 텍스트) |
+| `AccessibilityPermissionService.swift` | `@MainActor`. `currentStatus()`(캐시된 `AXIsProcessTrusted`), `invalidateCache()`, `requestPrompt()`(`AXIsProcessTrustedWithOptions` + prompt, 반환값 없음 — 프롬프트 직후 상태는 사용자가 조작하기 전 값이라 무의미), `openSystemSettings()`(Privacy_Accessibility URL), **`promptAndOpenSettings()`**(둘을 합친 것 — "권한 설정 열기" 버튼/메뉴가 쓰는 유일한 경로. 설정창과 상태바가 같은 다섯 줄을 복제하던 것을 합쳤다. 실패 시 비프는 UI 몫이라 호출부에 남긴다). `AccessibilityPermissionStatus`(granted/required + 메뉴·설정창 표시 텍스트) |
 
 ## For AI Agents
 
