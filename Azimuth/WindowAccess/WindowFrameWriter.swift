@@ -31,27 +31,19 @@ enum WindowFrameWriter {
     private static let shrinkDeadband: CGFloat = 1
     /// anchored 보정을 걸지 판정하는 size 허용오차(순수 계층과 공유).
     private static let sizeTolerance = FrameApply.sizeTolerance
-    /// 응답 지연 앱에서 초기 쓰기·검증이 이 상한을 넘으면 재시도(추가 position/size 쓰기)를 생략해
-    /// MainActor 프리즈를 키우지 않는다(감사 H-3 부분 완화).
-    private static let retryBudgetSeconds: CFTimeInterval = 1
-
     /// 애니메이션 억제 상태(PID별)는 명령 간 유지되어야 하므로 writer가 단일 인스턴스로 소유한다.
     private static let suppressor = AnimationSuppressor()
 
-    /// `resolved`가 element/appElement/pid/현재 frame을 모두 운반한다. workArea는 anchor 보정용(undo는 nil).
-    /// `anchor`는 명령이 고정하려는 모서리 의도(상대 축소는 명시적, 나머지는 작업영역 모서리 추론).
-    static func apply(
-        _ target: CGRect,
-        to resolved: ResolvedWindow,
-        workArea: CGRect?,
-        anchor: FrameAnchor
-    ) -> FrameApplyResult {
+    /// 요청이 target/창/작업영역/anchor 와 **명령 시작 시각**을 함께 운반한다(`FrameWriteRequest`).
+    static func apply(_ request: FrameWriteRequest) -> FrameApplyResult {
         // 권한 가드를 쓰기 경계에도 둔다(방어적 — 호출 순서에 의존하지 않게).
         guard AccessibilityPermissionService.currentStatus().isTrusted else {
             return FrameApplyResult(achieved: nil, error: .resolution(.permissionDenied), mayHaveMutated: false)
         }
-        let element = resolved.element
-        let current = resolved.frame.rect
+        let element = request.resolved.element
+        let current = request.current
+        let target = request.target
+        // 여기서 한 번만 계산해 writeFrame 에 넘긴다 — 두 곳에서 따로 계산하면 한쪽만 고쳤을 때 조용히 갈라진다.
         let moves = FrameApply.movesOrigin(from: current, to: target)
         let resizes = FrameApply.resizesSize(from: current, to: target)
         // 실제로 바뀌는 축의 권한만 요구한다 — 이동만 하는 고정크기 창의 Move를 허용하고, 불필요한
@@ -80,28 +72,29 @@ enum WindowFrameWriter {
         // 유지하므로 기본 6초로 되돌아가는 일이 없다 — WindowAccess/AGENTS.md가 금지하는 것은 그
         // 6초 폴백이고, 0을 넘겨야 그렇게 된다. 짧은 상한으로 계속하는 편이 항상 더 안전하므로
         // 중단으로 "고치지" 말 것.
-        raiseMessagingTimeout(on: resolved.appElement, label: "app")
-        let didSuppress = suppressor.suppress(appElement: resolved.appElement, pid: resolved.pid)
+        raiseMessagingTimeout(on: request.resolved.appElement, label: "app")
+        let didSuppress = suppressor.suppress(appElement: request.resolved.appElement, pid: request.resolved.pid)
         raiseMessagingTimeout(on: element, label: "window")
-        let result = writeFrame(target, to: element, current: current, workArea: workArea, anchor: anchor)
-        if didSuppress { suppressor.scheduleRestore(pid: resolved.pid) }
+        let result = writeFrame(request, moves: moves, resizes: resizes)
+        if didSuppress { suppressor.scheduleRestore(pid: request.resolved.pid) }
         return result
     }
 
     // MARK: - 프레임 쓰기
 
+    /// 바뀌는 축만 쓴다(권한 가드와 `moves`/`resizes` 계산은 `apply` 가 끝냈다). 이동만이면 size를,
+    /// 리사이즈만이면 position을 건드리지 않아 AX IPC와 부분 실패 면적을 줄인다(감사 M-3).
+    ///
+    /// **이 함수 안에서 시각을 읽지 않는다.** 재시도 예산의 기준점은 `request.startedAt`(명령 시작)이고,
+    /// 여기서 따로 시계를 잡으면 그 앞구간(해석·억제)의 프리즈가 예산에서 빠진다.
     private static func writeFrame(
-        _ target: CGRect,
-        to element: AXUIElement,
-        current: CGRect,
-        workArea: CGRect?,
-        anchor: FrameAnchor
+        _ request: FrameWriteRequest,
+        moves: Bool,
+        resizes: Bool
     ) -> FrameApplyResult {
-        // 실제로 바뀌는 축만 쓴다(권한 가드는 apply에서 이미 통과). 이동만이면 size를, 리사이즈만이면
-        // position을 건드리지 않아 AX IPC와 부분 실패 면적을 줄인다(감사 M-3).
-        let phaseStart = ProcessInfo.processInfo.systemUptime
-        let moves = FrameApply.movesOrigin(from: current, to: target)
-        let resizes = FrameApply.resizesSize(from: current, to: target)
+        let element = request.resolved.element
+        let current = request.current
+        let target = request.target
         let shrinking = resizes
             && (target.width < current.width - shrinkDeadband || target.height < current.height - shrinkDeadband)
         // 쓰기가 하나라도 먹었는지 — 최종 read가 실패했을 때 복원점을 남길지의 유일한 근거다(감사 H-2).
@@ -115,7 +108,7 @@ enum WindowFrameWriter {
         // (2) 이동이 있으면: 제약 앱이 목표보다 큰 크기에 머물 때 실제 크기를 읽어 anchored origin을 1회 쓴다.
         var positionError = AXError.success
         if moves {
-            let origin = anchoredOrigin(element: element, target: target, workArea: workArea, anchor: anchor)
+            let origin = anchoredOrigin(request)
             positionError = AXAttribute.set(element, kAXPositionAttribute as String, point: origin)
             mutated = mutated || positionError == .success
         }
@@ -127,25 +120,30 @@ enum WindowFrameWriter {
         }
 
         // (4) verify + 1회 재시도(비동기·부분수용 앱). reached는 origin 2pt·size 8pt 오차 허용(증분 앱 헛재시도 방지).
-        // 재시도 origin은 방금 읽힌 실제 크기로 다시 anchor 계산(첫 추정이 어긋났을 때 보정).
+        // 재시도 origin은 다시 읽은 실제 크기로 anchor 재계산(첫 추정이 어긋났을 때 보정).
         // 재시도 결과를 최종 판정에 반영한다 — 재시도 중에만 생긴 일시적 실패를 success로 오분류하지 않게.
-        var achieved = readFrame(element)
-        var retried = false
-        if let verified = achieved, !FrameApply.reached(target: target, achieved: verified) {
-            // 응답 지연 앱: 초기 단계가 이미 예산을 넘겼으면 재시도로 프리즈를 키우지 않는다(H-3).
-            let slow = ProcessInfo.processInfo.systemUptime - phaseStart >= retryBudgetSeconds
-            if !slow, moves {
-                let retryOrigin = anchoredOrigin(element: element, target: target, workArea: workArea, anchor: anchor)
-                positionError = AXAttribute.set(element, kAXPositionAttribute as String, point: retryOrigin)
-                mutated = mutated || positionError == .success
-                retried = true
-            }
-            if !slow, resizes {
-                sizeError = AXAttribute.set(element, kAXSizeAttribute as String, size: target.size)
-                mutated = mutated || sizeError == .success
-                retried = true
-            }
+        //
+        // 재시도 여부는 순수 정책이 정한다 — 읽기 실패·도달·예산 초과의 조합을 AX 없이 전수 검증하기 위해서다.
+        // 경과는 **명령 시작부터**다(`request.startedAt`): 해석·억제가 이미 쓴 시간이 들어가야, 느린 앱에서
+        // 추가 쓰기로 프리즈를 늘리지 않는다는 가드가 실제로 작동한다(감사 H-3).
+        let achievedFrame = readFrame(element)
+        var achieved = achievedFrame
+        let retry = WriteRetryPolicy.decide(WriteRetryInput(
+            elapsed: ProcessInfo.processInfo.systemUptime - request.startedAt,
+            budget: AXMessagingTimeout.writeRetryBudget(for: FocusedWindowResolver.resolveTimeout),
+            reachedTarget: achievedFrame.map { FrameApply.reached(target: target, achieved: $0) },
+            moves: moves,
+            resizes: resizes
+        ))
+        if retry.retryPosition {
+            positionError = AXAttribute.set(element, kAXPositionAttribute as String, point: anchoredOrigin(request))
+            mutated = mutated || positionError == .success
         }
+        if retry.retrySize {
+            sizeError = AXAttribute.set(element, kAXSizeAttribute as String, size: target.size)
+            mutated = mutated || sizeError == .success
+        }
+        let retried = retry.shouldRetry
         // 재시도로 창이 또 움직였거나 검증 읽기 자체가 실패했을 때만 최종 frame을 다시 읽는다.
         // 이미 목표에 도달한 정상 경로에서는 검증 frame이 곧 최종 frame이다 — 명령마다 position/size
         // 읽기 2회가 줄어든다(감사 H-1). 재시도를 건너뛴 느린 앱에서도 한 번 더 읽지 않는다.
@@ -175,19 +173,17 @@ enum WindowFrameWriter {
     ///  - right/bottom: 상대 축소. 앱이 요청보다 작게/크게 반올림해도 그 모서리를 고정하려면 항상 실제
     ///    크기를 읽어 다시 계산한다(감사 M-4 — 반복 축소의 셀 단위 드리프트 방지).
     ///  - workAreaEdges: 제약 앱이 목표보다 "클 때"만 스냅 모서리를 유지(기존 동작).
-    private static func anchoredOrigin(
-        element: AXUIElement,
-        target: CGRect,
-        workArea: CGRect?,
-        anchor: FrameAnchor
-    ) -> CGPoint {
-        switch anchor {
+    private static func anchoredOrigin(_ request: FrameWriteRequest) -> CGPoint {
+        let element = request.resolved.element
+        let target = request.target
+        let workArea = request.workArea
+        switch request.anchor {
         case .topLeft:
             return target.origin
         case .right, .bottom:
             guard let actual = AXAttribute.size(element, kAXSizeAttribute as String) else { return target.origin }
             return FrameCalculator.anchoredOrigin(
-                anchor: anchor, actualSize: actual, target: target, workArea: workArea ?? target
+                anchor: request.anchor, actualSize: actual, target: target, workArea: workArea ?? target
             )
         case .workAreaEdges:
             guard let workArea,

@@ -44,6 +44,8 @@ enum CommandEngineTests {
         testCommandIdentifiers()
         testMessagingTimeoutPolicy()
         testResolveBudget()
+        testWriteRetryPolicy()
+        testWriteRetryBudget()
         testResolveTimeoutClamp()
         testResolveTimeoutChoices()
         testShortcutListPolicy()

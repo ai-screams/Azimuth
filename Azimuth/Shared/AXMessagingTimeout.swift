@@ -72,6 +72,19 @@ nonisolated enum AXMessagingTimeout {
         max(TimeInterval(resolveReadCount) * TimeInterval(timeout), legacyResolveBudget)
     }
 
+    /// 재시도 판정의 경과 상한(초). **명령이 시작된 시각** 기준이다 — 해석·권한 확인·애니메이션 억제에
+    /// 이미 쓴 시간이 여기 들어간다. 이전에는 쓰기 함수 진입부터 재는 평탄한 1초였는데, 그 앞구간이
+    /// 느린 앱일수록 길어져 "프리즈를 키우지 않으려는" 가드가 정작 프리즈가 심할 때 통과했다.
+    ///
+    /// 해석 예산 + 쓰기 상한으로 잡는다. 해석이 예산을 넘으면 Executor 가 이미 명령을 실패시키므로
+    /// (`.resolveBudgetExceeded`), 쓰기 단계에 남는 몫은 `write` 한 번치다. 기본값에서 3.0 + 2.0 = 5.0초.
+    ///
+    /// Quick 이 Balanced 와 같은 5.0 인 것은 `resolveBudget` 의 바닥(3초) 때문이다 — 그 바닥이 사라지면
+    /// 3.5 가 된다. `CommandEngineTests` 가 세 값을 리터럴로 고정한다(공식으로 단정하면 항진명제다).
+    static func writeRetryBudget(for timeout: Float) -> TimeInterval {
+        resolveBudget(for: timeout) + TimeInterval(write)
+    }
+
     /// 두 값의 관계가 유지되는가. 테스트가 검사하는 불변식을 코드로 표현해 둔다.
     static var invariantHolds: Bool {
         write >= resolve

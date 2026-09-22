@@ -244,4 +244,55 @@ extension CommandEngineTests {
                        decide(Outcome(target: moved, achieved: partial, failed: true, mutated: true)),
                        OutcomeDecision(recordUndo: true, snap: .clear))
     }
+
+    /// 재시도 판정. 예산의 기준점이 **명령 시작**이라는 것이 이 PR 의 핵심이고, 예산 초과 경로는
+    /// 응답이 느린 앱을 재현해야만 밟히던 곳이라 값으로 내려야 검증된다(감사 H-3).
+    static func testWriteRetryPolicy() {
+        let budget = AXMessagingTimeout.writeRetryBudget(for: AXMessagingTimeout.resolve)
+
+        func decide(_ elapsed: TimeInterval, _ reached: Bool?, moves: Bool = true, resizes: Bool = true)
+            -> WriteRetryDecision {
+            WriteRetryPolicy.decide(WriteRetryInput(
+                elapsed: elapsed, budget: budget, reachedTarget: reached, moves: moves, resizes: resizes
+            ))
+        }
+
+        // 검증 읽기 실패 → 창이 어디 있는지 모른다. 또 쓰지 않는다.
+        expectName("unknown result does not retry", "\(decide(0, nil).shouldRetry)", "false")
+        // 이미 도달 → 재시도는 낭비.
+        expectName("reached target does not retry", "\(decide(0, true).shouldRetry)", "false")
+        // 미달 + 예산 이내 → 바뀌는 축만.
+        expectName("moves only retries position", "\(decide(0, false, moves: true, resizes: false))",
+                   "\(WriteRetryDecision(retryPosition: true, retrySize: false))")
+        expectName("resizes only retries size", "\(decide(0, false, moves: false, resizes: true))",
+                   "\(WriteRetryDecision(retryPosition: false, retrySize: true))")
+        expectName("both axes retry both", "\(decide(0, false))",
+                   "\(WriteRetryDecision(retryPosition: true, retrySize: true))")
+        // 둘 다 아니면 쓸 것이 없다(apply 의 no-op 가드 때문에 실호출로는 안 오지만 순수 함수라 방어).
+        expectName("no axis, no retry", "\(decide(0, false, moves: false, resizes: false).shouldRetry)", "false")
+        // 예산 초과 → 생략. 이것이 느린 앱에서 프리즈를 키우지 않는 가드다.
+        expectName("over budget does not retry", "\(decide(budget + 0.1, false).shouldRetry)", "false")
+        // 경계: 정확히 예산이면 초과로 본다(`<` 비교). `<=` 로 바꾸면 이 검사가 잡는다.
+        expectName("exactly at budget does not retry", "\(decide(budget, false).shouldRetry)", "false")
+        // 예산 직전은 재시도한다 — 위 두 행이 "항상 false"로 통과하는 것을 막는다.
+        expectName("just under budget retries", "\(decide(budget - 0.01, false).shouldRetry)", "true")
+    }
+
+    /// 재시도 예산 값. 공식으로 단정하면 항진명제라 리터럴로 고정한다(PR #119 의 resolveBudget 과 같은 이유).
+    static func testWriteRetryBudget() {
+        expectName("quick write-retry budget", "\(AXMessagingTimeout.writeRetryBudget(for: 0.25))", "5.0")
+        expectName("balanced write-retry budget", "\(AXMessagingTimeout.writeRetryBudget(for: 0.5))", "5.0")
+        expectName("patient write-retry budget", "\(AXMessagingTimeout.writeRetryBudget(for: 1.0))", "8.0")
+        // Quick 이 Balanced 와 **같다**는 것이 해석 예산 바닥(3초)이 살아 있다는 증거다. 바닥이 사라지면
+        // Quick 은 3.5 가 된다 — 불변식 `writeRetryBudget > resolveBudget` 은 그래도 통과하므로 여기서 잡는다.
+        let quick = AXMessagingTimeout.writeRetryBudget(for: 0.25)
+        expectName("quick equals balanced (floor holds)",
+                   "\(quick == AXMessagingTimeout.writeRetryBudget(for: 0.5))", "true")
+        // 쓰기 몫이 남아 있어야 재시도가 죽지 않는다.
+        for timeout in [Float(0.25), 0.5, 1.0] {
+            let retryBudget = AXMessagingTimeout.writeRetryBudget(for: timeout)
+            let over = retryBudget > AXMessagingTimeout.resolveBudget(for: timeout)
+            expectName("write-retry budget exceeds resolve budget at \(timeout)", "\(over)", "true")
+        }
+    }
 }

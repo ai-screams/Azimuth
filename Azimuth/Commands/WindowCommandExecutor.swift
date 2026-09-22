@@ -75,9 +75,13 @@ enum WindowCommandExecutor {
                 return .failure(.noUndoState)
             }
             // undo는 직전 실제 frame 복원이라 anchor 보정 불필요(workArea: nil, anchor: topLeft).
-            let outcome = WindowFrameWriter.apply(
-                previous, to: resolved, workArea: nil, anchor: WindowCommand.undo.frameAnchor
-            )
+            let outcome = WindowFrameWriter.apply(FrameWriteRequest(
+                target: previous,
+                resolved: resolved,
+                workArea: nil,
+                anchor: WindowCommand.undo.frameAnchor,
+                startedAt: startedAt
+            ))
             // 복원이 실제로 직전 frame에 도달했을 때만 소비한 entry를 제거한다(부분 복원·미도달이면
             // 재시도 여지를 남긴다 — 명목상 성공이 아니라 achieved 기준. 감사 H-1).
             if let achieved = outcome.achieved, FrameApply.reached(target: previous, achieved: achieved) {
@@ -108,9 +112,13 @@ enum WindowCommandExecutor {
         // 같은 화면 명령이면 결과적으로 source와 동일. 못 구하면 source로 폴백.
         let anchorArea = WorkAreaResolver.workArea(forAXWindowFrame: plan.target) ?? workArea
         // 고정 모서리 의도는 명령이 안다 — 상대 축소는 명시적 모서리, 나머지는 작업영역 모서리 추론(M-4).
-        let outcome = WindowFrameWriter.apply(
-            plan.target, to: resolved, workArea: anchorArea, anchor: command.frameAnchor
-        )
+        let outcome = WindowFrameWriter.apply(FrameWriteRequest(
+            target: plan.target,
+            resolved: resolved,
+            workArea: anchorArea,
+            anchor: command.frameAnchor,
+            startedAt: startedAt
+        ))
         // Undo·Snap 커밋 판단은 순수 계층에 위임한다 — 부분 적용·최종 read 실패 같은 조합을 AX 없이
         // 전수 테스트할 수 있게 하기 위해서다(감사 H-2/H-3). 여기서는 결정을 적용만 한다.
         let decision = CommandOutcomePolicy.decide(CommandOutcome(
