@@ -1,35 +1,35 @@
 <!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-06-19 | Updated: 2026-07-01 -->
+<!-- Generated: 2026-06-19 | Updated: 2026-09-22 -->
 
 # StatusBar
 
 ## Purpose
-메뉴바 상태 항목과 그 메뉴. 권한 상태 표시, 설정 열기, 종료, DEBUG 진단/명령 서브메뉴를 제공한다.
+The menu-bar status item and its menu. Shows permission state, opens settings, quits, and provides the DEBUG diagnostics and command submenu.
 
 ## Key Files
 | File | Description |
 |------|-------------|
-| `StatusBarController.swift` | `@MainActor`, `NSMenuDelegate`. 컴팩트 SF Symbol 상태 아이콘(권한 시 `macwindow.on.rectangle`, 필요 시 `exclamationmark.triangle`). 메뉴: 권한 상태/Accessibility 설정 열기/마지막 명령 실패 사유(정보 행, `lastFailureText` 클로저를 AppDelegate가 주입, 실패 없으면 숨김)/Check for Updates…/Open Settings(`⌘,`)/Quit(`⌘q`). DEBUG: 포커스 창 식별 + 34개 명령 서브메뉴(`WindowCommand.menuCommands`) |
+| `StatusBarController.swift` | `@MainActor`, `NSMenuDelegate`. A compact SF Symbol status icon (`macwindow.on.rectangle` when permission is granted, `exclamationmark.triangle` when it is needed). The menu holds: permission state / open Accessibility settings / the last command failure reason (an informational row fed by the `lastFailureText` closure that AppDelegate injects, hidden when there is no failure) / Check for Updates… / Open Settings (`⌘,`) / Quit (`⌘q`). Under DEBUG it also offers focused-window identification and a submenu of all 34 commands (`WindowCommand.menuCommands`) |
 
 ## For AI Agents
 
 ### Working In This Directory
-- 권한 상태와 마지막 실패 행은 `menuWillOpen`에서 갱신(권한은 `refreshPermissionState`로 앱 활성화 시에도 갱신).
-- DEBUG 전용 진단은 `#if DEBUG`로 감싼다(RELEASE 메뉴에 노출 금지).
-- 메뉴바 아이콘은 SF Symbol(템플릿 이미지)이라 별도 에셋 불필요. 꽉 찬 메뉴바+멀티디스플레이에서 macOS가 항목을 숨길 수 있음(앱 제어 밖, 환경 한계).
+- The permission state and the last-failure row refresh in `menuWillOpen` (permission also refreshes on app activation through `refreshPermissionState`).
+- Wrap DEBUG-only diagnostics in `#if DEBUG` so they never reach the RELEASE menu.
+- The menu-bar icon is an SF Symbol (a template image), so it needs no asset. With a crowded menu bar and multiple displays, macOS may hide the item — that is outside the app's control.
 
 ### Testing Requirements
-- `make run`으로 메뉴바 항목 표시·권한 색상 전환·DEBUG 명령 서브메뉴 동작 확인.
+- Use `make run` to confirm the menu-bar item appears, the permission color changes, and the DEBUG command submenu works.
 
 ### Common Patterns
-- 명령 실행은 단축키와 동일하게 `Commands/WindowCommandExecutor.run`을 통함(경로 단일화). 실패 시 비프 + 로그.
+- Commands run through `Commands/WindowCommandExecutor.run`, the same path as hotkeys (one path only). On failure: beep and log.
 
 ## Dependencies
 
 ### Internal
-- `Permissions/AccessibilityPermissionService`, `Commands/WindowCommandExecutor`·`WindowCommand`, `WindowAccess/FrontmostAppTracker`·`FocusedWindowResolver`·`WindowUndoStore`, `Shared/Log`.
+- `Permissions/AccessibilityPermissionService`, `Commands/WindowCommandExecutor` · `WindowCommand`, `WindowAccess/FrontmostAppTracker` · `FocusedWindowResolver` · `WindowUndoStore` · `SnapStateStore`, `Shared/Log`.
 
 ### External
-- Cocoa(NSStatusBar/NSMenu), os.
+- Cocoa (NSStatusBar / NSMenu), os.
 
 <!-- MANUAL: -->

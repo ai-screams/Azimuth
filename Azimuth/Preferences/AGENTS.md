@@ -1,37 +1,37 @@
 <!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-06-19 | Updated: 2026-06-19 -->
+<!-- Generated: 2026-06-19 | Updated: 2026-09-22 -->
 
 # Preferences
 
 ## Purpose
-사용자 설정의 영속화. UserDefaults 얇은 래퍼.
+Persistence for user settings. A thin wrapper over UserDefaults.
 
 ## Key Files
 | File | Description |
 |------|-------------|
-| `PreferencesStore.swift` | `@MainActor`. `activePreset: HotkeyPreset`(키 `activeHotkeyPreset`, 기본 `.standard`), `soundFeedbackEnabled: Bool`(키 `soundFeedbackEnabled`, 미설정 시 기본 true — `object(forKey:)` nil 체크로 "미설정"과 "false" 구분), `notifyOnCommandFailure: Bool`(키 `notifyOnCommandFailure`, 기본 false — opt-in, 켜는 순간에만 알림 권한 요청) |
+| `PreferencesStore.swift` | `@MainActor`. `activePreset: HotkeyPreset` (key `activeHotkeyPreset`, default `.standard`), `soundFeedbackEnabled: Bool` (key `soundFeedbackEnabled`, defaults to true when unset — an `object(forKey:)` nil check distinguishes "unset" from "false"), `notifyOnCommandFailure: Bool` (key `notifyOnCommandFailure`, default false — opt-in, and the notification authorization is requested only at the moment it is switched on) |
 
 ## For AI Agents
 
 ### Working In This Directory
-- 새 설정 추가 시: private 키 상수 + computed property(get/set). Bool 기본값 true가 필요하면 `object(forKey:) != nil` 가드로 미설정을 구분(그냥 `bool(forKey:)`는 미설정 시 false).
-- `@MainActor`로 통일(앱 전역 단일 인스턴스, `AppDelegate`가 보유·주입).
+- To add a setting: a private key constant plus a computed property (get/set). If a Bool needs to default to true, guard with `object(forKey:) != nil` to detect "unset" (plain `bool(forKey:)` returns false when unset).
+- Everything is `@MainActor` (a single app-wide instance owned and injected by `AppDelegate`).
 
 ### Testing Requirements
-- `make build` 컴파일. 동작은 라이브(프리셋 전환 → 핫키 재등록, 피드백 토글 → 비프음 on/off).
+- `make build` for compilation. Behavior is verified live (switching presets re-registers hotkeys; toggling feedback turns the beep on and off).
 
 ### Common Patterns
-- raw 표현은 String(enum rawValue)/Bool로 저장. 읽기 실패/미설정은 안전한 기본값으로 폴백.
+- Raw representations are stored as String (an enum rawValue) or Bool. A failed or unset read falls back to a safe default.
 
 ## Dependencies
 
 ### Internal
-- `Hotkeys/HotkeyPreset`(활성 프리셋 타입). 소비처: `AppDelegate`(핫키 reload·비프음 게이팅), `GeneralPaneViewController`·`Settings/ShortcutsSectionView`(UI).
+- `Hotkeys/HotkeyPreset` (the active preset type). Consumers: `AppDelegate` (hotkey reload, beep gating), `GeneralPaneViewController` and `Settings/ShortcutsSectionView` (UI).
 
 ### External
-- Foundation(UserDefaults).
+- Foundation (UserDefaults).
 
 <!-- MANUAL: -->
 
 <!-- MANUAL -->
-- `resolveTimeout`(Float, 고급 설정): AX 해석 단계 messaging timeout(초). **읽기·쓰기 양쪽에서 `AXMessagingTimeout.clampedResolve`를 통과시킨다** — 저장 값은 손으로 편집될 수 있고, 0은 AX가 "전역 기본값(6초) 복귀"로 해석해서 그대로 두면 설정이 있다는 이유로 기본 동작이 조용히 나빠진다.
+- `resolveTimeout` (Float, Advanced settings): the AX resolution-stage messaging timeout in seconds. **Pass it through `AXMessagingTimeout.clampedResolve` on both read and write** — the stored value can be hand-edited, and AX reads 0 as "return to the global default (6s)", so leaving it alone would silently make the default behavior worse simply because a setting exists.

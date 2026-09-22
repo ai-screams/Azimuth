@@ -1,60 +1,60 @@
-<!-- Generated: 2026-06-19 | Updated: 2026-09-21 -->
+<!-- Generated: 2026-06-19 | Updated: 2026-09-22 -->
 
 # Azimuth
 
 ## Purpose
-Azimuth는 macOS 메뉴바 **윈도우 매니저**다 (Magnet/Rectangle 류). Accessibility(AX) API로 다른 앱의 포커스된 일반 창을 식별하고, 전역 단축키 또는 메뉴 명령으로 반분/1·2·3분할/최대화/이동/상대 변형/되돌리기를 수행한다. Swift + AppKit, 스토리보드 없는 프로그래매틱 진입(`Azimuth/main.swift`). Xcode 프로젝트(objectVersion 77, file-system synchronized group).
+Azimuth is a macOS menu-bar **window manager** (in the Magnet/Rectangle family). It uses the Accessibility (AX) API to identify another app's focused ordinary window, then halves / thirds / maximizes / moves / relatively resizes / undoes it from a global hotkey or a menu command. Swift + AppKit, programmatic entry with no storyboard (`Azimuth/main.swift`). Xcode project (objectVersion 77, file-system synchronized group).
 
 ## Key Files
 | File | Description |
 |------|-------------|
-| `Makefile` | `build`(ad-hoc 컴파일/CI 전용) · `run`(Apple Dev 서명, 권한 테스트용) · `lint` · `format` · `test` · `coverage`(≥90% 게이트) · `secrets` · `release` · `install-hooks` |
-| `README.md` | 프로젝트 개요(설치·단축키·명령 동작·후원) |
-| `CLAUDE.md` | AI 에이전트용 최상위 오리엔테이션(빌드/규칙/규약/docs·후원/환경 함정). 상세는 디렉터리별 `AGENTS.md` |
-| `SECURITY.md` · `CONTRIBUTING.md` · `SUPPORT.md` · `CODE_OF_CONDUCT.md` | GitHub 커뮤니티 헬스 파일(보안 신고·기여 가이드·지원 안내·행동 강령) |
-| `RELEASING.md` | 릴리스 절차 문서 |
-| `LICENSE` · `NOTICE` | Apache-2.0 라이선스 + 고지 |
-| `Azimuth.xcodeproj` | Xcode 프로젝트. 비샌드박스, `DEVELOPMENT_TEAM=7K6MK3KP9K`, `SWIFT_DEFAULT_ACTOR_ISOLATION=MainActor`, deployment target macOS 14.0 |
-| `.swiftlint.yml` | SwiftLint strict 설정 |
-| `.swiftformat` | SwiftFormat 설정 (pre-commit + CI에서 `--lint`) |
-| `.gitleaks.toml` | 시크릿 스캔 규칙 |
-| `.gitignore` | `.docs/`, `.omc/` 등 제외 |
+| `Makefile` | `build` (ad-hoc compile, CI only) · `run` (Apple Development signed, for permission testing) · `lint` · `format` · `test` · `coverage` (≥90% gate) · `secrets` · `release` · `install-hooks` |
+| `README.md` | Project overview (install, shortcuts, command behavior, sponsorship) |
+| `CLAUDE.md` | Top-level orientation for AI agents (build, rules, conventions, docs/funding, environment gotchas). Details live in the per-directory `AGENTS.md` |
+| `SECURITY.md` · `CONTRIBUTING.md` · `SUPPORT.md` · `CODE_OF_CONDUCT.md` | GitHub community health files (security reporting, contribution guide, support, code of conduct) |
+| `RELEASING.md` | Release procedure |
+| `LICENSE` · `NOTICE` | Apache-2.0 license + notices |
+| `Azimuth.xcodeproj` | Xcode project. Non-sandboxed, `DEVELOPMENT_TEAM=7K6MK3KP9K`, `SWIFT_DEFAULT_ACTOR_ISOLATION=MainActor`, deployment target macOS 14.0 |
+| `.swiftlint.yml` | SwiftLint strict configuration |
+| `.swiftformat` | SwiftFormat configuration (`--lint` in pre-commit and CI) |
+| `.gitleaks.toml` | Secret-scan rules |
+| `.gitignore` | Excludes `.docs/`, `.omc/`, and friends |
 
 ## Subdirectories
 | Directory | Purpose |
 |-----------|---------|
-| `Azimuth/` | 앱 소스 전체 (see `Azimuth/AGENTS.md`) |
-| `Tests/` | 명령 엔진 순수 로직 회귀 테스트 (see `Tests/AGENTS.md`) |
-| `scripts/` | build/run/lint/format/test/coverage/secret-scan/release 쉘 스크립트 (see `scripts/AGENTS.md`) |
-| `docs/` | GitHub Pages 소스: 랜딩·매뉴얼(이중언어 EN/KO) (see `docs/AGENTS.md`) |
-| `.github/` | GitHub Actions CI + 거버넌스(FUNDING/CODEOWNERS/PR 템플릿) (see `.github/AGENTS.md`) |
-| `.githooks/` | `pre-commit`(SwiftFormat --lint + SwiftLint). `make install-hooks`로 설치 |
+| `Azimuth/` | All app source (see `Azimuth/AGENTS.md`) |
+| `Tests/` | Pure-logic regression tests for the command engine (see `Tests/AGENTS.md`) |
+| `scripts/` | build/run/lint/format/test/coverage/secret-scan/release shell scripts (see `scripts/AGENTS.md`) |
+| `docs/` | GitHub Pages source: landing page and manual (bilingual EN/KO) (see `docs/AGENTS.md`) |
+| `.github/` | GitHub Actions CI + governance (FUNDING/CODEOWNERS/PR template) (see `.github/AGENTS.md`) |
+| `.githooks/` | `pre-commit` (SwiftFormat --lint + SwiftLint). Install with `make install-hooks` |
 
 ## For AI Agents
 
 ### Working In This Directory
-- **권한/보안은 절대 우회하지 말 것**(정공법). AX 권한은 공식 API로 요청하고 사용자가 System Settings에서 부여하게 한다. `tccutil reset`(Apple 공식)은 허용.
-- **권한 테스트는 `make run`(Apple Dev 서명)으로.** `make build`는 `CODE_SIGNING_ALLOWED=NO`(ad-hoc)라 cdhash가 바뀌어 TCC 권한이 초기화된다 → 컴파일/CI 검증 전용.
-- `.docs/`는 내부 문서이며 **git에 커밋·푸시 금지**(gitignore됨).
-- 소스 추가는 `Azimuth/` 아래에 두면 file-system synchronized group으로 **자동 포함**된다(pbxproj 수정 불필요). 단, 새 타깃/의존성 추가는 pbxproj/GUI 필요.
+- **Never work around permissions or security.** Request AX through the official API and let the user grant it in System Settings. Apple's own `tccutil reset` is fine.
+- **Test permissions with `make run`** (Apple Development signing). `make build` passes `CODE_SIGNING_ALLOWED=NO` (ad-hoc), so its cdhash changes every build and TCC drops the grant — that target is for compile/CI checks only.
+- `.docs/` is internal documentation: **never commit or push it** (it is gitignored).
+- New sources placed under `Azimuth/` are **included automatically** by the file-system synchronized group (no pbxproj edit). Adding a new target or dependency still needs the pbxproj / Xcode GUI.
 
 ### Testing Requirements
-- 변경 후 항상: `make build` → `make lint` → `make test`. 머지 전 통과 필수(CI가 동일하게 검사).
-- 순수 로직 변경은 `make test`(swiftc 직접 컴파일, 통과 시 `PASS — all N checks` 출력)로 빠르게 회귀 확인.
-- launch/Info.plist/타깃 설정 변경은 "프로세스 생존"만 보지 말고 **창이 실제로 뜨는지** 확인(과거 storyboard 제거가 delegate 연결을 끊은 회귀 있었음).
+- After any change: `make build` → `make lint` → `make test`. All must pass before merging (CI runs the same).
+- For pure-logic changes, `make test` (direct swiftc compile, prints `PASS — all N checks`) is the fast regression check.
+- When changing launch / Info.plist / target settings, do not stop at "the process is alive" — confirm **a window actually appears** (removing the storyboard once severed the delegate connection).
 
 ### Common Patterns
-- `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor` → 모든 타입이 기본 `@MainActor`. 순수/스레드 무관 로직은 명시적으로 `nonisolated`로 표시.
-- 창 좌표는 내부적으로 **AX 좌표(좌상단 원점, Y 아래로)** 로 다루고, 화면 작업영역 변환 시 `Shared/CoordinateSpace`로 Cocoa↔AX 뒤집기.
-- SwiftLint strict: force-unwrap/force-cast 금지(예외: `WindowAccess/AXAttribute`의 범위 한정 CF 캐스트 + `swiftlint:disable` 주석). function/type body length, line 120 제한.
+- `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor` means every type is `@MainActor` by default. Mark pure, thread-agnostic logic explicitly `nonisolated`.
+- Window geometry is handled internally in **AX coordinates** (top-left origin, Y down); flip between Cocoa and AX via `Shared/CoordinateSpace` when converting screen work areas.
+- SwiftLint strict: no force-unwrap / force-cast (the exception is the narrow CF cast in `WindowAccess/AXAttribute` with a `swiftlint:disable` comment). Function/type body length and a 120-column line limit apply.
 
 ## Dependencies
 
 ### Internal
-- 명령 실행 데이터 흐름: 단축키/메뉴 → `Commands/WindowCommandExecutor` → `WindowAccess`(앱/창 해석·쓰기) + `Commands/CommandPlanPolicy`(목표 frame·스냅 edge 결정, `FrameCalculator` 기하 위임) → `Commands/CommandOutcomePolicy`(실제 AX 결과 기반 커밋 판단) → `WindowUndoStore`/`SnapStateStore`.
+- Command execution data flow: hotkey/menu → `Commands/WindowCommandExecutor` → `WindowAccess` (app/window resolution and writes) + `Commands/CommandPlanPolicy` (decides the target frame and snap edge, delegating geometry to `FrameCalculator`) → `Commands/CommandOutcomePolicy` (decides what to commit from the actual AX result) → `WindowUndoStore` / `SnapStateStore`.
 
 ### External
-- AppKit / Cocoa, ApplicationServices(AX), CoreGraphics, Carbon.HIToolbox(전역 단축키), ServiceManagement(로그인 자동 실행).
-- **Sparkle 2** (SPM, 2.9.3, revision `d46d456`): 자동 업데이트 프레임워크. `AppDelegate`의 `SPUStandardUpdaterController`로 초기화; "Check for Updates…" 메뉴 항목(App 메뉴·상태바 메뉴·Settings Updates 카드)의 타깃이 된다.
+- AppKit / Cocoa, ApplicationServices (AX), CoreGraphics, Carbon.HIToolbox (global hotkeys), ServiceManagement (launch at login).
+- **Sparkle 2** (SPM, 2.9.3, revision `d46d456`): the auto-update framework. Initialized through `AppDelegate`'s `SPUStandardUpdaterController`, which is the target of every "Check for Updates…" item (App menu, status-bar menu, Settings Updates card).
 
 <!-- MANUAL: Any manually added notes below this line are preserved on regeneration -->

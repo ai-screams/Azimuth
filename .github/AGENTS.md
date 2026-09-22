@@ -1,44 +1,44 @@
 <!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-06-19 | Updated: 2026-07-01 -->
+<!-- Generated: 2026-06-19 | Updated: 2026-09-22 -->
 
 # .github
 
 ## Purpose
-GitHub Actions CI/CD 설정. **전체 개요·보안 레이어·활성화 설정은 [`CICD.md`](CICD.md) 참조.**
+GitHub Actions CI/CD configuration. **See [`CICD.md`](CICD.md) for the full overview, the security layers and the repository settings.**
 
 ## Subdirectories
 | Directory | Purpose |
 |-----------|---------|
-| `workflows/` | `ci.yml`(통합 검사) · `codeql.yml`(SAST) · `release.yml`(릴리스) |
+| `workflows/` | `ci.yml` (combined checks) · `codeql.yml` (SAST) · `release.yml` (releases) |
 
 ## Key Files
 | File | Description |
 |------|-------------|
-| `CICD.md` | CI/CD 전체 문서(워크플로·방어 레이어·로컬 대응·저장소 설정·릴리스 방법) |
-| `workflows/ci.yml` | `push: main`+PR, `macos-15`. **secret-scan**(gitleaks+SARIF) · **lint-and-build**(SwiftFormat→SwiftLint strict→xcodebuild→`scripts/test.sh`→`make coverage` ≥90% 게이트). concurrency로 PR stale 취소 |
-| `workflows/codeql.yml` | CodeQL **Swift** SAST(push: main·주간). init→빌드→analyze → Security/Code scanning |
-| `workflows/release.yml` | 태그 `v*` → `environment: release` 승인 게이트 → 빌드·서명·공증·**DMG 자가검증**·**SHA-256 체크섬**·**EdDSA 서명키 일치 게이트**·**Sparkle appcast 서명·생성**·Release 발행 |
-| `dependabot.yml` | github-actions 주간 업데이트(SHA 핀 갱신) |
-| `FUNDING.yml` | 리포 ♡ Sponsor 버튼 소스: `github: [ai-screams]`(조직 Sponsors) + `ko_fi: pignuante`. 버튼은 리포 **Settings → Features → Sponsorships** 토글도 필요 |
-| `CODEOWNERS` | 코드 소유자(자동 리뷰어 지정) |
-| `PULL_REQUEST_TEMPLATE.md` | PR 본문 기본 템플릿 |
+| `CICD.md` | The complete CI/CD document (workflows, defense layers, local equivalents, repository settings, how to release) |
+| `workflows/ci.yml` | `push: main` plus PRs, on `macos-15`. **secret-scan** (gitleaks + SARIF) and **lint-and-build** (SwiftFormat → SwiftLint strict → xcodebuild → `scripts/test.sh` → `make coverage` with the ≥90% gate). Concurrency cancels stale PR runs |
+| `workflows/codeql.yml` | CodeQL **Swift** SAST (on push to main and weekly). init → build → analyze → Security/Code scanning |
+| `workflows/release.yml` | Tag `v*` → the `environment: release` approval gate → build, sign, notarize, **DMG self-verification**, **SHA-256 checksum**, **EdDSA signing-key match gate**, **Sparkle appcast signing and generation**, then publish the Release |
+| `dependabot.yml` | Weekly github-actions updates (refreshing the SHA pins) |
+| `FUNDING.yml` | The source for the repo's ♡ Sponsor button: `github: [ai-screams]` (organization Sponsors) + `ko_fi: pignuante`. The button also requires the repo's **Settings → Features → Sponsorships** toggle |
+| `CODEOWNERS` | Code owners (automatic reviewer assignment) |
+| `PULL_REQUEST_TEMPLATE.md` | The default PR body template |
 
 ## For AI Agents
 
 ### Working In This Directory
-- CI는 로컬 `make lint`/`make build`/`make test`와 동일 검사다. 머지 전 로컬에서 먼저 green 확인하면 CI 실패를 예방한다.
-- CI 빌드는 `CODE_SIGNING_ALLOWED=NO`(ad-hoc, 서명 불필요) — 컴파일 검증 목적. 권한 동작은 CI에서 검증 불가(로컬 `make run`).
-- 시크릿이 코드에 들어가지 않게 한다(gitleaks가 차단). `.docs/`는 커밋하지 않는다.
+- CI runs the same checks as local `make lint` / `make build` / `make test`. Getting them green locally before merging prevents CI failures.
+- CI builds with `CODE_SIGNING_ALLOWED=NO` (ad-hoc, no signing needed) because its purpose is compile verification. Permission behavior cannot be verified in CI — use local `make run`.
+- Keep secrets out of the code (gitleaks blocks them). Never commit `.docs/`.
 
 ### Testing Requirements
-- 워크플로 변경 시 PR을 열어 Actions 결과로 검증.
+- When changing a workflow, open a PR and verify it through the Actions result.
 
 ### Common Patterns
-- `continue-on-error`로 gitleaks 결과를 SARIF 업로드 후 별도 스텝에서 실패 판정.
+- gitleaks runs with `continue-on-error` so its SARIF can be uploaded, and a separate step decides the failure.
 
 ## Dependencies
 
 ### External
-- GitHub Actions, brew(gitleaks/swiftlint/swiftformat), xcodebuild.
+- GitHub Actions, brew (gitleaks / swiftlint / swiftformat), xcodebuild.
 
 <!-- MANUAL: -->
