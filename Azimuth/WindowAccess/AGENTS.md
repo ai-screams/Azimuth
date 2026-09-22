@@ -4,44 +4,44 @@
 # WindowAccess
 
 ## Purpose
-Accessibility(AX) API와 직접 맞닿는 계층. "어느 앱/어느 창"을 해석하고, 창 frame을 읽고 쓰고, 되돌리기 상태와 화면 작업영역을 계산한다. 명령 엔진(`Commands/`)이 이 계층을 통해 실제 창을 조작한다.
+The layer that touches the Accessibility (AX) API directly. It resolves "which app, which window", reads and writes window frames, and computes undo state and screen work areas. The command engine (`Commands/`) manipulates real windows through this layer.
 
 ## Key Files
 | File | Description |
 |------|-------------|
-| `FrontmostAppTracker.swift` | `@MainActor`. 직전 non-Azimuth 활성 앱 추적(`didActivateApplication` 옵저버). `targetApplication`으로 "명령 대상 앱" 정책을 한 곳에 모음 |
-| `FocusedWindowResolver.swift` | `@MainActor`. 대상 앱의 `kAXFocusedWindowAttribute`를 `ResolvedWindow`로 해석. 앱·창 AX element에 `resolveTimeout`(기본 `Shared/AXMessagingTimeout.resolve` 0.5초, 고급 설정에서 조정 시 AppDelegate가 클램프된 값을 주입) messaging timeout을 설정하고 실패 시 즉시 중단. 게이트/frame 읽기는 `.cannotComplete`(타임아웃)면 진행하지 않고 중단한다(fail-closed) — 짧은 상한에서 read 실패를 nil로 뭉개면 풀스크린 창에 쓰기가 들어간다. 권한·풀스크린(비공개 `AXFullScreen`)·최소화·subrole(`kAXStandardWindowSubrole`) 가드와 AX 오류 매핑 |
-| `AXAttribute.swift` | `nonisolated`. AX 속성 얇은 래퍼 — 읽기(string/bool/element/point/size) + 쓰기(`set`: bool/point/size). "값이 없다"와 "앱이 답하지 않았다"를 구분해야 하는 호출부용으로 오류 동반 변형(`stringValue`/`boolValue`/`pointValue`/`sizeValue`)을 함께 제공한다(얇은 래퍼는 어떤 오류든 nil로 뭉갠다). 유일하게 범위 한정 force-cast 허용(`swiftlint:disable` 주석) |
-| `FrameWriteRequest.swift` | `@MainActor` 값 묶음. 한 번의 frame 쓰기에 필요한 것 전부(target·`ResolvedWindow`·작업영역·anchor·명령 시작 시각). `AXUIElement`를 운반하므로 하네스 밖 — 이 요청으로 내리는 판단만 `WriteRetryPolicy`로 뽑았다 |
-| `WindowFrameWriter.swift` | `@MainActor`. AX position/size 쓰기. 입력은 `FrameWriteRequest`(target·창·작업영역·anchor·**명령 시작 시각**) 한 묶음이고, 재시도 여부는 순수 `Commands/WriteRetryPolicy`가 정한다 — 예산 경과를 쓰기 진입이 아니라 명령 시작부터 재야 해석·억제의 프리즈가 예산에 들어간다(감사 H-3). 실제 바뀌는 축의 권한만 요구·그 축만 쓰기(M-3), shrink일 때 size→position 순서(옆 모니터 침범 방지), 명시적 `anchor`로 실제 크기에 맞춰 고정 모서리 유지(M-4) + verify·1회 재시도. 성공·실패 양쪽에서 achieved를 실은 `FrameApplyResult` 회신(성공/실패는 쓰기 결과, 변화 여부는 Executor가 판정 — H-1). 애니메이션 억제는 `AnimationSuppressor`에 위임. messaging timeout은 실제 position/size `set` 직전에만 `AXMessagingTimeout.write`(2초)로 올린다 — 그 상한의 근거인 `.transient`(조용한 스킵) 매핑을 갖는 것은 set뿐이고, 앞선 `isSettable`은 `.notMovable`로 사용자에게 보이므로 짧은 상한에서 빨리 실패하는 편이 낫다 |
-| `AnimationSuppressor.swift` | `@MainActor`. 대상 앱의 `AXEnhancedUserInterface`/`AXManualAccessibility`를 쓰기 동안 끄고 마지막 입력 +0.25s에 원복(PID별 디바운스). **PID 재사용 방어는 `NSWorkspace.didTerminateApplicationNotification`이 한다** — `AXUIElementCreateApplication(pid)`은 점유자와 무관하게 CFEqual한 element를 돌려주므로 엘리먼트 동일성 비교로는 걸러낼 수 없다. VoiceOver 중엔 미적용. 깜빡임 1차 원인 제거 |
-| `WindowUndoStore.swift` | `@MainActor`. 창별 1단계 직전 frame 저장(capacity 64, LRU). `AXUIElement`를 `CFEqual`/`CFHash`로 식별하고 키에 pid 를 포함(닫힌 창 element 재사용 오인 방지 — 값은 `CGRect` 하나, `SnapStateStore`와 같은 키 설계). `clearAll`은 디스플레이 재구성 시 호출 |
-| `SnapStateStore.swift` | `@MainActor`. 창별 스냅 상태(`SnapRecord`: edge + 스냅 당시 frame) 저장(capacity 64, LRU, UndoStore와 동일 키 설계). snapThrow가 제약 앱을 "이미 스냅됨"으로 인식하고 외부 이동 시 무효화하는 데 쓴다(H-2). `clearAll`은 디스플레이 재구성 시 호출 |
-| `WorkAreaResolver.swift` | `@MainActor`. AX 창 frame이 가장 많이 겹치는 화면의 `visibleFrame`을 AX 좌표로 반환(멀티모니터 대응) |
-| `DisplayResolver.swift` | `@MainActor`. snapThrow·moveToDisplay 명령의 인접 디스플레이 타깃을 해석. 창 frame과 edge 방향으로 "던질 화면"을 결정해 `WindowCommandExecutor`에 제공 |
-| `NSScreen+BestMatch.swift` | `NSScreen` 확장. 주어진 **Cocoa** 좌표 사각형과 겹침이 가장 큰 화면을 반환(`bestMatch(forCocoaRect:)`) — 두 호출자(`WorkAreaResolver`·`DisplayResolver`) 모두 `CoordinateSpace.axToCocoa`를 거친 뒤 부른다. 선택 규칙(면적 → 중심 포함 → 작은 displayID)은 순수 계층 `Commands/DisplayGeometry.bestMatchIndex`에 있고 여기서는 `NSScreen` → `ScreenCandidate` 매핑과 겹침 없음 폴백(main → 첫 화면)만 한다 |
+| `FrontmostAppTracker.swift` | `@MainActor`. Tracks the most recently activated non-Azimuth app (via a `didActivateApplication` observer). `targetApplication` keeps the "which app does a command act on" policy in one place |
+| `FocusedWindowResolver.swift` | `@MainActor`. Resolves the target app's `kAXFocusedWindowAttribute` into a `ResolvedWindow`. Sets a `resolveTimeout` messaging timeout on the app and window AX elements (default `Shared/AXMessagingTimeout.resolve`, 0.5s; when the user adjusts it in Advanced settings, AppDelegate injects the clamped value) and aborts immediately on failure. Gate and frame reads stop rather than continue on `.cannotComplete` (a timeout) — this is fail-closed, because flattening a read failure to nil under a short timeout would let a write reach a full-screen window. Guards for permission, full screen (the private `AXFullScreen` attribute), minimized state and subrole (`kAXStandardWindowSubrole`), plus AX error mapping |
+| `AXAttribute.swift` | `nonisolated`. A thin wrapper over AX attributes — reads (string/bool/element/point/size) and writes (`set`: bool/point/size). For callers that must distinguish "there is no value" from "the app did not answer", it also offers error-carrying variants (`stringValue` / `boolValue` / `pointValue` / `sizeValue`); the thin wrappers flatten every error to nil. The one place a narrow force-cast is allowed (with a `swiftlint:disable` comment) |
+| `FrameWriteRequest.swift` | `@MainActor` value bundle holding everything one frame write needs (target, `ResolvedWindow`, work area, anchor, and the command's start time). It carries an `AXUIElement`, so it stays out of the harness — only the decision made from this request was extracted, as `WriteRetryPolicy` |
+| `WindowFrameWriter.swift` | `@MainActor`. AX position/size writes. The input is a single `FrameWriteRequest` (target, window, work area, anchor and the **command start time**), and the retry decision belongs to the pure `Commands/WriteRetryPolicy` — the budget must be measured from the start of the command, not from entering the write, so that the freeze already spent on resolution and suppression counts against it (audit H-3). Requires permission only for the axes that actually change and writes only those axes (M-3); when shrinking, writes size before position (so the old larger size cannot spill onto the neighboring monitor); keeps the pinned corner against the app's actual size via an explicit `anchor` (M-4), then verifies and retries once. Returns a `FrameApplyResult` carrying `achieved` on both success and failure (success/failure comes from the write result; whether anything changed is the executor's call — H-1). Animation suppression is delegated to `AnimationSuppressor`. The messaging timeout is raised to `AXMessagingTimeout.write` (2s) only right before the actual position/size `set` — the justification for that longer bound is the `.transient` (silent skip) mapping, which only `set` has; the preceding `isSettable` surfaces as `.notMovable` to the user, so failing fast under the short bound is better |
+| `AnimationSuppressor.swift` | `@MainActor`. Turns off the target app's `AXEnhancedUserInterface` / `AXManualAccessibility` for the duration of a write and restores them 0.25s after the last input (debounced per PID). **PID reuse is defended against by `NSWorkspace.didTerminateApplicationNotification`** — `AXUIElementCreateApplication(pid)` returns a CFEqual element regardless of who owns the pid now, so element identity cannot filter it. Skipped entirely while VoiceOver is running. This removes the primary cause of flicker |
+| `WindowUndoStore.swift` | `@MainActor`. Stores one step of previous frame per window (capacity 64, LRU). Identifies the `AXUIElement` by `CFEqual` / `CFHash` and includes the pid in the key (so a reused element from a closed window cannot be mistaken for the same window — the value is a single `CGRect`, the same key design as `SnapStateStore`). `clearAll` is called on display reconfiguration |
+| `SnapStateStore.swift` | `@MainActor`. Stores per-window snap state (`SnapRecord`: edge + the frame at snap time) with capacity 64 and LRU, using the same key design as the undo store. snapThrow uses it to recognize a constrained app as "already snapped" and to invalidate that when the window is moved externally (H-2). `clearAll` is called on display reconfiguration |
+| `WorkAreaResolver.swift` | `@MainActor`. Returns, in AX coordinates, the `visibleFrame` of the screen the AX window frame overlaps most (multi-monitor aware) |
+| `DisplayResolver.swift` | `@MainActor`. Resolves the adjacent-display target for snapThrow and moveToDisplay. Decides which screen to throw to from the window frame and the edge direction, and hands it to `WindowCommandExecutor` |
+| `NSScreen+BestMatch.swift` | An `NSScreen` extension returning the screen that overlaps a given **Cocoa**-coordinate rect the most (`bestMatch(forCocoaRect:)`) — both callers (`WorkAreaResolver`, `DisplayResolver`) go through `CoordinateSpace.axToCocoa` first. The selection rules (area → contains center → smaller displayID) live in the pure `Commands/DisplayGeometry.bestMatchIndex`; this file only maps `NSScreen` to `ScreenCandidate` and handles the no-overlap fallback (main → first screen) |
 
 ## For AI Agents
 
 ### Working In This Directory
-- 권한 가드를 **읽기·쓰기 양쪽**에 둔다(호출 순서에 의존하지 않게 방어적). 권한 검사를 제거/우회하지 말 것.
-- 앱·창 AX element의 messaging timeout 설정이 실패하면 기본 6초 timeout으로 계속하지 말고 `messagingTimeoutConfigurationFailed`로 해석을 중단한다.
-- 풀스크린은 subrole로 구분 불가 → subrole 검사보다 **먼저** 비공개 `AXFullScreen` 속성으로 판별(기존 동작 유지).
-- AX 좌표(좌상단 원점)로 다룬다. 화면/Cocoa 변환이 필요하면 `Shared/CoordinateSpace` 사용.
+- Keep permission guards on **both the read and the write side** (defensively, so nothing depends on call order). Never remove or bypass a permission check.
+- If setting the messaging timeout on an app or window AX element fails, abort resolution with `messagingTimeoutConfigurationFailed` rather than continuing under the 6-second default.
+- Full screen cannot be distinguished by subrole, so check the private `AXFullScreen` attribute **before** the subrole check (preserving existing behavior).
+- Work in AX coordinates (top-left origin). Use `Shared/CoordinateSpace` when a screen or Cocoa conversion is needed.
 
 ### Testing Requirements
-- 이 계층은 실제 AX 권한이 필요해 단위 테스트 대신 **`make run`(서명 빌드) 라이브 검증**. 순수 계산은 `Commands/FrameCalculator`로 분리되어 `make test`가 커버.
+- This layer needs a real AX grant, so it is verified **live with `make run`** (signed build) instead of by unit tests. The pure calculations were split into `Commands/FrameCalculator` and are covered by `make test`.
 
 ### Common Patterns
-- `Result<_, WindowResolutionError>` / `Result<CGRect, WindowCommandError>`로 실패 사유를 구체화.
-- `ResolvedWindow`(element/appElement/subrole/pid/frame)가 해석 결과의 단일 캐리어. `appElement`는 writer가 애니메이션 억제에 쓴다.
+- `Result<_, WindowResolutionError>` / `Result<CGRect, WindowCommandError>` make the failure reason explicit.
+- `ResolvedWindow` (element / appElement / subrole / pid / frame) is the single carrier for a resolution result. The writer uses `appElement` for animation suppression.
 
 ## Dependencies
 
 ### Internal
-- `Permissions/AccessibilityPermissionService`(권한), `Shared/WindowFrame`·`WindowResolutionError`·`CoordinateSpace`, `Commands/WindowCommandError`.
+- `Permissions/AccessibilityPermissionService` (permission), `Shared/WindowFrame` · `WindowResolutionError` · `CoordinateSpace`, `Commands/WindowCommandError`.
 
 ### External
-- ApplicationServices(AX), AppKit(NSScreen/NSWorkspace/NSRunningApplication).
+- ApplicationServices (AX), AppKit (NSScreen / NSWorkspace / NSRunningApplication).
 
 <!-- MANUAL: -->

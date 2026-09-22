@@ -28,7 +28,7 @@ Sparkle 2 and ships Developer ID–signed, Apple-notarized, and EdDSA-verified.
 | `make run` | Build a **signed** app and launch it — use for anything needing Accessibility |
 | `make build` | Compile-only (ad-hoc signed; CI/compile checks) — **not** for permission testing |
 | `make test` | Pure-logic tests (swiftc). Sources listed in `scripts/harness-sources.sh` — **one place**, shared with `make coverage`. Not "AppKit-free": the bar is whether a type can be built as a *value* (an `AXUIElement`-carrying one cannot), so `Hotkeys/CarbonModifier.swift` is in despite `import AppKit`. Prints `PASS — all N checks` |
-| `make coverage` | LLVM source-based line coverage on the pure-logic layer; gate **≥90%** (`COVERAGE_MIN`) |
+| `make coverage` | LLVM line coverage on the pure-logic layer; gate **≥90%** (`COVERAGE_MIN`). The denominator is `harness-sources.sh` only — ~2,000 of ~6,500 lines, so a 99% figure says nothing about `WindowAccess/**` or the UI |
 | `make lint` / `make format` | SwiftLint (strict) / SwiftFormat |
 | `make secrets` | gitleaks secret scan |
 | `make install-hooks` | pre-commit hook: SwiftFormat `--lint` + SwiftLint `--strict` |
@@ -37,6 +37,11 @@ Before opening a PR: `make build && make lint && make test` (CI runs the same, p
 
 - After `make run`, `make build` can fail with a **Sparkle.framework "permission to save"** error —
   signed and ad-hoc builds share one DerivedData. Quit the app, `rm -rf` the built `Azimuth.app`, rebuild.
+- `make run` can fail at the **link step** two ways, both fixed the same way (quit, `command rm -rf` the
+  built `Azimuth.app`, rebuild): (a) the app is already running — `scripts/run.sh` pkills *after* the
+  build, so it does not save you; (b) `Assets.car … permission to access "Resources"`
+  (NSCocoaErrorDomain 513) from a stale bundle, with nothing running. `pkill -x Azimuth` also quits
+  the `/Applications` release copy.
 - **Never `make build` while a `make run` app is running** — same shared DerivedData: it swaps the
   bundle under the live process, invalidating its signature, and macOS silently drops the app's
   Accessibility grant. Every command then dies while System Settings still shows it enabled.
@@ -52,6 +57,13 @@ Before opening a PR: `make build && make lint && make test` (CI runs the same, p
   won't let you reopen or re-target it — recreate it against `main`. And when one PR moves code
   another edits (e.g. splitting a test file that a second PR patches), merge the **content change
   first, the move last**, or the mechanical PR conflicts.
+- A **single-commit** PR squash-merges under that commit's subject, not the PR title. Pass
+  `gh pr merge --squash --subject "<English PR title>"` to keep `git log` titles English.
+- Two branches cut from the same `main` almost always conflict in a per-directory `AGENTS.md` —
+  each adds a row to the same table, and both bump the `Updated:` header. Keep **both** rows;
+  whichever PR merges second rebases.
+- Xcode, while open, rewrites `Azimuth.xcodeproj/project.pbxproj` on its own (key order, quoting).
+  `git checkout --` it before committing so that noise does not ride along.
 
 ## Non-negotiable rules
 
@@ -95,9 +107,11 @@ Before opening a PR: `make build && make lint && make test` (CI runs the same, p
 - That auto-include does **not** reach the test harness: a new pure-logic file must be added to
   `scripts/harness-sources.sh` (the single list both `make test` and `make coverage` read).
 - Those lists are the **only** automatically tested code — `WindowAccess/**`, `WindowCommandExecutor`,
-  and `HotkeyService` are type-checked by `make build` and nothing more. To cover an AX failure mode,
-  extract the decision into a pure function (values in → decision out, e.g. `CommandOutcomePolicy`)
-  and test that; a protocol seam carrying `AXUIElement` cannot compile in the swiftc harness.
+  and `HotkeyService` are type-checked by `make build` and nothing more. A broken reference in those
+  files still passes `make test` — run `xcodebuild` after touching them. To cover an AX failure mode,
+  extract the decision into a pure function (values in → decision out) and test that; a protocol seam
+  carrying `AXUIElement` cannot compile in the swiftc harness. `Commands/*Policy.swift` is that family:
+  outcome, plan, feedback, write-retry, shortcut-list, shortcut-row.
 
 ## Docs (`docs/` is the GitHub Pages source)
 
