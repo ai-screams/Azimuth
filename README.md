@@ -87,7 +87,10 @@ Azimuth has no installer, so removing it is just a few steps:
 2. Remove its Accessibility entry: **System Settings → Privacy & Security → Accessibility** → select **Azimuth** → click **−**. macOS keeps this entry even after an app is deleted, and no app can remove its own entry through the system — so this step is manual (the same is true for every app that uses Accessibility).
 3. *(Optional)* delete its preferences: `defaults delete com.aiscream.Azimuth`
 
-If you enabled **Launch at login**, that registration is cleared automatically once the app is removed.
+If you enabled **Launch at login**, turn it back off in Azimuth's Settings *before* deleting the app. macOS
+keeps an `SMAppService` registration after the bundle is gone — by design, so it survives a reinstall — and an
+app cannot unregister itself once it is in the Trash. If you already deleted it, remove the leftover entry in
+**System Settings → General → Login Items**.
 
 ## Shortcuts
 
@@ -130,7 +133,10 @@ Only the directional commands and Undo change keys; everything else (Maximize, C
 
 Example: `⌃⌥H` (left half) · `⌃⌥⌘K` (move up) · `⌃⌥⇧J` (shrink to bottom half) · `⌃⌥⌘⇧L` (move to right display) · `⌃⌥U` (undo).
 
-> If a combination is already claimed by the system or another app, Azimuth's registration is skipped and the Settings window marks it **"In use by system."** Every shortcut can be remapped in Settings.
+> If registering a combination fails — because another app or macOS already holds it, or because the hotkey
+> system could not start — the Settings window marks that row **"In use by system."** Some combinations macOS
+> reserves register successfully and are simply swallowed before they reach Azimuth; those show no badge and
+> the shortcut just does nothing. Either way, every shortcut can be remapped in Settings.
 
 ## Command behavior
 
@@ -143,7 +149,7 @@ Example: `⌃⌥H` (left half) · `⌃⌥⌘K` (move up) · `⌃⌥⇧J` (shrink
 - **Relative shrink (½ / ⅔)** — based on the *current window*, not the screen: pins the chosen edge and shrinks toward it. Arrow keys shrink to ½; `M , . /` shrink to ⅔ (M=left, ,=down, .=up, /=right). Effects compose: ⅔ then ½ lands on ⅓.
 - **Move to next display** — preserves shape and relative position: a centered window stays centered even at a different resolution. It keeps its exact pixel size if it fits the target work area; if it doesn't, both axes shrink by the same factor, so the aspect ratio never changes. No adjacent display → stays put.
 - **Undo** — restores the previous frame (one step per window). Display reconfiguration discards undo history.
-- **Failure feedback** — a beep on failure (toggleable in Settings) plus a log entry, and the reason is recorded in the menu bar menu. You can also opt in to a notification on failure. Transient failures during Space switches or animations are skipped silently.
+- **Failure feedback** — a beep on failure (toggleable in Settings) plus a log entry, and the reason is recorded in the menu bar menu. You can also opt in to a notification on failure. Transient failures during Space switches or animations are skipped silently. Two cases differ: if the command failed for lack of Accessibility permission, Azimuth opens the Settings window for you (once per launch), and if the target app took too long to answer, the reason reads "The app is taking too long to respond" — how long Azimuth waits is the Advanced tab's setting.
 
 > Note: apps with size increments (e.g. Terminal) may leave a sub-row gap when snapped to a half/maximize, because they round down to their character grid. The work area excludes the menu bar and Dock, so a gap at those edges is expected.
 
@@ -157,6 +163,7 @@ Open Settings from the menu bar item or with `⌘,`. It has three tabs — **Gen
 - Enable/disable command groups, or unbind individual commands.
 - Toggle failure beep, failure notifications, launch-at-login, and hide the menu bar icon.
 - Automatic updates via Sparkle — current version + Check for Updates… in Settings (and the menu bar / App menu).
+- **Advanced** — how long to wait for an unresponsive app before giving up: Quick (0.25s), Balanced (0.5s, default) or Patient (1s). Shorter keeps Azimuth's own menus responsive when an app hangs; longer gives a slow app more time to answer. Leave it alone unless commands fail on apps that are merely slow.
 
 If the menu bar icon is hidden, relaunching Azimuth reopens the Settings window so you always have a way back in.
 
