@@ -18,7 +18,8 @@
 ## For AI Agents
 
 ### Working In This Directory
-- 여기서 검증 가능한 건 **AppKit/AX에 의존하지 않는 순수 로직**뿐이다. `scripts/test.sh`와 `scripts/coverage.sh`가 `Commands`의 순수 소스 6개와 `CommandEngineTests*.swift` 5개를 직접 `swiftc`로 컴파일한다. 목록은 두 스크립트에 하드코딩되어 있으므로 순수 소스나 테스트 파일을 추가할 때 양쪽을 함께 갱신한다. 테스트 대상 소스에 AppKit/AX import를 추가하면 하네스가 깨진다.
+- 여기서 검증 가능한 건 **값으로 만들 수 있는 로직**이다. 컴파일 대상 목록은 `scripts/harness-sources.sh`가 단일 출처이고(`HARNESS_SRC`·`HARNESS_TESTS`), `test.sh`·`coverage.sh`가 그것을 source 한다 — 새 파일은 **한 곳만** 고치면 된다.
+- **넣을 수 없는 기준은 "AppKit을 import 하는가"가 아니다.** 예전 문서는 "AppKit/AX import를 추가하면 하네스가 깨진다"고 적었으나 **사실이 아니다** — `Hotkeys/CarbonModifier.swift`는 `import AppKit`인 채로 하네스에서 컴파일·실행된다. 진짜 제약은 **`AXUIElement`를 운반하는 타입**이다: 값으로 만들 수 없으니 실행할 수 없다. 그래서 AX 계층은 판정을 값 in/값 out 함수로 뽑아 그것만 넣는다(`CommandOutcomePolicy`·`ShortcutListPolicy`가 그 예).
 - 기하/명령 변경 시 여기 케이스를 추가한다. 작업영역은 `CGRect(x:0,y:25,w:1920,h:1055)` 기준 픽스처.
 
 ### Testing Requirements

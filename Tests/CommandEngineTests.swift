@@ -46,6 +46,14 @@ enum CommandEngineTests {
         testUserFacingMessages()
         testResultCommandError()
         testWindowFrame()
+        testPresetCoverage()
+        testPresetKeyAssignments()
+        testBindingOverrides()
+        testEnabledFiltering()
+        testConflictDetection()
+        testShortcutDisplay()
+        testShortcutCodableRoundTrip()
+        testCarbonModifier()
 
         if failures == 0 {
             print("PASS — all \(checks) checks")

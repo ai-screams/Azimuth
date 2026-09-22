@@ -15,14 +15,14 @@
 | `FrameApply.swift` | `nonisolated` 순수 판정. AX 쓰기 결과 해석과 무관한 기하 판정을 모은다: `changed`(achieved가 pre에서 변했나 — Undo), `reached`(target 도달 — 재시도·복원 확인), `movesOrigin`/`resizesSize`(축별 변경 — 권한·쓰기 최소화). Writer가 AX 결과·읽은 frame을 값으로 넘겨 사용 |
 | `CommandOutcomePolicy.swift` | `nonisolated` 순수 상태 커밋 정책. 명령 전 frame·목표 frame·실제 AX 결과를 받아 Undo 기록과 Snap 상태의 keep/record/clear를 결정. 의도된 no-op과 AX가 성공을 반환했지만 쓰기를 무시한 경우를 `target`으로 구분 |
 | `DisplayGeometry.swift` | `nonisolated` 순수 기하. 인접 디스플레이 선택(`selectAdjacentIndex(current:candidates:window:edge:)`): 방향 판정·수직/주축 간격·거리·겹침으로 후보 중 최적 화면 인덱스 산출. AX 계층(`WindowAccess/DisplayResolver`)에서 분리해 테스트 가능하게 함 |
-| `ShortcutListPolicy.swift` | `nonisolated` 순수 표시 판정(설정창 Shortcuts 탭). 검색어·사용자가 펼친 그룹 → 그룹별 `ShortcutGroupDisplay`(헤더 표시/펼침/구분선). 검색 중엔 매칭 그룹을 자동으로 펼친다("검색했는데 결과가 접혀서 안 보임" 방지). Foundation만 import. **`scripts/test.sh`·`scripts/coverage.sh` 양쪽 목록에 들어 있다** |
+| `ShortcutListPolicy.swift` | `nonisolated` 순수 표시 판정(설정창 Shortcuts 탭). 검색어·사용자가 펼친 그룹 → 그룹별 `ShortcutGroupDisplay`(헤더 표시/펼침/구분선). 검색 중엔 매칭 그룹을 자동으로 펼친다("검색했는데 결과가 접혀서 안 보임" 방지). Foundation만 import. |
 | `CommandFeedbackPolicy.swift` | `nonisolated` 순수 판정. 명령 결과 + 사용자 설정(사운드/알림) + 세션 플래그 → `CommandFeedback`(마지막 실패 표시 `clear`/`keep`/`set` · 비프 · 알림 · 권한 안내). 권한 안내를 **에러 기준**으로 정해, `AccessibilityPermissionService` 캐시가 낡아 안내가 건너뛰어지던 결함을 없앤다. 에러 분기는 exhaustive(`default:` 없음) — 새 케이스가 생기면 빌드가 깨져 사용자에게 어떻게 보일지 결정하도록 강제한다. Foundation만 import |
 | `WindowCommandExecutor.swift` | `@MainActor` 오케스트레이션. 창 해석 → 작업영역 해석 → 목표·스냅 계획(`snapStore`) → AX 쓰기(`anchor`) → achieved 기준 Undo 기록·스냅 상태 기록. `FrameApplyResult`를 `Result<CGRect, WindowCommandError>`로 매핑 |
 
 ## For AI Agents
 
 ### Working In This Directory
-- `CommandPrimitives.swift`·`WindowCommand.swift`·`FrameCalculator.swift`·`FrameApply.swift`·`DisplayGeometry.swift`·`CommandOutcomePolicy.swift`·`ShortcutListPolicy.swift`·`CommandFeedbackPolicy.swift`는 **AppKit/AX import 금지**(순수 로직 유지). 이들은 `scripts/test.sh`·`scripts/coverage.sh`가 직접 컴파일하므로 import를 추가하면 테스트/커버리지 빌드가 깨진다(CoreGraphics는 허용).
+- `CommandPrimitives.swift`·`WindowCommand.swift`·`FrameCalculator.swift`·`FrameApply.swift`·`DisplayGeometry.swift`·`CommandOutcomePolicy.swift`·`ShortcutListPolicy.swift`·`CommandFeedbackPolicy.swift`는 **AppKit/AX import 금지**(순수 로직 유지, CoreGraphics는 허용). 단 그 이유는 "하네스가 깨져서"가 **아니다** — 하네스는 AppKit을 import하는 파일도 문제없이 컴파일한다(`Hotkeys/CarbonModifier.swift`가 실제로 그렇게 들어가 있다). 이 디렉터리에 거는 규칙은 **계층 규율**이다: 명령 모델·기하·정책은 UI를 몰라야 한다. 실행이 불가능해지는 진짜 경계는 `AXUIElement`를 운반하는 타입이다(`Tests/AGENTS.md` 참조).
 - 새 명령 추가 시: `WindowCommand`에 케이스 + `displayName`, `FrameCalculator.targetFrame`에 분기, 필요하면 `menuCommands`와 `Hotkeys/HotkeyPreset` 바인딩에도 추가.
 - 모든 frame은 **AX 좌표(좌상단 원점)** 기준. Cocoa 변환은 호출부(`WorkAreaResolver`)에서 처리됨.
 
