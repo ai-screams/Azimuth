@@ -8,7 +8,7 @@
 //  전수 검증할 수 있다.
 //
 //  ⚠️ 순수 로직 파일 — AppKit/AX를 import하지 말 것(scripts/test.sh가 swiftc로 직접 컴파일).
-//  CoreGraphics만 사용. 새 순수 파일은 test.sh·coverage.sh 소스 목록에 직접 추가해야 한다.
+//  CoreGraphics만 사용. 새 순수 파일은 scripts/harness-sources.sh 의 HARNESS_SRC 에 추가한다(한 곳).
 //
 
 import CoreGraphics

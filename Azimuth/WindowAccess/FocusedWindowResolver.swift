@@ -46,10 +46,24 @@ enum FocusedWindowResolver {
     // AX IPC는 동기라 응답 없는 앱이 메인 스레드를 막을 수 있다(기본 6초). 상한 값과 쓰기 단계와의
     // 대소 관계는 Shared/AXMessagingTimeout이 소유한다.
 
-    /// 해석 단계 messaging timeout(초). 기본값은 `AXMessagingTimeout.resolve`이고, 고급 설정에서
-    /// 바꾸면 `AppDelegate`가 **클램프된** 값을 주입한다(클램프는 `PreferencesStore`가 한다).
-    /// 여기에 원시 사용자 입력을 직접 대입하지 말 것 — 0은 AX가 6초 기본값 복귀로 해석한다.
-    static var resolveTimeout: Float = AXMessagingTimeout.resolve
+    /// 해석 단계 messaging timeout(초). 읽기 전용 — 쓰기는 `setResolveTimeout(_:)`만 가능하고
+    /// 거기서 클램프된다. 0은 AX가 "전역 기본값(6초) 복귀"로 해석하고 음수는 illegal argument라,
+    /// 원시 사용자 입력이 그대로 들어오면 이 설정이 있다는 이유로 기본 동작이 조용히 나빠진다.
+    ///
+    /// 이전에는 `static var`에 주석으로 "직접 대입하지 말 것"이라고만 적어 두었다. 같은 파일 위쪽
+    /// `ResolvedWindow`의 fileprivate init이 세운 원칙 — **관례가 아니라 컴파일러가 지키게 한다** — 을
+    /// 여기에도 적용한다. `AXMessagingTimeout.resolveBudget(for:)`이 이 값의 두 번째 소비자가 되면서
+    /// 클램프 하나가 두 동작(읽기 상한·예산)을 좌우하게 됐기 때문이다.
+    static var resolveTimeout: Float {
+        storedResolveTimeout
+    }
+
+    /// 고급 설정에서 온 값을 클램프해 반영한다. 유일한 쓰기 경로다.
+    static func setResolveTimeout(_ seconds: Float) {
+        storedResolveTimeout = AXMessagingTimeout.clampedResolve(seconds)
+    }
+
+    private static var storedResolveTimeout: Float = AXMessagingTimeout.resolve
 
     static func resolveFocusedWindow(for app: NSRunningApplication) -> Result<ResolvedWindow, WindowResolutionError> {
         guard AccessibilityPermissionService.currentStatus().isTrusted else {

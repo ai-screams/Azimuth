@@ -1,6 +1,6 @@
 // Azimuth 명령 엔진(순수 로직) 회귀 테스트 — 앵커·적용 판정·결과 커밋 정책.
 // 공유 상태와 expect* 헬퍼는 CommandEngineTests.swift에 있다(같은 모듈로 컴파일).
-// ⚠️ AppKit/AX 비의존. 새 테스트 파일은 scripts/test.sh·coverage.sh 양쪽에 추가해야 한다.
+// 새 테스트 파일은 scripts/harness-sources.sh 의 HARNESS_TESTS 에 추가한다(한 곳).
 
 import CoreGraphics
 import Foundation

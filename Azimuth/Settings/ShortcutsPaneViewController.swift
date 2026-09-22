@@ -83,13 +83,6 @@ final class ShortcutsPaneViewController: NSViewController, SettingsPane {
     }
 
     func naturalContentHeight() -> CGFloat {
-        view.layoutSubtreeIfNeeded()
-        guard let documentView else {
-            // 0을 그대로 흘리면 max(0, 400)이 400pt 창을 만들어 "짧아졌다"가 성공처럼 보인다.
-            // 실은 측정 실패다. Debug 빌드에서만 알린다(Release는 no-op).
-            assertionFailure("documentView not installed — height measurement unavailable")
-            return SettingsTabController.minWindowHeight
-        }
-        return documentView.frame.height
+        SettingsPaneScaffold.naturalContentHeight(of: documentView, in: view)
     }
 }

@@ -41,7 +41,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         registrationFailures: { [weak self] in self?.registrationFailureIdentifiers ?? [] },
         setHotkeysSuspended: { [weak self] suspended in self?.setHotkeysSuspended(suspended) },
         setMenuBarIconHidden: { [weak self] hidden in self?.statusBarController.setVisible(!hidden) },
-        setResolveTimeout: { seconds in FocusedWindowResolver.resolveTimeout = seconds },
+        setResolveTimeout: { seconds in FocusedWindowResolver.setResolveTimeout(seconds) },
         checkForUpdates: { [weak self] in self?.updaterController.checkForUpdates(nil) },
         requestNotificationAuthorization: { [weak self] in
             await self?.failureNotifier.requestAuthorization() ?? .failed
@@ -54,10 +54,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     )
     private let firstRunGuidePresenter = FirstRunGuidePresenter()
 
+    /// 기동 순서. 각 단계가 무엇인지 이름으로 읽히도록 블록별로 나눠 두었다 —
+    /// **순서가 의미를 갖는다**: 메뉴·상태바가 있어야 온보딩 팝오버가 앵커할 곳이 생기고,
+    /// 해석 상한을 반영한 뒤여야 첫 단축키가 올바른 상한으로 돈다.
     func applicationDidFinishLaunching(_ notification: Notification) {
         configureActivationPolicy()
-        // 표준 메인 메뉴(App·Edit·Window)를 설치한다. 없으면 ⌘Q·⌘W·텍스트 편집이
-        // 어디서도 처리되지 않아 경고음만 난다(.accessory 빌드도 키 equivalent는 동작).
+        installMainMenu()
+        installStatusBar()
+        // 고급 설정의 해석 상한을 기동 시 한 번 반영한다(setter 가 다시 클램프하므로 이중 안전).
+        FocusedWindowResolver.setResolveTimeout(preferencesStore.resolveTimeout)
+        reloadHotkeys()
+        showFirstRunOnboardingIfNeeded()
+        registerAppObservers()
+        // DEBUG에서 설정창을 띄웠을 수 있으니 현재 창 상태에 맞춰 정책을 한 번 동기화한다.
+        updateActivationPolicy()
+    }
+
+    /// 표준 메인 메뉴(App·Edit·Window). 없으면 ⌘Q·⌘W·텍스트 편집이 어디서도 처리되지 않아
+    /// 경고음만 난다(.accessory 빌드도 키 equivalent는 동작한다).
+    private func installMainMenu() {
         NSApp.mainMenu = MainMenuBuilder.make(
             appName: "Azimuth",
             actions: .init(
@@ -68,6 +83,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 checkForUpdates: #selector(SPUStandardUpdaterController.checkForUpdates(_:))
             )
         )
+    }
+
+    /// 메뉴바 항목과 그 메뉴가 앱에 되묻는 세 경로(설정 열기·업데이트 확인·마지막 실패 사유).
+    /// 클로저로 주입하는 이유는 `StatusBarController`가 Sparkle과 앱 상태를 모르게 하기 위해서다.
+    private func installStatusBar() {
         statusBarController.onOpenSettings = { [weak self] in
             self?.settingsWindowController.show()
         }
@@ -81,11 +101,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         statusBarController.install()
         statusBarController.setVisible(!preferencesStore.menuBarIconHidden)
-        // 고급 설정의 해석 상한을 기동 시 한 번 반영한다(저장 값은 PreferencesStore가 클램프한다).
-        FocusedWindowResolver.resolveTimeout = preferencesStore.resolveTimeout
-        reloadHotkeys()
-        showFirstRunOnboardingIfNeeded()
+    }
 
+    /// 앱 수명 동안 유지되는 알림 구독. 해제는 `deinit`의 `removeObserver(self)`가 한꺼번에 한다.
+    private func registerAppObservers() {
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(handleDidBecomeActive(_:)),
@@ -111,8 +130,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             name: NSWindow.willCloseNotification,
             object: nil
         )
-        // DEBUG에서 설정창을 띄웠을 수 있으니 현재 창 상태에 맞춰 정책을 한 번 동기화한다.
-        updateActivationPolicy()
     }
 
     func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
@@ -167,33 +184,60 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let result = WindowCommandExecutor.run(
             command, tracker: frontmostAppTracker, undoStore: windowUndoStore, snapStore: windowSnapStore
         )
-        switch result {
-        case .success:
+        let error = result.commandError
+        let feedback = CommandFeedbackPolicy.decide(
+            error: error,
+            soundEnabled: preferencesStore.soundFeedbackEnabled,
+            notifyEnabled: preferencesStore.notifyOnCommandFailure,
+            alreadyNudgedThisSession: didNudgeForPermissionThisSession
+        )
+        apply(feedback, for: command)
+        logOutcome(error, for: command)
+    }
+
+    /// 정책이 내린 결정을 실행만 한다. 판단은 `CommandFeedbackPolicy`가 이미 끝냈다.
+    private func apply(_ feedback: CommandFeedback, for command: WindowCommand) {
+        switch feedback.lastFailure {
+        case .clear:
             lastCommandFailure = nil
-        case .failure(.transient):
-            // Space 전환·애니메이션 중 일시적 실패는 비프 없이 조용히 무시한다(메뉴 노출도 제외).
-            Log.windows.debug("Hotkey \(command.displayName, privacy: .public) -> transient, skipped")
-        case let .failure(error):
-            lastCommandFailure = (command.displayName, error.userFacingMessage)
-            if preferencesStore.soundFeedbackEnabled {
-                NSSound.beep()
-            }
-            if preferencesStore.notifyOnCommandFailure {
-                failureNotifier.postCommandFailure(commandName: command.displayName, message: error.userFacingMessage)
-            }
-            Log.windows.debug(
-                "Hotkey \(command.displayName, privacy: .public) -> FAIL \(error.userFacingMessage, privacy: .public)"
-            )
-            nudgeForPermissionIfNeeded()
+        case .keep:
+            break
+        case let .set(message):
+            lastCommandFailure = (command.displayName, message)
+        }
+        if feedback.beep {
+            NSSound.beep()
+        }
+        // 알림 문구는 **정책이 준 값**에서 읽는다. `lastCommandFailure`를 읽어도 오늘은 맞지만
+        // (`notify`가 참인 경우는 항상 `.set` 직후라) 그 안전이 두 필드의 우연한 합의에 기댄다 —
+        // `.keep`과 `notify`가 함께 참이 되는 조합이 생기면 **지난 실패 문구가 새 알림으로** 나간다.
+        if feedback.notify, case let .set(message) = feedback.lastFailure {
+            failureNotifier.postCommandFailure(commandName: command.displayName, message: message)
+        }
+        if feedback.nudgeForPermission {
+            nudgeForPermission()
         }
     }
 
-    /// 단축키가 "권한 미부여" 때문에 실패한 상황이면, 침묵의 beep 루프에 갇히지 않도록 세션당 1회
-    /// Settings를 띄워 권한 안내로 연결한다(권한이 이미 있으면 다른 원인이므로 건드리지 않는다).
-    private func nudgeForPermissionIfNeeded() {
-        guard !didNudgeForPermissionThisSession,
-              !AccessibilityPermissionService.currentStatus().isTrusted
-        else { return }
+    /// 조용한 스킵과 실패는 진단 가치가 달라 로그를 구분해 남긴다(정책이 아니라 부수효과라 여기 둔다).
+    private func logOutcome(_ error: WindowCommandError?, for command: WindowCommand) {
+        guard let error else { return }
+        if error == .transient {
+            Log.windows.debug("Hotkey \(command.displayName, privacy: .public) -> transient, skipped")
+        } else {
+            Log.windows.debug(
+                "Hotkey \(command.displayName, privacy: .public) -> FAIL \(error.userFacingMessage, privacy: .public)"
+            )
+        }
+    }
+
+    /// 권한 미부여로 단축키가 실패했을 때 세션당 1회 Settings를 띄워 안내로 연결한다.
+    ///
+    /// "권한이 없는가"는 여기서 **다시 조회하지 않는다** — `CommandFeedbackPolicy`가 에러를 보고 이미
+    /// 판정했다. 예전에는 이 자리에서 `currentStatus()`를 읽었는데, 그 캐시는 앱 활성화·메뉴 열기에서만
+    /// 무효화되고 이 함수가 도는 순간은 정확히 그 둘 다 일어나지 않은 때라, 실행 중 권한이 풀린 경우
+    /// 낡은 `true`를 읽고 안내를 건너뛰었다 — 막으려던 침묵의 beep 루프가 그대로 일어났다.
+    private func nudgeForPermission() {
         didNudgeForPermissionThisSession = true
         settingsWindowController.show()
         Log.app.debug("Hotkey failed without Accessibility permission — nudged to settings (once/session).")
