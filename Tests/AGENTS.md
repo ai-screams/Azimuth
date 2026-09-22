@@ -13,8 +13,9 @@
 | `CommandEngineTests+Frames.swift` | 절대 배치·축 독립 합성·이동·상대 축소·여백 최대화 등 frame 계산 테스트 |
 | `CommandEngineTests+Displays.swift` | snap 판정·displayMove·현재 화면 판정(`bestMatchIndex`: 면적·50:50 중심·displayID 동률·데드밴드·비추이 3화면·원본 인덱스)·인접 디스플레이 선택 테스트 |
 | `CommandEngineTests+Plan.swift` | `CommandPlanPolicy` 테스트. snapThrow 상태기계(안 스냅 → 스냅, 이미 스냅 → 던지기, 인접 없음 → 제자리)·moveToDisplay 목적지·위임 경계·`WindowCommand.adjacentEdge`를 네 방향 전수로. 단정은 `expectPlan`(통째 동등성)만 쓴다 |
-| `CommandEngineTests+Apply.swift` | anchor·FrameApply·CommandOutcomePolicy 테스트. 부분 AX 적용·무시된 성공 쓰기·최종 read 실패의 상태 커밋을 값으로 검증 |
-| `CommandEngineTests+Model.swift` | 명령 그룹·primitive 문자열·명령 모델·식별자·helpText 전수 테스트 |
+| `CommandEngineTests+Apply.swift` | anchor·FrameApply·CommandOutcomePolicy·WriteRetryPolicy(재시도 판정·예산 경계) 테스트. 부분 AX 적용·무시된 성공 쓰기·최종 read 실패의 상태 커밋을 값으로 검증 |
+| `CommandEngineTests+Model.swift` | 명령 그룹·primitive 문자열·명령 모델·식별자·helpText 전수 + 실패 피드백 결정·행 표시 진리표(`ShortcutRowPolicy`: 체크박스 두 축·배지 우선순위) 테스트 |
+| `CommandEngineTests+Hotkeys.swift` | 단축키 바인딩 계층. 프리셋별 키 배정·override·활성 필터·충돌 판정·표시 문자열·Codable 왕복·Carbon 수정자 |
 
 ## For AI Agents
 
