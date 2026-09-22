@@ -21,6 +21,10 @@ enum CommandEngineTests {
         testSnapHalves()
         testDisplayMove()
         testSnapDecision()
+        testSnapThrowPlan()
+        testMoveToDisplayPlan()
+        testPlanDelegation()
+        testAdjacentEdge()
         testCenterClamp()
         testAnchorOrigin()
         testAnchoredOrigin()
@@ -95,6 +99,16 @@ enum CommandEngineTests {
         }
     }
 
+    /// CommandPlan 통째 비교(정확 동등성). target과 snappedEdge를 나눠 검사하면 한쪽을 빼먹어도 통과하므로
+    /// 계획 테스트는 이것으로만 단정한다.
+    static func expectPlan(_ label: String, _ got: CommandPlan, _ want: CommandPlan) {
+        checks += 1
+        if got != want {
+            failures += 1
+            print("FAIL \(label): got \(got) want \(want)")
+        }
+    }
+
     static func expectName(_ label: String, _ got: String, _ want: String) {
         checks += 1
         if got != want {
@@ -114,6 +128,7 @@ enum CommandEngineTests {
     // 개별 테스트는 도메인별 확장 파일에 있다:
     //   +Frames    기하 배치·이동·상대 축소
     //   +Displays  스냅·던지기·디스플레이 선택
+    //   +Plan      목표 frame 계획(snapThrow 상태기계·moveToDisplay 목적지)
     //   +Apply     앵커·적용 판정·결과 커밋 정책
     //   +Model     명령 모델·그룹·식별자
 

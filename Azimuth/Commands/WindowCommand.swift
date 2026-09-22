@@ -109,6 +109,18 @@ nonisolated enum WindowCommand: Equatable {
         }
     }
 
+    /// 이 명령이 인접 디스플레이를 찾는 방향. 인접을 보지 않는 명령이면 nil. Executor는 이 값으로만
+    /// 인접 작업영역을 조회해 `CommandPlanInput`에 넣는다 — 명령 종류 분기가 Executor에 남지 않게.
+    /// `default`를 쓰지 않는다: edge를 가진 명령이 새로 생기면 여기서 컴파일이 멈춰야 한다.
+    var adjacentEdge: SnapEdge? {
+        switch self {
+        case let .snapThrow(edge), let .moveToDisplay(edge):
+            edge
+        case .maximize, .maximizeGaps, .absolute, .move, .relativeHalf, .relativeTwoThird, .undo:
+            nil
+        }
+    }
+
     /// 명령이 하는 일을 한 줄로 설명한다(Settings 목록의 tooltip — 학습성). 계열 단위로 간결하게.
     var helpText: String {
         switch self {

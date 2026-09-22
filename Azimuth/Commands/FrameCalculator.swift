@@ -11,10 +11,10 @@ nonisolated enum FrameCalculator {
         case let .absolute(placement):
             absoluteFrame(placement, current: current, workArea: workArea)
         case let .snapThrow(edge):
-            // 순수 폴백 = 그 방향 절반(스냅). 인접 디스플레이로 던지는 분기는 Executor가 처리한다.
+            // 순수 폴백 = 그 방향 절반(스냅). 인접 디스플레이로 던지는 분기는 CommandPlanPolicy가 처리한다.
             halfRect(edge, workArea: workArea)
         case .moveToDisplay:
-            // 인접 디스플레이가 필요하므로 Executor가 처리한다. 폴백(인접 없음)은 현 위치 유지.
+            // 인접 디스플레이가 필요하므로 CommandPlanPolicy가 처리한다. 폴백(인접 없음)은 현 위치 유지.
             current
         case let .move(direction):
             moveFrame(direction, current: current, workArea: workArea)
