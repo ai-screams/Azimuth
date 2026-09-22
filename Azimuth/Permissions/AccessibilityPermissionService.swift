@@ -37,7 +37,7 @@ nonisolated enum AccessibilityPermissionStatus {
     var settingsDetailText: String {
         switch self {
         case .granted:
-            "Accessibility access is enabled. You can continue with command wiring and window control."
+            "Accessibility access is enabled. Shortcuts and menu commands can move and resize other app windows."
         case .required:
             "Enable Accessibility access for Azimuth in System Settings > Privacy & Security > Accessibility."
         }

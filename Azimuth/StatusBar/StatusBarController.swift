@@ -51,9 +51,6 @@ final class StatusBarController: NSObject, NSMenuDelegate {
     func install() {
         configureStatusItem()
         refreshPermissionState()
-        #if DEBUG
-            configureDebugWindowProbe()
-        #endif
     }
 
     /// 메뉴바 상태 아이콘 표시/숨김. 숨겨도 Azimuth를 다시 실행하면 설정창이 열린다(접근 경로 보존).
@@ -227,13 +224,6 @@ final class StatusBarController: NSObject, NSMenuDelegate {
 
 #if DEBUG
     extension StatusBarController {
-        private func configureDebugWindowProbe() {
-            frontmostAppTracker.onChange = { [weak self] _ in
-                guard let self else { return }
-                Log.windows.debug("[P3] activate -> \(self.currentResolutionText(), privacy: .public)")
-            }
-        }
-
         @objc private func identifyFocusedWindowDebug(_ sender: Any?) {
             let text = currentResolutionText()
             Log.windows.debug("[P3] menu -> \(text, privacy: .public)")

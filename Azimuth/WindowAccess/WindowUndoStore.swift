@@ -20,13 +20,9 @@ final class WindowUndoStore {
         }
     }
 
-    private struct Entry {
-        let frame: CGRect
-        let pid: pid_t
-    }
-
     private let capacity = 64
-    private var entries: [Key: Entry] = [:]
+    /// 값은 직전 frame 하나다. "어느 프로세스의 창인가"는 `Key`가 pid 로 이미 가른다(`SnapStateStore`와 같은 모양).
+    private var entries: [Key: CGRect] = [:]
     private var order: [Key] = []
 
     func record(_ frame: CGRect, pid: pid_t, for element: AXUIElement) {
@@ -35,18 +31,17 @@ final class WindowUndoStore {
         // 자주 쓰는 오래된 창이 삽입 순서(FIFO)로 먼저 퇴출되지 않는다.
         order.removeAll { $0 == key }
         order.append(key)
-        entries[key] = Entry(frame: frame, pid: pid)
+        entries[key] = frame
         if order.count > capacity {
             let oldest = order.removeFirst()
             entries.removeValue(forKey: oldest)
         }
     }
 
-    /// pid가 일치할 때만 직전 frame을 돌려준다(닫힌 창의 element 재사용으로 인한 오인 방지).
+    /// 닫힌 창의 element 가 다른 프로세스에서 재사용돼도 오인하지 않는다 — `Key`가 pid 를 포함하므로
+    /// 다른 pid 의 조회는 애초에 다른 키다.
     func previousFrame(for element: AXUIElement, pid: pid_t) -> CGRect? {
-        let key = Key(element: element, pid: pid)
-        guard let entry = entries[key], entry.pid == pid else { return nil }
-        return entry.frame
+        entries[Key(element: element, pid: pid)]
     }
 
     func clear(for element: AXUIElement, pid: pid_t) {
