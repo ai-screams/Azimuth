@@ -72,12 +72,21 @@ enum AccessibilityPermissionService {
         trustedCache = nil
     }
 
-    @discardableResult
-    static func requestPrompt() -> Bool {
+    /// 권한 요청 프롬프트를 띄우고 캐시를 갱신한다. 반환값은 쓰이지 않는다 —
+    /// 프롬프트 직후의 신뢰 상태는 사용자가 System Settings에서 조작하기 전 값이라 의미가 없다.
+    static func requestPrompt() {
         let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
-        let trusted = AXIsProcessTrustedWithOptions(options)
-        trustedCache = trusted
-        return trusted
+        trustedCache = AXIsProcessTrustedWithOptions(options)
+    }
+
+    /// "권한 설정 열기" 버튼/메뉴의 동작 전체. 프롬프트를 띄우고 System Settings를 연다.
+    /// 설정창을 열지 못했으면 false — 호출부가 사용자에게 알린다(피드백은 UI의 몫이라 여기서 소리내지 않는다).
+    ///
+    /// 두 곳(설정창 Permissions 카드, 상태바 메뉴)이 같은 다섯 줄을 복제하고 있어 합쳤다.
+    @discardableResult
+    static func promptAndOpenSettings() -> Bool {
+        requestPrompt()
+        return openSystemSettings()
     }
 
     @discardableResult

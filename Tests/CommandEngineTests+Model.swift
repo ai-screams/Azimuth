@@ -125,6 +125,31 @@ extension CommandEngineTests {
         expectName("write is positive", "\(AXMessagingTimeout.write > 0)", "true")
     }
 
+    /// 해석 단계 예산은 사용자가 고른 상한에 비례해야 한다. 고정 3초이던 시절에는 Patient(1.0초)를
+    /// 고른 사용자가 해석에 성공하고도 예산에 걸려 **조용히** 버려졌다 — "느린 앱을 기다리겠다"는
+    /// 선택이 침묵 실패를 늘리는 뒤집힌 인센티브였다.
+    static func testResolveBudget() {
+        let budget = AXMessagingTimeout.resolveBudget
+        // 기본값에서 이전 하드코딩 상수(3초)와 정확히 같다 = Balanced 사용자 동작 변화 0.
+        // 이 등식이 깨지면 기본 사용자에게 조용한 동작 변화가 생긴 것이므로 반드시 실패해야 한다.
+        expectName("balanced == previous constant", "\(budget(AXMessagingTimeout.resolve))", "3.0")
+        // Quick 은 바닥값에 걸린다. 순수 비례면 1.5초인데, 이전 예산(3초)보다 짧아지면
+        // 이전에 성공하던 명령이 실패하게 된다 — 버그 수정이 새 실패 모드를 들이지 않게 한다.
+        expectName("quick clamps to legacy floor", "\(budget(AXMessagingTimeout.minResolve))", "3.0")
+        expectName("floor equals previous constant", "\(AXMessagingTimeout.legacyResolveBudget)", "3.0")
+        // 바닥 덕분에 Quick 에서는 8회 경로의 구조적 최대치로도 예산에 도달할 수 없다(= 이전과 같다).
+        let quickCeiling = TimeInterval(8) * TimeInterval(AXMessagingTimeout.minResolve)
+        expectName("quick stays unreachable", "\(quickCeiling < budget(AXMessagingTimeout.minResolve))", "true")
+        expectName("patient", "\(budget(1.0))", "6.0")
+        // 손편집 defaults가 클램프 상한까지 올려도 비례가 유지된다.
+        expectName("hand-edited upper bound", "\(budget(AXMessagingTimeout.write))", "12.0")
+        expectName("read count is 6", "\(AXMessagingTimeout.resolveReadCount)", "6")
+        // Balanced 이상에서는 예산이 8회 경로의 구조적 최대치보다 **작아야** 한다. 같거나 크면
+        // 그 설정에서 검사가 안 걸린다. 이 부등식이 readCount 의 상한을 고정한다.
+        let eightReadCeiling = TimeInterval(8) * TimeInterval(AXMessagingTimeout.resolve)
+        expectName("budget below 8-read ceiling", "\(budget(AXMessagingTimeout.resolve) < eightReadCeiling)", "true")
+    }
+
     /// 고급 설정에서 온 값의 클램프. 저장된 defaults는 손으로 편집될 수 있어 신뢰하지 않는 입력이다.
     /// 특히 0은 AX가 "전역 기본값(6초) 복귀"로 해석하므로 반드시 걸러야 한다.
     static func testResolveTimeoutClamp() {
@@ -241,12 +266,18 @@ extension CommandEngineTests {
 
         // 다른 실패는 안내하지 않는다 — 창의 성질이지 권한 문제가 아니다.
         for error in [WindowCommandError.notMovable, .notResizable, .applyFailed,
-                      .workAreaUnavailable, .noUndoState, .resolution(.noFocusedWindow)] {
+                      .workAreaUnavailable, .noUndoState, .resolveBudgetExceeded,
+                      .resolution(.noFocusedWindow)] {
             expectName("no nudge for \(error)", "\(decide(error, true, true, false).nudgeForPermission)", "false")
             // 문자열 설명 대신 값으로 비교한다 — enum 설명은 어포스트로피를 이스케이프해 비교가 깨진다.
             let reported = decide(error, true, true, false).lastFailure == .set(message: error.userFacingMessage)
             expectName("reports \(error)", "\(reported)", "true")
         }
+
+        // 느린 앱(예산 초과)은 .transient 와 달리 재현되는 상태다 — 조용히 넘기지 않고 보고한다.
+        let budget = decide(.resolveBudgetExceeded, true, true, false)
+        expectName("budget exceeded is reported, not kept", "\(budget.lastFailure == .keep)", "false")
+        expectName("budget exceeded beeps", "\(budget.beep)", "true")
 
         // 사운드·알림 토글은 각각 독립적으로 듣는다.
         expectName("sound off silences beep", "\(decide(.applyFailed, false, true, false).beep)", "false")
@@ -274,7 +305,7 @@ extension CommandEngineTests {
         }
         let commands: [WindowCommandError] = [
             .resolution(.permissionDenied), .workAreaUnavailable, .notMovable, .notResizable,
-            .applyFailed, .transient, .noUndoState
+            .applyFailed, .transient, .noUndoState, .resolveBudgetExceeded
         ]
         for error in commands {
             expectName("command message non-empty \(error)", "\(!error.userFacingMessage.isEmpty)", "true")

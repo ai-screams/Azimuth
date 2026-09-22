@@ -61,13 +61,14 @@ nonisolated enum CommandFeedbackPolicy {
                 notify: notifyEnabled,
                 nudgeForPermission: !alreadyNudgedThisSession
             )
-        case .resolution, .workAreaUnavailable, .notMovable, .notResizable, .applyFailed, .noUndoState:
+        case .resolution, .workAreaUnavailable, .notMovable, .notResizable, .applyFailed, .noUndoState,
+             .resolveBudgetExceeded:
             // 같은 처리를 받는 케이스를 한 arm으로 묶는다 — exhaustive 성질(새 케이스가 생기면
             // 빌드가 깨진다)은 유지하면서 순환복잡도를 경고선 쪽으로 밀지 않는다.
             //
-            // 이 arm 이 바로 그 안전장치의 예다: PR #119가 `.resolveBudgetExceeded`를 더하면 여기서
-            // 컴파일이 깨지고, 새 실패가 사용자에게 어떻게 보일지 결정하도록 강제한다(그 케이스는
-            // 재현되는 상태라 이 그룹 — 시끄러운 실패 — 에 들어간다).
+            // `.resolveBudgetExceeded`가 여기 있는 이유: 앱이 일관되게 느려 해석이 예산을 넘긴
+            // 상태는 다시 눌러도 재현된다. `.transient`처럼 조용히 넘기면 사용자는 명령이 왜
+            // 듣지 않는지 알 길이 없다.
             return CommandFeedback(
                 lastFailure: .set(message: error.userFacingMessage),
                 beep: soundEnabled,

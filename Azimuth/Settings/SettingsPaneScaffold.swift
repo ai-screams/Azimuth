@@ -46,6 +46,19 @@ enum SettingsPaneScaffold {
         return documentView
     }
 
+    /// `install`이 돌려준 문서 뷰의 자연 높이. 세 페인이 같은 코드를 복제하고 있어 여기로 모았다.
+    ///
+    /// `documentView`가 nil이면 **측정 실패**다. 0을 그대로 흘리면 `max(0, minWindowHeight)`가
+    /// 400pt 창을 만들어 "창이 짧아졌다"가 성공처럼 보이므로, Debug 빌드에서 알린다(Release는 no-op).
+    static func naturalContentHeight(of documentView: NSView?, in container: NSView) -> CGFloat {
+        container.layoutSubtreeIfNeeded()
+        guard let documentView else {
+            assertionFailure("documentView not installed — height measurement unavailable")
+            return SettingsTabController.minWindowHeight
+        }
+        return documentView.frame.height
+    }
+
     /// 세로 콘텐츠 스택(카드들을 쌓는 용도).
     static func makeContentStack(_ views: [NSView]) -> NSStackView {
         let stack = NSStackView(views: views)

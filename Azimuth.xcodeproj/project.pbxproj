@@ -19,9 +19,9 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				AGENTS.md,
-				Info.plist,
 				Commands/AGENTS.md,
 				Hotkeys/AGENTS.md,
+				Info.plist,
 				Launch/AGENTS.md,
 				Permissions/AGENTS.md,
 				Preferences/AGENTS.md,
@@ -305,15 +305,15 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				AZIMUTH_LSUIELEMENT = 0;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 7K6MK3KP9K;
 				ENABLE_APP_SANDBOX = NO;
-				AZIMUTH_LSUIELEMENT = 0;
 				EXCLUDED_SOURCE_FILE_NAMES = "*.md";
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = "Azimuth/Info.plist";
+				INFOPLIST_FILE = Azimuth/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -336,16 +336,16 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				AZIMUTH_LSUIELEMENT = 1;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 7K6MK3KP9K;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
-				AZIMUTH_LSUIELEMENT = 1;
 				EXCLUDED_SOURCE_FILE_NAMES = "*.md";
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = "Azimuth/Info.plist";
+				INFOPLIST_FILE = Azimuth/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
