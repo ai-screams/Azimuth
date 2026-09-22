@@ -49,6 +49,7 @@ enum CommandEngineTests {
         testResolveTimeoutClamp()
         testResolveTimeoutChoices()
         testShortcutListPolicy()
+        testShortcutRowPolicy()
         testCommandFeedbackPolicy()
         testUserFacingMessages()
         testResultCommandError()

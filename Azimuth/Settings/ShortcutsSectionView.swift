@@ -34,19 +34,29 @@ final class ShortcutsSectionView: NSView {
     lazy var searchField = makeSearchField()
     let rowsStack = NSStackView()
     var rows: [Row] = []
-    var groupToggles: [String: NSButton] = [:]
-    var groupContainers: [String: NSView] = [:]
-    /// 그룹 위 구분선(위 여백을 품은 컨테이너). 첫 보이는 그룹 위에는 숨긴다.
-    var groupSeparators: [String: NSView] = [:]
+    /// 그룹 하나를 이루는 뷰 넷. 따로 딕셔너리 넷으로 두면 같은 키 집합을 유지한다는 보장이 없고,
+    /// 역조회가 `String` 토큰을 경유해 두 번 건너뛰게 된다. 토큰은 저장 키이므로
+    /// `PreferencesStore` 와 이야기할 때만 쓴다.
+    var groupViews: [CommandGroup: GroupViews] = [:]
     /// 사용자가 삼각형으로 펼친 그룹. **저장하지 않는다** — 창을 열 때마다 전부 접힘으로
     /// 시작해야 창 높이가 예측 가능하고, 저장 키와 마이그레이션이 늘지 않는다.
     var expandedGroups: Set<CommandGroup> = []
-    var groupDisclosures: [String: NSButton] = [:]
     /// 삼각형으로 펼침 상태가 바뀌어 콘텐츠 높이가 달라졌을 때. 호스트(페인)가 창 높이를 다시 맞춘다 —
     /// 창의 최대 높이가 탭 선택 시점의 자연 높이에 고정되므로, 여기서 알리지 않으면 펼친 그룹이
     /// 늘릴 수 없는 창 안에서 스크롤로만 보인다. 검색은 창을 흔들지 않도록 여기 포함하지 않는다.
     var onExpansionChanged: (() -> Void)?
     let emptyLabel = NSTextField(labelWithString: "No shortcuts match your search.")
+
+    struct GroupViews {
+        /// 핫키 등록을 켜고 끄는 체크박스(기능).
+        let toggle: NSButton
+        /// 삼각형 — 하위 행 표시만 바꾼다(표시). 체크박스와 독립이다.
+        let disclosure: NSButton
+        /// 헤더 행 컨테이너(체크박스 + 삼각형).
+        let header: NSView
+        /// 이 그룹 **위** 구분선(위 여백을 품은 컨테이너). 첫 보이는 그룹 위에는 숨긴다.
+        let separator: NSView
+    }
 
     struct Row {
         let command: WindowCommand
@@ -105,8 +115,8 @@ final class ShortcutsSectionView: NSView {
         let conflicts = BindingResolver.conflictingIdentifiers(in: enabledBindings)
         let failures = registrationFailures()
 
-        for (token, toggle) in groupToggles {
-            toggle.state = preferencesStore.isGroupEnabled(token) ? .on : .off
+        for (group, views) in groupViews {
+            views.toggle.state = preferencesStore.isGroupEnabled(group.token) ? .on : .off
         }
         for row in rows {
             updateRow(row, binding: byIdentifier[row.command.identifier],
@@ -115,6 +125,8 @@ final class ShortcutsSectionView: NSView {
         }
     }
 
+    /// 표시 판정은 `ShortcutRowPolicy`(순수)가 하고 여기서는 위젯에 꽂기만 한다 — 여덟 가지 출력의
+    /// 진리표, 특히 배지 우선순위를 하네스에서 전수 검증하기 위해서다.
     private func updateRow(
         _ row: Row,
         binding: HotkeyBinding?,
@@ -126,40 +138,41 @@ final class ShortcutsSectionView: NSView {
         let groupToken = row.command.group.token
         let groupEnabled = preferencesStore.isGroupEnabled(groupToken)
         let commandOn = !preferencesStore.disabledCommandIdentifiers.contains(identifier)
-        // 실효 활성 판정은 store의 단일 규칙(isCommandEnabled)에 위임한다.
+        // 실효 활성 판정의 주인은 store 의 단일 규칙이다. 정책은 그 값을 받기만 한다 —
+        // 같은 식을 정책에도 두면 출처가 둘이 된다. 그 둘이 어긋나지 않는지 확인할 수 있는
+        // 유일한 지점이 여기다(하네스에는 store 가 없다).
         let effective = preferencesStore.isCommandEnabled(identifier, groupToken: groupToken)
+        assert(effective == (groupEnabled && commandOn))
 
-        if let binding {
-            let shortcut = HotkeyShortcut(keyCode: binding.keyCode, modifiers: binding.modifiers)
-            row.recorder.setIdleDisplay(shortcut.displayString)
-        } else {
-            row.recorder.setIdleDisplay("")
-        }
-        row.enableCheckbox.state = commandOn ? .on : .off
-        row.enableCheckbox.isEnabled = groupEnabled
-        row.recorder.isEnabled = effective
-        row.resetButton.isEnabled = effective && hasOverride
-        row.nameLabel.textColor = effective ? .labelColor : .disabledControlTextColor
-        // 기본값과 다른(사용자가 바꾼) 명령엔 점(•)을 표시한다.
-        row.modifiedDot.isHidden = !(effective && hasOverride)
-        updateBadge(for: row, effective: effective, conflicts: conflicts, failures: failures)
+        let display = ShortcutRowPolicy.decide(ShortcutRowInput(
+            shortcutDisplay: binding.map { HotkeyShortcut(keyCode: $0.keyCode, modifiers: $0.modifiers).displayString },
+            hasOverride: hasOverride,
+            groupEnabled: groupEnabled,
+            commandOn: commandOn,
+            effective: effective,
+            isConflicting: conflicts.contains(identifier),
+            registrationFailed: failures.contains(identifier)
+        ))
+        apply(display, to: row)
     }
 
-    /// 내부 중복을 시스템 점유보다 우선 표시한다(중복이면 둘 다 등록 실패할 수 있어 메시지가 엇갈리지 않게).
-    private func updateBadge(for row: Row, effective: Bool, conflicts: Set<String>, failures: Set<String>) {
-        let identifier = row.command.identifier
-        guard effective else {
+    private func apply(_ display: ShortcutRowDisplay, to row: Row) {
+        row.recorder.setIdleDisplay(display.shortcutText)
+        row.enableCheckbox.state = display.checkboxOn ? .on : .off
+        row.enableCheckbox.isEnabled = display.checkboxEnabled
+        row.recorder.isEnabled = display.recorderEnabled
+        row.resetButton.isEnabled = display.resetEnabled
+        row.nameLabel.textColor = display.isDimmed ? .disabledControlTextColor : .labelColor
+        row.modifiedDot.isHidden = !display.showsModifiedDot
+        switch display.badge {
+        case .none:
             row.badge.isHidden = true
-            return
-        }
-        if conflicts.contains(identifier) {
+        case .duplicate:
             row.badge.configure(text: "Duplicate", symbol: "exclamationmark.triangle.fill", color: .systemRed)
             row.badge.isHidden = false
-        } else if failures.contains(identifier) {
+        case .systemOccupied:
             row.badge.configure(text: "In use by system", symbol: "exclamationmark.octagon.fill", color: .systemOrange)
             row.badge.isHidden = false
-        } else {
-            row.badge.isHidden = true
         }
     }
 }

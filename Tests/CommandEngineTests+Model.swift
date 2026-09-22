@@ -331,4 +331,82 @@ extension CommandEngineTests {
         expectName("equatable", "\(frame == WindowFrame(origin: frame.origin, size: frame.size))", "true")
     }
 
+    /// 행 하나의 표시 진리표. 여덟 출력이 값 여섯에서 나오는데 전부 NSButton·NSColor 를 직접 만지는
+    /// 메서드 안에 있어 검사가 0건이었다. 특히 배지 우선순위는 틀리면 사용자를 엉뚱하게 안내한다.
+    static func testShortcutRowPolicy() {
+        func input(
+            shortcut: String? = "⌃⌥←", override: Bool = false, group: Bool = true, command: Bool = true,
+            conflicting: Bool = false, failed: Bool = false
+        ) -> ShortcutRowInput {
+            ShortcutRowInput(
+                shortcutDisplay: shortcut, hasOverride: override, groupEnabled: group, commandOn: command,
+                effective: group && command, isConflicting: conflicting, registrationFailed: failed
+            )
+        }
+        func decide(_ i: ShortcutRowInput) -> ShortcutRowDisplay { ShortcutRowPolicy.decide(i) }
+
+        // 바인딩 유무 → 표시 문자열.
+        expectName("bound row shows its shortcut", decide(input()).shortcutText, "⌃⌥←")
+        expectName("unbound row shows nothing", decide(input(shortcut: nil)).shortcutText, "")
+        // 실효 비활성이어도 문자열은 남는다(흐리게 그려질 뿐) — 오늘 동작을 고정한다.
+        expectName("disabled row keeps its shortcut text", decide(input(command: false)).shortcutText, "⌃⌥←")
+
+        // 체크박스는 두 축이다: on/off 는 명령, 누를 수 있는가는 그룹.
+        let groupOff = decide(input(group: false, command: true))
+        expectName("group off still shows the command as checked", "\(groupOff.checkboxOn)", "true")
+        expectName("group off locks the command checkbox", "\(groupOff.checkboxEnabled)", "false")
+        let commandOff = decide(input(group: true, command: false))
+        expectName("command off keeps its checkbox usable", "\(commandOff.checkboxEnabled)", "true")
+        expectName("command off is unchecked", "\(commandOff.checkboxOn)", "false")
+
+        // 레코더·이름 흐림은 실효 활성만 본다.
+        expectName("group off disables the recorder", "\(groupOff.recorderEnabled)", "false")
+        expectName("group off dims the name", "\(groupOff.isDimmed)", "true")
+        expectName("enabled row is not dimmed", "\(decide(input()).isDimmed)", "false")
+
+        // Reset 과 변경 점은 실효 활성 **그리고** override 의 곱이다.
+        expectName("no override, no reset", "\(decide(input(override: false)).resetEnabled)", "false")
+        expectName("no override, no dot", "\(decide(input(override: false)).showsModifiedDot)", "false")
+        let overridden = decide(input(override: true))
+        expectName("override enables reset", "\(overridden.resetEnabled)", "true")
+        expectName("override shows the dot", "\(overridden.showsModifiedDot)", "true")
+        let overriddenOff = decide(input(override: true, command: false))
+        expectName("disabled override has no reset", "\(overriddenOff.resetEnabled)", "false")
+        expectName("disabled override has no dot", "\(overriddenOff.showsModifiedDot)", "false")
+
+        // 배지: 중복이 점유를 이긴다. 뒤집히면 사용자가 다른 조합을 찾아 헤맨다.
+        expectName("conflict shows duplicate", badgeToken(decide(input(conflicting: true))), "duplicate")
+        expectName("failure shows occupied", badgeToken(decide(input(failed: true))), "occupied")
+        expectName("conflict outranks failure",
+                   badgeToken(decide(input(conflicting: true, failed: true))), "duplicate")
+        expectName("clean row has no badge", badgeToken(decide(input())), "none")
+        // 안 쓰는 단축키의 경고는 소음이다.
+        expectName("disabled row hides the conflict badge",
+                   badgeToken(decide(input(command: false, conflicting: true, failed: true))), "none")
+
+        // 그룹 × 명령 네 조합 전수.
+        for group in [true, false] {
+            for command in [true, false] {
+                let display = decide(input(group: group, command: command))
+                let want = group && command
+                expectName("effective(group: \(group), command: \(command))",
+                           "\(display.recorderEnabled)", "\(want)")
+                expectName("dimmed(group: \(group), command: \(command))", "\(display.isDimmed)", "\(!want)")
+                // 체크박스 두 축은 실효 활성이 아니라 각자의 축을 따른다.
+                expectName("checkboxOn(group: \(group), command: \(command))",
+                           "\(display.checkboxOn)", "\(command)")
+                expectName("checkboxEnabled(group: \(group), command: \(command))",
+                           "\(display.checkboxEnabled)", "\(group)")
+            }
+        }
+    }
+
+    /// 배지 의미를 문자열로 — enum 설명은 비교가 깨지기 쉬워 토큰으로 바꾼다.
+    static func badgeToken(_ display: ShortcutRowDisplay) -> String {
+        switch display.badge {
+        case .none: "none"
+        case .duplicate: "duplicate"
+        case .systemOccupied: "occupied"
+        }
+    }
 }

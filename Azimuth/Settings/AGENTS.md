@@ -1,5 +1,5 @@
 <!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-06-19 | Updated: 2026-09-20 -->
+<!-- Generated: 2026-06-19 | Updated: 2026-09-22 -->
 
 # Settings
 
@@ -14,7 +14,7 @@
 | `SettingsPaneScaffold.swift` | 페인 공용 뼈대: 세로 스크롤뷰 + `FlippedView` 문서 뷰 + 콘텐츠 스택 + 인셋 24. 세 페인이 모두 사용(3중 중복 방지). 반환된 문서 뷰의 높이가 자연 높이다 |
 | `ShortcutsPaneViewController.swift` | Shortcuts 탭. `ShortcutsSectionView`를 카드에 담아 호스팅. `viewWillAppear`에서 그룹을 전부 접고(`collapseAllGroups`) 창을 다시 맞춘다. 삼각형 토글(`onExpansionChanged`) 때도 `parent as? SettingsTabController`로 창 높이를 재조정 — 최대 높이가 접힌 높이에 묶이는 것을 막는다 |
 | `AdvancedPaneViewController.swift` | Advanced 탭. "Wait for unresponsive apps" 해석 상한 팝업(`ResolveTimeoutChoice`) + 설명. 값 변경은 `setResolveTimeout` 클로저로 앱에 전달(`WindowAccess`를 직접 건드리지 않음) |
-| `ShortcutsSectionView.swift` / `+Layout.swift` | 프리셋 세그먼트 + 검색 + 명령 34행(레코더·Reset·변경 점·충돌/점유 배지). 그룹 헤더는 **삼각형(접기, 표시 전용)** 과 **체크박스(그 그룹 핫키 등록 on/off)** 두 컨트롤 — 의미가 달라 접근성 레이블로 구분. 접힘 상태는 저장하지 않는다. 행·헤더·구분선 표시 판정은 `Commands/ShortcutListPolicy`(순수, 테스트)에 위임하고 뷰는 적용만 한다. 검색 중엔 매칭 그룹을 자동으로 펼친다 |
+| `ShortcutsSectionView.swift` / `+Layout.swift` | 프리셋 세그먼트 + 검색 + 명령 34행(레코더·Reset·변경 점·충돌/점유 배지). 그룹 헤더는 **삼각형(접기, 표시 전용)** 과 **체크박스(그 그룹 핫키 등록 on/off)** 두 컨트롤 — 의미가 달라 접근성 레이블로 구분. 접힘 상태는 저장하지 않는다. 행·헤더·구분선 표시 판정은 `Commands/ShortcutListPolicy`(순수, 테스트)에 위임하고 뷰는 적용만 한다. 검색 중엔 매칭 그룹을 자동으로 펼친다. 행 표시 판정(레코더 문자열·체크박스 두 축·Reset·흐림·변경 점·배지)은 `Commands/ShortcutRowPolicy`(순수)가 하고 여기서는 위젯에 꽂기만 한다. 그룹 뷰 넷(체크박스·삼각형·헤더·구분선)은 `GroupViews` 로 묶어 `[CommandGroup: GroupViews]` 하나로 든다 — 토큰은 store 와 이야기할 때만 쓴다 |
 | `SettingsCard.swift` / `BadgeLabel.swift` / `ShortcutRecorderButton.swift` | 카드 컨테이너(심볼+제목+본문), 상태 배지, 단축키 녹화 버튼(녹화 중 전역 핫키 정지 콜백) |
 
 ## For AI Agents
