@@ -19,6 +19,7 @@ HARNESS_SRC=(
     "Azimuth/Commands/DisplayGeometry.swift"
     "Azimuth/Commands/CommandOutcomePolicy.swift"
     "Azimuth/Commands/CommandPlanPolicy.swift"
+    "Azimuth/Commands/WriteRetryPolicy.swift"
     "Azimuth/Commands/ShortcutListPolicy.swift"
     "Azimuth/Commands/CommandFeedbackPolicy.swift"
     "Azimuth/Shared/AXMessagingTimeout.swift"

@@ -76,7 +76,8 @@ final class AnimationSuppressor {
         if suppressed[pid] != nil { return true }
         let enhanced = AXAttribute.bool(appElement, enhancedUIAttribute) == true
         let manual = AXAttribute.bool(appElement, manualAccessibilityAttribute) == true
-        // 둘 다 꺼져있거나 없으면(네이티브 AppKit 앱) 건드릴 필요 없음 — 부작용·IPC 0.
+        // 둘 다 꺼져있거나 없으면(네이티브 AppKit 앱) 건드릴 필요 없음 — 부작용 없고 **추가** IPC 0.
+        // 위 읽기 2회는 앱 종류와 무관하게 이미 나갔다("IPC 0"이 아니다 — 쓰기 상한에 묶이는 왕복이다).
         guard enhanced || manual else { return false }
         if enhanced { AXAttribute.set(appElement, enhancedUIAttribute, false) }
         if manual { AXAttribute.set(appElement, manualAccessibilityAttribute, false) }
