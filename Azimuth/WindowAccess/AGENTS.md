@@ -1,5 +1,5 @@
 <!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-06-19 | Updated: 2026-07-23 -->
+<!-- Generated: 2026-06-19 | Updated: 2026-09-22 -->
 
 # WindowAccess
 
@@ -18,7 +18,7 @@ Accessibility(AX) API와 직접 맞닿는 계층. "어느 앱/어느 창"을 해
 | `SnapStateStore.swift` | `@MainActor`. 창별 스냅 상태(`SnapRecord`: edge + 스냅 당시 frame) 저장(capacity 64, LRU, UndoStore와 동일 키 설계). snapThrow가 제약 앱을 "이미 스냅됨"으로 인식하고 외부 이동 시 무효화하는 데 쓴다(H-2). `clearAll`은 디스플레이 재구성 시 호출 |
 | `WorkAreaResolver.swift` | `@MainActor`. AX 창 frame이 가장 많이 겹치는 화면의 `visibleFrame`을 AX 좌표로 반환(멀티모니터 대응) |
 | `DisplayResolver.swift` | `@MainActor`. snapThrow·moveToDisplay 명령의 인접 디스플레이 타깃을 해석. 창 frame과 edge 방향으로 "던질 화면"을 결정해 `WindowCommandExecutor`에 제공 |
-| `NSScreen+BestMatch.swift` | `NSScreen` 확장. 주어진 AX frame과 겹침이 가장 큰 화면을 반환하는 유틸리티(`bestMatch`). `DisplayResolver`·`WorkAreaResolver`가 공용으로 사용 |
+| `NSScreen+BestMatch.swift` | `NSScreen` 확장. 주어진 **Cocoa** 좌표 사각형과 겹침이 가장 큰 화면을 반환(`bestMatch(forCocoaRect:)`) — 두 호출자(`WorkAreaResolver`·`DisplayResolver`) 모두 `CoordinateSpace.axToCocoa`를 거친 뒤 부른다. 선택 규칙(면적 → 중심 포함 → 작은 displayID)은 순수 계층 `Commands/DisplayGeometry.bestMatchIndex`에 있고 여기서는 `NSScreen` → `ScreenCandidate` 매핑과 겹침 없음 폴백(main → 첫 화면)만 한다 |
 
 ## For AI Agents
 

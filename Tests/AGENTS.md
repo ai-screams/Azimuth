@@ -1,5 +1,5 @@
 <!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-06-19 | Updated: 2026-09-21 -->
+<!-- Generated: 2026-06-19 | Updated: 2026-09-22 -->
 
 # Tests
 
@@ -11,7 +11,7 @@
 |------|-------------|
 | `CommandEngineTests.swift` | `@main` 실행형 테스트와 공용 `expect*` 헬퍼. 도메인별 테스트 함수를 호출하고 실패 시 비0 종료 |
 | `CommandEngineTests+Frames.swift` | 절대 배치·축 독립 합성·이동·상대 축소·여백 최대화 등 frame 계산 테스트 |
-| `CommandEngineTests+Displays.swift` | snap 판정·displayMove·인접 디스플레이 선택 테스트 |
+| `CommandEngineTests+Displays.swift` | snap 판정·displayMove·현재 화면 판정(`bestMatchIndex`: 면적·50:50 중심·displayID 동률·데드밴드·비추이 3화면·원본 인덱스)·인접 디스플레이 선택 테스트 |
 | `CommandEngineTests+Plan.swift` | `CommandPlanPolicy` 테스트. snapThrow 상태기계(안 스냅 → 스냅, 이미 스냅 → 던지기, 인접 없음 → 제자리)·moveToDisplay 목적지·위임 경계·`WindowCommand.adjacentEdge`를 네 방향 전수로. 단정은 `expectPlan`(통째 동등성)만 쓴다 |
 | `CommandEngineTests+Apply.swift` | anchor·FrameApply·CommandOutcomePolicy 테스트. 부분 AX 적용·무시된 성공 쓰기·최종 read 실패의 상태 커밋을 값으로 검증 |
 | `CommandEngineTests+Model.swift` | 명령 그룹·primitive 문자열·명령 모델·식별자·helpText 전수 테스트 |
