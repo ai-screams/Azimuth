@@ -3,7 +3,6 @@ import Cocoa
 @MainActor
 final class FrontmostAppTracker {
     private(set) var lastFocusedApp: NSRunningApplication?
-    var onChange: ((NSRunningApplication) -> Void)?
 
     /// 명령 대상 앱: 추적된 직전 non-Azimuth 앱, 없으면 현재 frontmost. "어느 앱"
     /// 정책을 한 곳에 모은다. 폴백에서도 자기 자신은 제외한다 — 기동 직후 다른 앱을 한 번도
@@ -46,6 +45,5 @@ final class FrontmostAppTracker {
             return
         }
         lastFocusedApp = app
-        onChange?(app)
     }
 }
