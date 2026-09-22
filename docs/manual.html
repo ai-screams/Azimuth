@@ -774,9 +774,9 @@
             <div class="req-card-num" aria-hidden="true">3</div>
             <h3 data-en="Target window"
                 data-ko="대상 창">Target window</h3>
-            <p data-en="Azimuth operates on the focused standard window (<code>AXStandardWindow</code>). Full-screen spaces and special windows such as sheets and panels are intentionally skipped with clear failure feedback."
-               data-ko="Azimuth는 포커스된 표준 창(<code>AXStandardWindow</code>)을 대상으로 합니다. 풀스크린 스페이스나 시트·패널 등 특수 창은 명확한 실패 피드백과 함께 의도적으로 건너뜁니다.">
-              Azimuth operates on the focused standard window (<code>AXStandardWindow</code>). Full-screen spaces and special windows such as sheets and panels are intentionally skipped with clear failure feedback.
+            <p data-en="Azimuth operates on the focused window of the target app. Standard windows and dialogs are always accepted; any other window — including one whose type macOS does not report, as with some Java and Electron apps — is accepted when macOS says its position and size can both be changed. Full-screen spaces, minimized windows and windows that refuse to be moved or resized — sheets and panels, typically — are skipped with a clear failure message."
+               data-ko="Azimuth는 대상 앱의 포커스된 창에 작용합니다. 표준 창과 대화상자는 항상 받아들이고, 그 밖의 창은 — macOS가 종류를 알려주지 않는 창(일부 Java·Electron 앱)을 포함해 — 위치와 크기를 모두 바꿀 수 있다고 macOS가 답할 때 받아들입니다. 풀스크린 스페이스, 최소화된 창, 이동·리사이즈를 거부하는 창(보통 시트·패널)은 명확한 실패 메시지와 함께 건너뜁니다.">
+              Azimuth operates on the focused window of the target app. Standard windows and dialogs are always accepted; any other window — including one whose type macOS does not report, as with some Java and Electron apps — is accepted when macOS says its position and size can both be changed. Full-screen spaces, minimized windows and windows that refuse to be moved or resized — sheets and panels, typically — are skipped with a clear failure message.
             </p>
           </div>
 
@@ -846,7 +846,7 @@
               </tr>
               <tr>
                 <td data-en="Window identification" data-ko="창 식별">Window identification</td>
-                <td data-en="Resolve focused standard window; skip special/full-screen/unfocused" data-ko="포커스 일반 창 해석, 특수/풀스크린/무포커스 구분 실패">Resolve focused standard window; skip special/full-screen/unfocused</td>
+                <td data-en="Resolve the focused window (standard, dialog, or any window that reports itself movable and resizable); skip full-screen, minimized and unfocused" data-ko="포커스 창 해석(표준 창·대화상자, 또는 이동·리사이즈 가능하다고 답하는 창); 풀스크린·최소화·무포커스는 건너뜀">Resolve the focused window (standard, dialog, or any window that reports itself movable and resizable); skip full-screen, minimized and unfocused</td>
                 <td>✅</td>
               </tr>
               <tr>
@@ -917,6 +917,11 @@
               <tr>
                 <td data-en="Settings" data-ko="설정">Settings</td>
                 <td data-en="Updates: current version + Check for Updates…" data-ko="업데이트: 현재 버전 + 업데이트 확인…">Updates: current version + Check for Updates…</td>
+                <td>✅</td>
+              </tr>
+              <tr>
+                <td data-en="Settings" data-ko="설정">Settings</td>
+                <td data-en="Advanced tab: how long to wait for an unresponsive app (Quick 0.25s / Balanced 0.5s / Patient 1s)" data-ko="Advanced 탭: 응답 없는 앱을 얼마나 기다릴지(Quick 0.25초 / Balanced 0.5초 / Patient 1초)">Advanced tab: how long to wait for an unresponsive app (Quick 0.25s / Balanced 0.5s / Patient 1s)</td>
                 <td>✅</td>
               </tr>
               <tr>
@@ -1131,17 +1136,17 @@
         <!-- 3.3 No-shortcut execution note -->
         <div class="shortcuts-meta" role="note">
           <strong data-en="Running commands without shortcuts:" data-ko="단축키 없이 실행:">Running commands without shortcuts:</strong>
-          <span data-en=" In DEBUG builds, use the menu-bar icon → Window Commands (Debug) submenu to trigger any command directly. In Settings (⌘,), switch presets, customize shortcuts, toggle command groups on/off, and configure feedback and login options."
-                data-ko=" DEBUG 빌드에서는 메뉴바 아이콘 → Window Commands (Debug) 서브메뉴로 각 명령을 직접 실행할 수 있습니다. 설정창(⌘,)에서 프리셋 전환·단축키 커스터마이즈·그룹 on/off·피드백 및 로그인 옵션을 설정합니다.">
-            In DEBUG builds, use the menu-bar icon → Window Commands (Debug) submenu to trigger any command directly. In Settings (⌘,), switch presets, customize shortcuts, toggle command groups on/off, and configure feedback and login options.
+          <span data-en=" In DEBUG builds, use the menu-bar icon → Window Commands (Debug) submenu to trigger any command directly. Settings (⌘,) has three tabs: General (permission status, failure beep and notification, launch at login, hiding the menu-bar icon, updates), Shortcuts (preset, per-command recording and Reset, group and per-command on/off) and Advanced (how long to wait for an unresponsive app). In the Shortcuts tab every group starts collapsed — open one with its disclosure triangle, or type in the filter and matching groups expand on their own."
+                data-ko=" DEBUG 빌드에서는 메뉴바 아이콘 → Window Commands (Debug) 서브메뉴로 각 명령을 직접 실행할 수 있습니다. 설정창(⌘,)은 탭 세 개입니다: General(권한 상태, 실패 비프·알림, 로그인 자동 실행, 메뉴바 아이콘 숨김, 업데이트), Shortcuts(프리셋, 명령별 녹화·Reset, 그룹·명령 on/off), Advanced(응답 없는 앱을 얼마나 기다릴지). Shortcuts 탭의 그룹은 모두 접힌 채로 시작합니다 — 삼각형으로 펼치거나, 필터에 입력하면 해당 그룹이 저절로 펼쳐집니다.">
+            In DEBUG builds, use the menu-bar icon → Window Commands (Debug) submenu to trigger any command directly. Settings (⌘,) has three tabs: General (permission status, failure beep and notification, launch at login, hiding the menu-bar icon, updates), Shortcuts (preset, per-command recording and Reset, group and per-command on/off) and Advanced (how long to wait for an unresponsive app). In the Shortcuts tab every group starts collapsed — open one with its disclosure triangle, or type in the filter and matching groups expand on their own.
           </span>
           <br /><br />
-          <span data-en="All 34 unique key combinations are registered. Combinations already claimed by the system or another app are rejected and shown as "
-                data-ko="내부적으로 34개 키 조합이 등록됩니다. 시스템이나 다른 앱이 이미 점유한 조합은 등록이 거부되어 설정창에 ">All 34 unique key combinations are registered. Combinations already claimed by the system or another app are rejected and shown as </span>
+          <span data-en="All 34 key combinations are registered at launch. If a registration fails — because another app or macOS already holds that combination, or because the hotkey system could not start — Settings marks the row "
+                data-ko="실행 시 34개 키 조합을 등록합니다. 등록이 실패하면(다른 앱이나 macOS가 이미 그 조합을 쥐고 있거나, 단축키 시스템을 시작하지 못한 경우) 설정창의 해당 행에 ">All 34 key combinations are registered at launch. If a registration fails — because another app or macOS already holds that combination, or because the hotkey system could not start — Settings marks the row </span>
           <strong>"In use by system"</strong>
-          <span data-en=" in Settings. All shortcuts are fully customizable via the Settings recorder."
-                data-ko="로 표시됩니다. 모든 단축키는 설정창 레코더로 커스터마이즈 가능합니다.">
-             in Settings. All shortcuts are fully customizable via the Settings recorder.
+          <span data-en=" in Settings. Some combinations macOS reserves appear to register successfully and are swallowed before they reach Azimuth; Azimuth cannot tell those apart, so they show no badge and the shortcut simply does nothing. Either way, every shortcut can be remapped with the Settings recorder."
+                data-ko="로 표시됩니다. macOS가 선점한 일부 조합은 등록은 성공한 것으로 보이고 Azimuth에 닿기 전에 가로채이는데, Azimuth 쪽에서는 이를 구분할 수 없어 배지가 뜨지 않고 단축키만 듣지 않습니다. 어느 쪽이든 모든 단축키는 설정창 레코더로 다시 지정할 수 있습니다.">
+             in Settings. Some combinations macOS reserves appear to register successfully and are swallowed before they reach Azimuth; Azimuth cannot tell those apart, so they show no badge and the shortcut simply does nothing. Either way, every shortcut can be remapped with the Settings recorder.
           </span>
         </div>
 
@@ -1237,9 +1242,9 @@
               <div class="keys-group"><span class="key sym">⌃⌥⌘</span><span class="key">←</span><span class="key">→</span><span class="key">↑</span><span class="key">↓</span></div>
             </div>
             <p class="cmd-card-body"
-               data-en="Nudges the window by exactly its own width (horizontal) or height (vertical), with no resize and no display change. Clamped at the work-area boundary — repeat presses push the window to the edge and keep it flush. A window that already sits off-screen past an edge is recovered into the work area, so a directional Move can pull it back onto the screen rather than push it further out. If the window is larger than the work area, it is pinned to the top-left corner."
-               data-ko="창을 자체 너비(수평) 또는 높이(수직)만큼 정확히 이동합니다. 크기 변경과 디스플레이 이동은 없습니다. 작업영역 경계에서 클램프 — 계속 누르면 끝까지 밀려 경계에 붙습니다. 이미 화면 밖으로 벗어난 창은 작업영역 안으로 회수되므로, 방향 이동이 창을 더 밀어내지 않고 화면 안으로 되돌릴 수 있습니다. 창이 작업영역보다 크면 좌상단에 고정됩니다.">
-              Nudges the window by exactly its own width (horizontal) or height (vertical), with no resize and no display change. Clamped at the work-area boundary — repeat presses push the window to the edge and keep it flush. A window that already sits off-screen past an edge is recovered into the work area, so a directional Move can pull it back onto the screen rather than push it further out. If the window is larger than the work area, it is pinned to the top-left corner.
+               data-en="Nudges the window by exactly its own width (horizontal) or height (vertical), with no resize and no display change. Clamped at the work-area boundary — repeat presses push the window to the edge and keep it flush. A window that already sits off-screen past an edge is recovered into the work area, so a directional Move can pull it back onto the screen rather than push it further out. A window larger than the work area has no room to move on that axis, so it stays flush against that edge."
+               data-ko="창을 자체 너비(수평) 또는 높이(수직)만큼 정확히 이동합니다. 크기 변경과 디스플레이 이동은 없습니다. 작업영역 경계에서 클램프 — 계속 누르면 끝까지 밀려 경계에 붙습니다. 이미 화면 밖으로 벗어난 창은 작업영역 안으로 회수되므로, 방향 이동이 창을 더 밀어내지 않고 화면 안으로 되돌릴 수 있습니다. 창이 작업영역보다 크면 그 축으로 움직일 여지가 없어 해당 가장자리에 붙은 채로 남습니다.">
+              Nudges the window by exactly its own width (horizontal) or height (vertical), with no resize and no display change. Clamped at the work-area boundary — repeat presses push the window to the edge and keep it flush. A window that already sits off-screen past an edge is recovered into the work area, so a directional Move can pull it back onto the screen rather than push it further out. A window larger than the work area has no room to move on that axis, so it stays flush against that edge.
             </p>
           </div>
 
@@ -1310,9 +1315,9 @@
               <span data-en="Failure feedback" data-ko="실패 피드백">Failure feedback</span>
             </div>
             <p class="cmd-card-body"
-               data-en="When a command cannot complete, Azimuth plays a beep (configurable in Settings) and records the reason, which you can read in the menu bar item's menu. You can also opt in to a notification on failure. Transient failures — such as those caused by a Space transition or a window animation in progress — are silently skipped without a beep, since they self-resolve immediately."
-               data-ko="명령이 완료될 수 없을 때 Azimuth는 비프음을 재생하고(설정에서 끌 수 있음) 실패 사유를 기록해 메뉴바 항목의 메뉴에서 확인할 수 있습니다. 실패 시 알림을 받도록 선택할 수도 있습니다. Space 전환이나 윈도우 애니메이션 중 발생하는 일시적 실패는 즉시 자가 해결되므로 비프 없이 조용히 스킵됩니다.">
-              When a command cannot complete, Azimuth plays a beep (configurable in Settings) and records the reason, which you can read in the menu bar item's menu. You can also opt in to a notification on failure. Transient failures — such as those caused by a Space transition or a window animation in progress — are silently skipped without a beep, since they self-resolve immediately.
+               data-en="When a command cannot complete, Azimuth plays a beep (configurable in Settings) and records the reason, which you can read in the menu bar item's menu. You can also opt in to a notification on failure. Transient failures — such as those caused by a Space transition or a window animation in progress — are silently skipped without a beep, since they self-resolve immediately. Two cases behave differently. If the command failed because Accessibility permission is missing, Azimuth opens the Settings window for you — once per launch, so it never becomes a nuisance. And if the target app took too long to answer, the reason reads &quot;The app is taking too long to respond&quot;; the Advanced tab decides how long Azimuth waits before giving up."
+               data-ko="명령이 완료될 수 없을 때 Azimuth는 비프음을 재생하고(설정에서 끌 수 있음) 실패 사유를 기록해 메뉴바 항목의 메뉴에서 확인할 수 있습니다. 실패 시 알림을 받도록 선택할 수도 있습니다. Space 전환이나 윈도우 애니메이션 중 발생하는 일시적 실패는 즉시 자가 해결되므로 비프 없이 조용히 스킵됩니다. 두 경우는 다르게 동작합니다. Accessibility 권한이 없어서 실패했다면 Azimuth가 설정창을 대신 열어 줍니다 — 실행당 한 번뿐이라 성가시지 않습니다. 대상 앱이 너무 오래 답하지 않아 실패했다면 사유가 &quot;The app is taking too long to respond&quot;으로 표시되며, 얼마나 기다릴지는 Advanced 탭에서 정합니다.">
+              When a command cannot complete, Azimuth plays a beep (configurable in Settings) and records the reason, which you can read in the menu bar item's menu. You can also opt in to a notification on failure. Transient failures — such as those caused by a Space transition or a window animation in progress — are silently skipped without a beep, since they self-resolve immediately. Two cases behave differently. If the command failed because Accessibility permission is missing, Azimuth opens the Settings window for you — once per launch, so it never becomes a nuisance. And if the target app took too long to answer, the reason reads &quot;The app is taking too long to respond&quot;; the Advanced tab decides how long Azimuth waits before giving up.
             </p>
           </div>
 
