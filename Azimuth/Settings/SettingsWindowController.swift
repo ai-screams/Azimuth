@@ -103,9 +103,8 @@ final class SettingsWindowController {
         // 계산되어 라벨 줄바꿈이 달라지는데, 이 값을 테스트하는 하네스가 없어 아무 것도 못 잡는다.
         let width = SettingsTabController.windowWidth
         window.setContentSize(NSSize(width: width, height: 640))
-        let height = tabController.preferredWindowHeight()
         window.contentMinSize = NSSize(width: width, height: SettingsTabController.minWindowHeight)
-        window.contentMaxSize = NSSize(width: width, height: height)
-        window.setContentSize(NSSize(width: width, height: height))
+        // 최대 높이와 실제 크기는 탭 전환과 **같은 경로**로 정한다. 따로 계산하면 두 곳이 어긋날 수 있다.
+        tabController.resizeWindowToSelectedPane()
     }
 }

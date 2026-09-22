@@ -11,12 +11,7 @@ import os
 
 extension GeneralPaneViewController {
     @objc func openAccessibilitySettings(_ sender: Any?) {
-        _ = AccessibilityPermissionService.requestPrompt()
-
-        guard AccessibilityPermissionService.openSystemSettings() else {
-            NSSound.beep()
-            return
-        }
+        if !AccessibilityPermissionService.promptAndOpenSettings() { NSSound.beep() }
     }
 
     @objc func handleDidBecomeActive(_ notification: Notification) {

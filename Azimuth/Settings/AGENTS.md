@@ -31,7 +31,8 @@
 
 ### Common Patterns
 - 의존성 주입(DI): 싱글톤 대신 생성자 주입. 앱 쪽 통지는 클로저(`onHotkeysChanged`·`setHotkeysSuspended`·`setResolveTimeout`·`checkForUpdates`)로, `[weak self]`로 순환 참조 회피.
-- 페인의 `naturalContentHeight()`는 `documentView`가 없으면 `assertionFailure` 후 `minWindowHeight`를 돌려준다 — 0을 흘리면 400pt 창이 "성공"처럼 보이기 때문.
+- 페인의 `naturalContentHeight()`는 **`SettingsPaneScaffold.naturalContentHeight(of:in:)`에 한 줄로 위임한다.** 세 페인이 같은 9줄을 복제하고 있어 합쳤다 — 새 페인도 복제하지 말고 위임할 것. 측정 실패(`documentView`가 nil)는 스캐폴드가 `assertionFailure` 후 `minWindowHeight`를 돌려준다(0을 흘리면 400pt 창이 "성공"처럼 보이기 때문).
+- 창 컨트롤러의 `applyResizeLimits`는 최대 높이·실제 크기를 직접 계산하지 않고 `tabController.resizeWindowToSelectedPane()`을 부른다 — 탭 전환과 **같은 경로**라 두 곳이 어긋날 수 없다.
 
 ## Dependencies
 
