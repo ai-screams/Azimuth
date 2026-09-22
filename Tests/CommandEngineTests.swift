@@ -31,6 +31,7 @@ enum CommandEngineTests {
         testFallbackCommands()
         testGapMaximize()
         testGapMaximizeDegenerate()
+        testBestMatch()
         testDisplayGeometry()
         testIsConstrained()
         testUsableFrame()
