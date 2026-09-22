@@ -240,4 +240,95 @@ extension CommandEngineTests {
         expectName("empty query matches all", "\(ShortcutListPolicy.matches(query: "  ", command: leftHalf))", "true")
         expectName("no match", "\(ShortcutListPolicy.matches(query: "zzz", command: leftHalf))", "false")
     }
+
+    /// 실패 피드백 결정. 관측 가능한 결과 다섯(마지막 실패 표시·침묵·비프·알림·권한 안내)이
+    /// 한 분기에 묶여 있어 테스트가 닿지 못하던 것을 순수 정책으로 뺐다.
+    static func testCommandFeedbackPolicy() {
+        let decide = CommandFeedbackPolicy.decide
+        // 성공: 지난 실패 사유를 지운다.
+        let ok = decide(nil, true, true, false)
+        expectName("success clears", "\(ok.lastFailure)", "clear")
+        expectName("success is quiet", "\(ok.beep || ok.notify || ok.nudgeForPermission)", "false")
+
+        // .transient: 완전 침묵 + 지난 사유를 **유지**한다. 아무것도 성공하지 않았는데 지우면
+        // 일어나지 않은 성공을 주장하는 셈이다.
+        let transient = decide(.transient, true, true, false)
+        expectName("transient keeps", "\(transient.lastFailure)", "keep")
+        expectName("transient is silent", "\(transient.beep || transient.notify)", "false")
+        expectName("transient never nudges", "\(transient.nudgeForPermission)", "false")
+
+        // 권한 거부: 유일한 안내 트리거. 세션당 1회.
+        let denied = decide(.resolution(.permissionDenied), true, true, false)
+        expectName("permission denied nudges", "\(denied.nudgeForPermission)", "true")
+        let deniedAgain = decide(.resolution(.permissionDenied), true, true, true)
+        expectName("nudges once per session", "\(deniedAgain.nudgeForPermission)", "false")
+        expectName("denied still reports", "\(deniedAgain.beep)", "true")
+
+        // 다른 실패는 안내하지 않는다 — 창의 성질이지 권한 문제가 아니다.
+        for error in [WindowCommandError.notMovable, .notResizable, .applyFailed,
+                      .workAreaUnavailable, .noUndoState, .resolveBudgetExceeded,
+                      .resolution(.noFocusedWindow)] {
+            expectName("no nudge for \(error)", "\(decide(error, true, true, false).nudgeForPermission)", "false")
+            // 문자열 설명 대신 값으로 비교한다 — enum 설명은 어포스트로피를 이스케이프해 비교가 깨진다.
+            let reported = decide(error, true, true, false).lastFailure == .set(message: error.userFacingMessage)
+            expectName("reports \(error)", "\(reported)", "true")
+        }
+
+        // 느린 앱(예산 초과)은 .transient 와 달리 재현되는 상태다 — 조용히 넘기지 않고 보고한다.
+        let budget = decide(.resolveBudgetExceeded, true, true, false)
+        expectName("budget exceeded is reported, not kept", "\(budget.lastFailure == .keep)", "false")
+        expectName("budget exceeded beeps", "\(budget.beep)", "true")
+
+        // 사운드·알림 토글은 각각 독립적으로 듣는다.
+        expectName("sound off silences beep", "\(decide(.applyFailed, false, true, false).beep)", "false")
+        expectName("sound off keeps notify", "\(decide(.applyFailed, false, true, false).notify)", "true")
+        expectName("notify off keeps beep", "\(decide(.applyFailed, true, false, false).beep)", "true")
+        expectName("notify off silences notify", "\(decide(.applyFailed, true, false, false).notify)", "false")
+        // 토글은 안내에 영향을 주지 않는다 — 권한 안내는 피드백 설정과 독립이다.
+        expectName("toggles do not gate nudge",
+                   "\(decide(.resolution(.permissionDenied), false, false, false).nudgeForPermission)", "true")
+    }
+
+    /// 사용자에게 그대로 노출되는 문자열. 비어 있거나 중복이면 상태바 메뉴·알림이 쓸모없어진다.
+    /// 정책 진리표만으로는 이 분기들이 실행되지 않으므로 전수로 확인한다.
+    static func testUserFacingMessages() {
+        let resolutions: [WindowResolutionError] = [
+            .permissionDenied, .noFrontmostApplication, .noFocusedWindow, .fullscreenWindow,
+            .unsupportedWindowType(subrole: "AXSheet"),
+            .unsupportedWindowType(subrole: nil),   // subrole 을 못 읽은 창 — 별도 문구 분기
+            .invalidFrame,
+            .appUnresponsive(code: -25204), .axError(code: -25200),
+            .messagingTimeoutConfigurationFailed(code: -25200)
+        ]
+        for error in resolutions {
+            expectName("resolution message non-empty \(error)", "\(!error.userFacingMessage.isEmpty)", "true")
+        }
+        let commands: [WindowCommandError] = [
+            .resolution(.permissionDenied), .workAreaUnavailable, .notMovable, .notResizable,
+            .applyFailed, .transient, .noUndoState, .resolveBudgetExceeded
+        ]
+        for error in commands {
+            expectName("command message non-empty \(error)", "\(!error.userFacingMessage.isEmpty)", "true")
+        }
+        // 서로 구별되어야 한다 — 같은 문구가 둘이면 사용자가 원인을 좁힐 수 없다.
+        let messages = Set(commands.map(\.userFacingMessage))
+        expectName("command messages are distinct", "\(messages.count)", "\(commands.count)")
+    }
+
+    /// `Result.commandError` — 피드백 정책의 입력을 만드는 어댑터. 성공값을 버리고 에러만 남긴다.
+    static func testResultCommandError() {
+        let success: Result<CGRect, WindowCommandError> = .success(CGRect(x: 1, y: 2, width: 3, height: 4))
+        expectName("success has no error", "\(success.commandError == nil)", "true")
+        let failure: Result<CGRect, WindowCommandError> = .failure(.notMovable)
+        expectName("failure yields error", "\(failure.commandError == .notMovable)", "true")
+    }
+
+    /// `WindowFrame`은 AX 좌표의 origin+size를 한 값으로 나른다. `rect` 합성이 어긋나면
+    /// 기하 계산 전체가 조용히 틀어진다.
+    static func testWindowFrame() {
+        let frame = WindowFrame(origin: CGPoint(x: 10, y: 20), size: CGSize(width: 30, height: 40))
+        expect("rect composes origin and size", frame.rect, CGRect(x: 10, y: 20, width: 30, height: 40))
+        expectName("equatable", "\(frame == WindowFrame(origin: frame.origin, size: frame.size))", "true")
+    }
+
 }

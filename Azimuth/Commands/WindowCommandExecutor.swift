@@ -1,4 +1,5 @@
 import Cocoa
+import os
 
 @MainActor
 enum WindowCommandExecutor {
@@ -11,7 +12,43 @@ enum WindowCommandExecutor {
     // AX 함수의 스레딩은 SDK 헤더에 문서화돼 있지 않고, 동종 윈도우 매니저는 메인스레드를 유지한 채
     // 타임아웃을 바운드한다. 자세한 근거는 `.docs/review/ax-main-thread-blocking-audit-2026-09-09.md`.
 
+    /// 명령 1회. 권한 거부로 실패하면 **캐시가 낡았을 뿐인지** 한 번 확인하고 재실행한다.
+    ///
+    /// `AccessibilityPermissionService`의 캐시는 명령마다 동기 tccd 호출이 나가는 것을 막아 주지만
+    /// 무효화 지점이 앱 활성화·메뉴 열기 둘뿐이다. 사용자가 Azimuth를 활성화하지 않은 채 System
+    /// Settings에서 권한을 켜고 돌아와 단축키를 누르면, 캐시는 `false`로 남아 읽기 가드가 AX를 부르기도
+    /// 전에 `.permissionDenied`를 돌려준다 — 권한은 이미 있는데 명령이 실패한다.
+    ///
+    /// 재시도는 안전하다: `.permissionDenied` 생성 지점 셋이 모두 **창을 건드리기 전**이라
+    /// (`WindowFrameWriter`의 쓰기 경계 가드는 `mayHaveMutated: false`) 부분 적용 상태가 없다.
+    /// 권한이 정말 없으면 갱신된 조회가 false라 재실행조차 하지 않는다.
+    ///
+    /// 재시도가 **느린 앱의 프리즈를 두 배로 만들지 않는다.** 해석 예산 타이머는 시도마다 새로 시작하지만,
+    /// 응답 없는 앱이 내는 `.cannotComplete`는 `.appUnresponsive`로 매핑되지 `.permissionDenied`가 되지 않는다.
+    /// 즉 재시도 조건은 느림이 아니라 **OS 수준의 권한 거부**이고, 그건 대기 없이 즉시 반환된다.
+    ///
+    /// 여기(`run` 안)에 두는 이유: DEBUG 상태바 메뉴도 이 함수를 직접 호출한다. 호출자 쪽에 두면
+    /// 같은 primitive의 두 경로가 낡은 캐시에서 다르게 동작한다. 권한 안내(창 띄우기)는 UX라 앱이 맡는다.
     static func run(
+        _ command: WindowCommand,
+        on app: NSRunningApplication,
+        undoStore: WindowUndoStore,
+        snapStore: SnapStateStore
+    ) -> Result<CGRect, WindowCommandError> {
+        let first = attempt(command, on: app, undoStore: undoStore, snapStore: snapStore)
+        guard case .failure(.resolution(.permissionDenied)) = first else { return first }
+        AccessibilityPermissionService.invalidateCache()
+        guard AccessibilityPermissionService.currentStatus().isTrusted else { return first }
+        let retried = attempt(command, on: app, undoStore: undoStore, snapStore: snapStore)
+        if case .success = retried {
+            // 사용자에게는 보이지 않는 자가 치유다. 기록이 없으면 "권한을 켠 직후 첫 단축키가 가끔
+            // 실패하던" 현상이 얼마나 흔한지 나중에 알 길이 없다.
+            Log.app.debug("Permission cache was stale; \(command.displayName, privacy: .public) succeeded on retry.")
+        }
+        return retried
+    }
+
+    private static func attempt(
         _ command: WindowCommand,
         on app: NSRunningApplication,
         undoStore: WindowUndoStore,

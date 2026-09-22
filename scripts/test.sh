@@ -18,7 +18,10 @@ swiftc \
     "$ROOT_DIR/Azimuth/Commands/DisplayGeometry.swift" \
     "$ROOT_DIR/Azimuth/Commands/CommandOutcomePolicy.swift" \
     "$ROOT_DIR/Azimuth/Commands/ShortcutListPolicy.swift" \
+    "$ROOT_DIR/Azimuth/Commands/CommandFeedbackPolicy.swift" \
     "$ROOT_DIR/Azimuth/Shared/AXMessagingTimeout.swift" \
+    "$ROOT_DIR/Azimuth/Shared/WindowFrame.swift" \
+    "$ROOT_DIR/Azimuth/Shared/WindowCommandError.swift" \
     "$ROOT_DIR/Tests/CommandEngineTests.swift" \
     "$ROOT_DIR/Tests/CommandEngineTests+Frames.swift" \
     "$ROOT_DIR/Tests/CommandEngineTests+Displays.swift" \
