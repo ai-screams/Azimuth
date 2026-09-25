@@ -698,16 +698,21 @@
     }
 
     /* ─── Requirements section ───────────────────────────────────── */
+    /* minmax(0, 1fr), not 1fr: a bare 1fr track never shrinks below its
+       content's min-content width, so the long install command in
+       pre.code-block stretched the column (440px at a 320px viewport) and
+       the page scrolled sideways. The pre keeps its own overflow-x scroll. */
     .install-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       gap: 16px;
     }
     @media (max-width: 600px) {
-      .install-grid { grid-template-columns: 1fr; }
+      .install-grid { grid-template-columns: minmax(0, 1fr); }
     }
 
     .req-card {
+      min-width: 0;
       background: var(--bg-card);
       border: 1px solid var(--border-card);
       border-radius: var(--radius-lg);
