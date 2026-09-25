@@ -51,9 +51,6 @@ print "▸ legacy bundle gate: $APP ${MODE:+($MODE)}"
 # ── 최소 OS와 아키텍처 ─────────────────────────────────────────────────────────
 check "LSMinimumSystemVersion = 10.13" \
     '[[ "$(/usr/libexec/PlistBuddy -c "Print :LSMinimumSystemVersion" "$PLIST")" == 10.13 ]]'
-# 레거시 빌드 번호 `209.N`(`release.sh`의 LEGACY_BUILD_MAJOR, 앱의 `VersionDisplay.legacyBuildMajor`).
-check "CFBundleVersion is 209.N" \
-    '[[ "$(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$PLIST")" =~ "^209\.[0-9]+$" ]]'
 archs="$(lipo -archs "$BIN")"
 check "executable is universal x86_64 + arm64 (archs: $archs)" 'has_archs "$BIN" x86_64 arm64'
 check "x86_64 minimum OS <= 10.13 ($(min_os x86_64 "$BIN"))" 'at_most_10_13 "$(min_os x86_64 "$BIN")"'
@@ -122,6 +119,10 @@ check "required Swift symbols resolvable in bundled runtime ($missing missing)" 
 
 # ── 서명(릴리스) ──────────────────────────────────────────────────────────────
 if [[ "$MODE" == "--signed" ]]; then
+    # 레거시 빌드 번호 `209.N`(`release.sh`의 LEGACY_BUILD_MAJOR, 앱의 `VersionDisplay.legacyBuildMajor`).
+    # 릴리스·시험 앱만 이 번호를 받는다 — 브랜치 CI 빌드는 프로젝트 기본 번호라 서명 모드에서만 본다.
+    check "CFBundleVersion is 209.N" \
+        '[[ "$(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$PLIST")" =~ "^209\.[0-9]+$" ]]'
     check "codesign --verify --deep --strict" 'codesign --verify --deep --strict "$APP" 2>/dev/null'
     sign_info="$(codesign -dvvv "$APP" 2>&1)"
     check "app signed by $EXPECT_AUTHORITY" '[[ "$sign_info" == *"Authority=$EXPECT_AUTHORITY"* ]]'
