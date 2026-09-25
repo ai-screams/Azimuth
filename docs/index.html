@@ -1942,9 +1942,9 @@
             <polygon points="11,11 12.5,11 11,18.5" fill="var(--text-faint)" opacity="0.4"/>
           </svg>
           <div class="footer-text">
-            <div data-en="© 2026 AiScream · Apache-2.0 · Built with Swift + AppKit"
-                 data-ko="© 2026 AiScream · Apache-2.0 · Swift + AppKit으로 제작">
-              © 2026 AiScream · Apache-2.0 · Built with Swift + AppKit
+            <div data-en="© 2026 Ai-Scream · Apache-2.0 · Built with Swift + AppKit"
+                 data-ko="© 2026 Ai-Scream · Apache-2.0 · Swift + AppKit으로 제작">
+              © 2026 Ai-Scream · Apache-2.0 · Built with Swift + AppKit
             </div>
             <div data-en="No data collection · no telemetry · the only network access is the Sparkle update check."
                  data-ko="데이터 수집 없음 · 텔레메트리 없음 · 네트워크 접속은 Sparkle 업데이트 확인뿐.">
@@ -1961,6 +1961,9 @@
              data-en="Support" data-ko="후원">Support</a>
           <a href="https://github.com/ai-screams/Azimuth/issues" target="_blank" rel="noopener"
              data-en="Report an issue" data-ko="이슈 등록">Report an issue</a>
+          <a href="https://ai-scream.ai/"
+             data-href-en="https://ai-scream.ai/" data-href-ko="https://ai-scream.ai/ko/"
+             data-en="More from Ai-Scream" data-ko="Ai-Scream의 다른 프로젝트">More from Ai-Scream</a>
         </div>
       </div>
     </div>
@@ -1991,6 +1994,12 @@
           } else {
             el.textContent = val;
           }
+        }
+
+        // links whose target differs per locale (the Ai-Scream home: / vs /ko/)
+        var hrefs = document.querySelectorAll('[data-href-' + lang + ']');
+        for (var j = 0; j < hrefs.length; j++) {
+          hrefs[j].href = hrefs[j].getAttribute('data-href-' + lang);
         }
 
         // update html lang attribute
