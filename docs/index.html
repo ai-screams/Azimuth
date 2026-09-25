@@ -698,13 +698,17 @@
     }
 
     /* ─── Requirements section ───────────────────────────────────── */
+    /* minmax(0, 1fr), not 1fr: a bare 1fr track never shrinks below its
+       content's min-content width, so the long install command in
+       pre.code-block stretched the column (440px at a 320px viewport) and
+       the page scrolled sideways. The pre keeps its own overflow-x scroll. */
     .install-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       gap: 16px;
     }
     @media (max-width: 600px) {
-      .install-grid { grid-template-columns: 1fr; }
+      .install-grid { grid-template-columns: minmax(0, 1fr); }
     }
 
     .req-card {
@@ -760,6 +764,10 @@
       box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
     }
 
+    pre.code-block:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
     pre.code-block .comment { color: rgba(160,190,230,0.5); }
     pre.code-block .cmd { color: #c8d8f4; }
     pre.code-block .arg { color: var(--accent-soft); }
@@ -1818,11 +1826,14 @@
               The download is Developer ID–signed and notarized by Apple, so it opens without Gatekeeper warnings.
             </p>
 
-            <p class="install-note" style="margin-bottom:.5rem;"
+            <p class="install-note" id="brew-label" style="margin-bottom:.5rem;"
                data-en="Or with Homebrew:" data-ko="또는 Homebrew로:">
               Or with Homebrew:
             </p>
-            <pre class="code-block"><code>brew install --cask ai-screams/tap/azimuth</code></pre>
+            <!-- Focusable scroll region: on narrow screens the command scrolls
+                 inside the pre, and keyboard users need focus to scroll it.
+                 Named by the (localized) label above. -->
+            <pre class="code-block" tabindex="0" role="region" aria-labelledby="brew-label"><code>brew install --cask ai-screams/tap/azimuth</code></pre>
           </div>
         </div>
       </div>
@@ -1942,9 +1953,9 @@
             <polygon points="11,11 12.5,11 11,18.5" fill="var(--text-faint)" opacity="0.4"/>
           </svg>
           <div class="footer-text">
-            <div data-en="© 2026 AiScream · Apache-2.0 · Built with Swift + AppKit"
-                 data-ko="© 2026 AiScream · Apache-2.0 · Swift + AppKit으로 제작">
-              © 2026 AiScream · Apache-2.0 · Built with Swift + AppKit
+            <div data-en="© 2026 Ai-Scream · Apache-2.0 · Built with Swift + AppKit"
+                 data-ko="© 2026 Ai-Scream · Apache-2.0 · Swift + AppKit으로 제작">
+              © 2026 Ai-Scream · Apache-2.0 · Built with Swift + AppKit
             </div>
             <div data-en="No data collection · no telemetry · the only network access is the Sparkle update check."
                  data-ko="데이터 수집 없음 · 텔레메트리 없음 · 네트워크 접속은 Sparkle 업데이트 확인뿐.">
@@ -1961,6 +1972,9 @@
              data-en="Support" data-ko="후원">Support</a>
           <a href="https://github.com/ai-screams/Azimuth/issues" target="_blank" rel="noopener"
              data-en="Report an issue" data-ko="이슈 등록">Report an issue</a>
+          <a href="https://ai-scream.ai/"
+             data-href-en="https://ai-scream.ai/" data-href-ko="https://ai-scream.ai/ko/"
+             data-en="More from Ai-Scream" data-ko="Ai-Scream의 다른 프로젝트">More from Ai-Scream</a>
         </div>
       </div>
     </div>
@@ -1991,6 +2005,12 @@
           } else {
             el.textContent = val;
           }
+        }
+
+        // links whose target differs per locale (the Ai-Scream home: / vs /ko/)
+        var hrefs = document.querySelectorAll('[data-href-' + lang + ']');
+        for (var j = 0; j < hrefs.length; j++) {
+          hrefs[j].href = hrefs[j].getAttribute('data-href-' + lang);
         }
 
         // update html lang attribute
