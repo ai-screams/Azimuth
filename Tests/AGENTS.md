@@ -15,7 +15,7 @@ Regression tests for the command engine's **pure logic**. Instead of an Xcode te
 | `CommandEngineTests+Plan.swift` | `CommandPlanPolicy`. The snapThrow state machine (not snapped → snap; already snapped → throw; no adjacent display → stay put), the moveToDisplay destination, the delegation boundary and `WindowCommand.adjacentEdge`, each across all four directions. Assertions go only through `expectPlan` (whole-struct equality) |
 | `CommandEngineTests+Apply.swift` | anchor, FrameApply, CommandOutcomePolicy and WriteRetryPolicy (the retry decision and its budget boundary). Verifies the state commit for partial AX application, ignored successful writes and a failed final read, all from values |
 | `CommandEngineTests+Model.swift` | Command groups, primitive strings, the command model, identifiers and helpText exhaustively, plus the failure-feedback decision and the row-display truth table (`ShortcutRowPolicy`: the checkbox's two axes and badge priority) |
-| `CommandEngineTests+Legacy.swift` | **Legacy branch.** `LogMessage` privacy folding (all public / unannotated / mixed / explicit private) and one pass through each log level |
+| `CommandEngineTests+Legacy.swift` | **Legacy branch.** `LogMessage` privacy folding (all public / unannotated / mixed / explicit private) and one pass through each log level; update-feed choice per macOS major version; `VersionDisplay` (`209.N` → `Legacy N`, other builds unchanged) |
 | `CommandEngineTests+Hotkeys.swift` | The shortcut binding layer. Per-preset key assignment, overrides, the enabled filter, conflict detection, display strings, Codable round-trips and Carbon modifiers |
 
 ## For AI Agents

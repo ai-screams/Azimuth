@@ -3,21 +3,28 @@ name: CI
 on:
   push:
     branches:
-      - main
+      - legacy/10.13
   pull_request:
+    branches:
+      - legacy/10.13
 
 permissions:
   contents: read
   security-events: write
 
-# PR에 연속 푸시 시 오래된 실행을 취소(러너 시간 절약). main 푸시는 취소하지 않는다.
+# PR에 연속 푸시 시 오래된 실행을 취소(러너 시간 절약). legacy/10.13 푸시는 취소하지 않는다.
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
+# 레거시판(10.13~12)은 Xcode 26.3으로 빌드한다(27은 12.0 미만 타깃 거부). 러너 기본값에 기대지 않고 정확히 고정·단언.
+env:
+  XCODE_VERSION: "26.3"
+  XCODE_BUILD: 17C529
+
 jobs:
   secret-scan:
-    runs-on: macos-15 # release.yml과 러너 통일(재현성)
+    runs-on: macos-15 # release-legacy.yml과 러너 통일(재현성)
 
     steps:
       - name: Checkout
@@ -39,7 +46,7 @@ jobs:
 
       - name: Upload Gitleaks SARIF
         if: always() && hashFiles('gitleaks-report.sarif') != ''
-        uses: github/codeql-action/upload-sarif@b96794f015dfd88f77b49b1c93e0fa7110f94c63 # v4
+        uses: github/codeql-action/upload-sarif@1c5b675653bb5c22dbe9b12b556ec555138e09fd # v4
         with:
           sarif_file: gitleaks-report.sarif
 
@@ -50,7 +57,7 @@ jobs:
           exit 1
 
   lint-and-build:
-    runs-on: macos-15 # release.yml과 러너 통일(재현성)
+    runs-on: macos-15 # release-legacy.yml과 러너 통일(재현성)
 
     steps:
       - name: Checkout
@@ -59,7 +66,14 @@ jobs:
       - name: Select Xcode
         uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1
         with:
-          xcode-version: latest-stable
+          xcode-version: ${{ env.XCODE_VERSION }}
+
+      - name: Assert Xcode version
+        run: |
+          set -euo pipefail
+          xcodebuild -version
+          [[ "$(xcodebuild -version | tr '\n' ' ')" == "Xcode $XCODE_VERSION Build version $XCODE_BUILD " ]] \
+            || { echo "::error::Expected Xcode $XCODE_VERSION ($XCODE_BUILD)"; exit 1; }
 
       - name: Install Swift tooling (pinned)
         # brew(항상 최신)는 룰 드리프트로 CI를 깨뜨릴 수 있어 릴리스 바이너리를 버전+SHA-256으로 고정.
@@ -89,15 +103,29 @@ jobs:
       - name: SwiftLint
         run: swiftlint lint --strict --no-cache --config ./.swiftlint.yml
 
-      - name: Xcode build
+      # #if DEBUG 차이가 있어 두 구성 모두 빌드한다. 산출물 경로를 고정해 Release 번들을 게이트에 넘긴다.
+      - name: Xcode build (Debug + Release)
         run: |
-          xcodebuild \
-            -project ./Azimuth.xcodeproj \
-            -scheme Azimuth \
-            -configuration Debug \
-            -destination 'platform=macOS' \
-            CODE_SIGNING_ALLOWED=NO \
-            build
+          set -euo pipefail
+          for configuration in Debug Release; do
+            xcodebuild \
+              -project ./Azimuth.xcodeproj \
+              -scheme Azimuth \
+              -configuration "$configuration" \
+              -destination 'generic/platform=macOS' \
+              -derivedDataPath "$RUNNER_TEMP/dd" \
+              CODE_SIGNING_ALLOWED=NO \
+              build
+          done
+
+      # 서명 없는 번들 게이트: 실제 Xcode 26.3 산출물에 10.13 런타임을 넣고(ad-hoc) 최소 OS·아키텍처·rpath·
+      # 동봉 런타임·심볼을 단언한다. 서명·공증 쪽은 release-legacy.yml이 --signed로 본다.
+      - name: Legacy bundle gate (unsigned)
+        run: |
+          set -euo pipefail
+          APP="$RUNNER_TEMP/dd/Build/Products/Release/Azimuth.app"
+          ./scripts/legacy-bundle-runtime.sh "$APP" -
+          ./scripts/legacy-bundle-gate.sh "$APP"
 
       - name: Tests + coverage gate (pure logic >= 90%)
         run: make coverage # 테스트 실행 + 순수 로직 라인 ≥ 90% 게이트(중복 test 스텝 제거)

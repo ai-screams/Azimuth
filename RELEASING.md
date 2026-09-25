@@ -3,6 +3,12 @@
 Azimuth ships as a **Developer ID–signed, notarized DMG** (drag-to-Applications). This is the
 orthodox path for a non–App Store macOS app that needs Accessibility access (no sandbox).
 
+> **Legacy branch (`legacy/10.13`, macOS 10.13–12).** Releases here use tags `legacy-vX.Y.Z-N`
+> (N is a serial across the whole legacy channel and must exceed every earlier one) and
+> `.github/workflows/release-legacy.yml` on Xcode 26.3 — `release.yml` does not exist on this branch.
+> A legacy release never becomes GitHub's "latest"; it replaces `appcast.xml` on the `legacy-feed`
+> release instead. See `.github/CICD.md` → "레거시 브랜치". The rest of this file describes main.
+
 ## One-time prerequisites
 
 1. **Apple Developer Program** membership (paid). The "Apple Development" certificate used for

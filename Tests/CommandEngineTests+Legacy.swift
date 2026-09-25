@@ -46,3 +46,32 @@ extension CommandEngineTests {
         }
     }
 }
+
+extension CommandEngineTests {
+    static func testUpdateFeedSelection() {
+        // 10.13~10.15는 주 버전 10, 11·12는 그대로 — 전부 레거시 목록.
+        for major in [10, 11, 12] {
+            expectName("feed for macOS \(major)", UpdateFeed.url(forMajorVersion: major), UpdateFeed.legacyURL)
+        }
+        // 13부터는 본판 목록으로 옮겨 간다(이주).
+        for major in [13, 14, 26, 27] {
+            expectName("feed for macOS \(major)", UpdateFeed.url(forMajorVersion: major), UpdateFeed.mainURL)
+        }
+        expectFlag("feeds differ", UpdateFeed.mainURL != UpdateFeed.legacyURL, true)
+    }
+
+    static func testVersionDisplay() {
+        let show = { (build: String?) in VersionDisplay.string(prefix: "Version", short: "1.7.2", build: build) }
+        // 레거시 빌드 번호 209.N은 "Legacy N"으로 보인다.
+        expectName("legacy build", show("209.3"), "Version 1.7.2 Legacy 3")
+        expectName("legacy build 0", show("209.0"), "Version 1.7.2 Legacy 0")
+        // 그 밖의 빌드 번호는 괄호 표기 그대로(본판과 같은 규칙).
+        expectName("main build", show("212"), "Version 1.7.2 (212)")
+        expectName("other dotted build", show("210.1"), "Version 1.7.2 (210.1)")
+        expectName("not a number after 209", show("209.x"), "Version 1.7.2 (209.x)")
+        expectName("three parts", show("209.1.2"), "Version 1.7.2 (209.1.2)")
+        expectName("same as short", show("1.7.2"), "Version 1.7.2")
+        expectName("no build", show(nil), "Version 1.7.2")
+        expectName("no short", VersionDisplay.string(prefix: "Azimuth", short: nil, build: nil), "Azimuth —")
+    }
+}

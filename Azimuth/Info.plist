@@ -34,10 +34,12 @@
 	<key>NSSupportsSuddenTermination</key>
 	<true/>
 	<!-- Sparkle auto-update. Private EdDSA key lives in the maintainer's Keychain
-	     (and as a CI secret); only the public key is shipped here. The feed is the
-	     appcast attached to the latest GitHub Release (stable redirect URL). -->
+	     (and as a CI secret); only the public key is shipped here. Legacy branch:
+	     the fallback feed is the legacy appcast (asset of the non-latest
+	     `legacy-feed` release). At runtime AppDelegate.feedURLString(for:) picks
+	     it on macOS 10.13-12 and the main feed on 13+ (UpdateFeed). -->
 	<key>SUFeedURL</key>
-	<string>https://github.com/ai-screams/Azimuth/releases/latest/download/appcast.xml</string>
+	<string>https://github.com/ai-screams/Azimuth/releases/download/legacy-feed/appcast.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>2Rv8vmLnfXnSdHryGxje/imXgjU3e+rn00JrbESJeAg=</string>
 </dict>

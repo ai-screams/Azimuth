@@ -83,6 +83,18 @@ Before opening a PR: `make build && make lint && make test` (CI runs the same, p
   (`main.swift`, the Carbon hotkey callback, `AnimationSuppressor`'s main-queue work item).
 - 10.13 draws an empty button title as "Button": image-only buttons need `imagePosition = .imageOnly`.
 - Sparkle is pinned to **2.9.3 exact** (2.10+ requires macOS 12).
+- 10.13 has no Swift runtime and Xcode never embeds the back-deployed `libswift_Concurrency` below
+  10.15, yet default MainActor isolation weak-links it — missing, a pure-Swift object's deallocation
+  kills the app. `scripts/legacy-bundle-runtime.sh` adds it, `scripts/legacy-bundle-gate.sh` asserts
+  it; `release.sh` runs both before notarizing. `make legacy-app` builds a signed test app
+  (`build/legacy/Azimuth.app`) for real hardware. Do not `cd` into a built bundle — a shell hook can
+  drop a state folder there and break its sealed signature.
+- Updates: `UpdateFeed` picks the main appcast on 13+ (migration) and the `legacy-feed` release's
+  appcast below. Versions are short `X.Y.Z` + build `209.N` (tag `legacy-vX.Y.Z-N`, shown as
+  "Legacy N"); 209 stays below main's commit-count build numbers so main always wins on 13+.
+- Release: tag `legacy-vX.Y.Z-N` (N is a channel-wide serial) → `.github/workflows/release-legacy.yml`;
+  this branch has no `release.yml`. It never takes GitHub's "latest" (main users' feed) and rewrites
+  the `legacy-feed` release's `appcast.xml`. CI pins Xcode 26.3. Details: `.github/CICD.md`.
 
 ## Non-negotiable rules
 

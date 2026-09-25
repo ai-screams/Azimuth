@@ -1,0 +1,217 @@
+name: Release (legacy)
+
+# 레거시판(macOS 10.13~12) 릴리스. 태그 legacy-vX.Y.Z-N 푸시 시:
+#   빌드(Xcode 26.3) → Developer ID 서명 → 10.13 런타임 동봉·번들 게이트 → 공증 → DMG
+#   → 버전 순서 게이트 → 레거시 appcast → 버전 릴리스(latest 아님) → legacy-feed 릴리스의 appcast 갱신.
+# 예) git tag legacy-v1.7.2-1 && git push origin legacy-v1.7.2-1   (N은 레거시 채널 전체 일련번호)
+#
+# 본판(main)의 release.yml은 v* 태그만 받는다. 레거시 릴리스는 본판 "latest"를 절대 차지하지 않는다 —
+# 본판 사용자의 피드(releases/latest/download/appcast.xml)가 그 latest를 가리키기 때문이다. 전후로 단언한다.
+#
+# 보안 하드닝(본판과 동일): environment: release 승인 게이트, 액션 SHA 핀, 최소 권한.
+on:
+  push:
+    tags:
+      - "legacy-v*"
+
+permissions:
+  contents: write # 릴리스 생성/자산 업로드, legacy-feed 갱신
+
+concurrency:
+  group: release-legacy # 레거시 릴리스는 한 번에 하나(legacy-feed를 함께 쓴다)
+  cancel-in-progress: false # 서명/공증 도중 중단 방지
+
+env:
+  GH_TOKEN: ${{ github.token }}
+  XCODE_VERSION: "26.3" # 10.13 타깃을 받는 마지막 계열(27은 12.0 미만 거부). macos-15·macos-26 둘 다 설치됨
+  XCODE_BUILD: 17C529
+
+jobs:
+  release:
+    runs-on: macos-15
+    environment: release # 배포 승인 게이트(필수 리뷰어는 저장소 Environments 설정에서 지정).
+    steps:
+      - name: Validate tag
+        run: |
+          set -euo pipefail
+          [[ "$GITHUB_REF_NAME" =~ ^legacy-v[0-9]+\.[0-9]+\.[0-9]+-[1-9][0-9]{0,5}$ ]] \
+            || { echo "::error::Refusing tag $GITHUB_REF_NAME (expected legacy-vX.Y.Z-N)"; exit 1; }
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0 # release.sh가 기존 legacy-v* 태그의 최대 N을 본다
+
+      - name: Assert main latest release (before)
+        id: latest
+        run: |
+          set -euo pipefail
+          tag="$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName -q .tagName)"
+          [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] \
+            || { echo "::error::Latest release is '$tag', not a main vX.Y.Z release — fix that before a legacy release"; exit 1; }
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1
+        with:
+          xcode-version: ${{ env.XCODE_VERSION }}
+
+      - name: Assert Xcode version
+        run: |
+          set -euo pipefail
+          xcodebuild -version
+          [[ "$(xcodebuild -version | tr '\n' ' ')" == "Xcode $XCODE_VERSION Build version $XCODE_BUILD " ]] \
+            || { echo "::error::Expected Xcode $XCODE_VERSION ($XCODE_BUILD)"; exit 1; }
+
+      - name: Import Developer ID certificate
+        uses: apple-actions/import-codesign-certs@5142e029c445c10ffc7149d172e540235a065466 # v7
+        with:
+          p12-file-base64: ${{ secrets.DEVELOPER_ID_CERT_P12 }}
+          p12-password: ${{ secrets.DEVELOPER_ID_CERT_PASSWORD }}
+
+      - name: Install create-dmg
+        run: brew install create-dmg
+
+      - name: Build, sign, bundle runtime, gate, notarize, package
+        env:
+          DEVELOPMENT_TEAM: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+          VERSION: ${{ github.ref_name }}
+        run: ./scripts/release.sh
+
+      - name: Verify signed/notarized DMG (게시 전 자가검증)
+        run: |
+          set -euo pipefail
+          DMG="$(ls dist/*.dmg)"
+          echo "Verifying $DMG"
+          codesign --verify --deep --strict --verbose=2 "$DMG"
+          spctl -a -t open --context context:primary-signature -vv "$DMG"
+          xcrun stapler validate "$DMG"
+
+      - name: Generate SHA-256 checksum
+        run: |
+          set -euo pipefail
+          cd dist
+          for f in *.dmg; do shasum -a 256 "$f" > "$f.sha256"; done
+          cat ./*.sha256
+
+      # 게이트: 앱에 박힌 공개키(SUPublicEDKey)가 서명 개인키(secret)와 짝이 맞는지 확인(본판과 같은 키).
+      - name: Verify update-signing key matches embedded public key
+        env:
+          SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          APP_PUB="$(/usr/libexec/PlistBuddy -c 'Print :SUPublicEDKey' build/export/Azimuth.app/Contents/Info.plist)"
+          python3 -m venv "$RUNNER_TEMP/edvenv"
+          "$RUNNER_TEMP/edvenv/bin/pip" install --quiet 'cryptography==44.0.0'
+          DERIVED_PUB="$("$RUNNER_TEMP/edvenv/bin/python" -c 'import os,base64;from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey as K;from cryptography.hazmat.primitives import serialization as S;s=base64.b64decode(os.environ["SPARKLE_ED_PRIVATE_KEY"]);s=s[:32] if len(s)==64 else s;print(base64.b64encode(K.from_private_bytes(s).public_key().public_bytes(S.Encoding.Raw,S.PublicFormat.Raw)).decode())')"
+          rm -rf "$RUNNER_TEMP/edvenv"
+          if [ "$APP_PUB" != "$DERIVED_PUB" ]; then
+            echo "::error::SUPublicEDKey in app ($APP_PUB) != key derived from SPARKLE_ED_PRIVATE_KEY ($DERIVED_PUB)."
+            exit 1
+          fi
+          echo "✅ Signing key matches embedded SUPublicEDKey ($APP_PUB)."
+
+      # Sparkle 도구(generate_appcast)와 프레임워크는 Package.resolved에 핀된 아티팩트에서 가져온다.
+      - name: Resolve Sparkle artifact
+        run: |
+          set -euo pipefail
+          xcodebuild -resolvePackageDependencies \
+            -project ./Azimuth.xcodeproj -scheme Azimuth \
+            -derivedDataPath "$RUNNER_TEMP/spm" >/dev/null
+          ART="$RUNNER_TEMP/spm/SourcePackages/artifacts"
+          GEN="$(find "$ART" -type f -name generate_appcast | head -1)"
+          XCF="$(find "$ART" -maxdepth 4 -name Sparkle.xcframework | head -1)"
+          [ -n "$GEN" ] && [ -d "$XCF/macos-arm64_x86_64" ] || { echo "::error::Sparkle artifact not found"; exit 1; }
+          echo "SPARKLE_GENERATE_APPCAST=$GEN" >> "$GITHUB_ENV"
+          echo "SPARKLE_FRAMEWORK_DIR=$XCF/macos-arm64_x86_64" >> "$GITHUB_ENV"
+
+      # 직전 레거시 < 후보 < live 본판 (Sparkle 실제 비교기). 아니면 업데이트가 제안되지 않거나 13+ 이주가 막힌다.
+      - name: Assert version order
+        run: |
+          set -euo pipefail
+          BUILD="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' build/export/Azimuth.app/Contents/Info.plist)"
+          ./scripts/legacy-version-order.sh "$BUILD" "$SPARKLE_FRAMEWORK_DIR" "$GITHUB_REF_NAME"
+
+      - name: Generate legacy appcast
+        env:
+          SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$SPARKLE_ED_PRIVATE_KEY" | "$SPARKLE_GENERATE_APPCAST" \
+            --ed-key-file - \
+            --download-url-prefix "https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/" \
+            -o dist/appcast.xml \
+            dist/
+          # 모든 항목에 OS 범위 10.13.0~12.99.99(13+ 방어선)와 릴리스 노트 링크를 넣고 단언한다.
+          ./scripts/legacy-appcast-finalize.py dist/appcast.xml "$GITHUB_REPOSITORY" "$GITHUB_REF_NAME"
+
+      - name: Create GitHub Release with DMG (never latest)
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3
+        with:
+          files: |
+            dist/*.dmg
+            dist/*.dmg.sha256
+            dist/appcast.xml
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          make_latest: "false"
+
+      # 앱이 읽는 고정 주소: releases/download/legacy-feed/appcast.xml (Azimuth/Shared/UpdateFeed.swift).
+      # 없으면 latest가 아닌 릴리스로 만들고, 있으면 자산만 교체한다(latest 판정에 영향 없음).
+      # `upload --clobber`는 옛 자산을 먼저 지운다 → 업로드가 실패하면 모든 레거시 사용자의 피드가 404가 된다.
+      # 그래서 옛 appcast를 받아 두었다가 실패 시 되올리고, 끝나면 고정 주소를 실제로 내려받아 내용을 대조한다.
+      - name: Publish appcast to the legacy-feed release
+        run: |
+          set -euo pipefail
+          FEED_URL="$(sed -nE 's/.*static let legacyURL = "([^"]+)".*/\1/p' Azimuth/Shared/UpdateFeed.swift)"
+          [ -n "$FEED_URL" ] || { echo "::error::legacyURL not found"; exit 1; }
+          if gh release view legacy-feed --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            BACKUP="$RUNNER_TEMP/feed-backup"
+            mkdir -p "$BACKUP"
+            # 자산이 있으면 백업은 반드시 성공해야 한다(실패하면 지우기 전에 멈춘다 — set -e). 자산이 없으면
+            # (앞선 실패) 되올릴 것도 없고, 새 피드를 올리는 것이 곧 복구다.
+            HAS_ASSET="$(gh release view legacy-feed --repo "$GITHUB_REPOSITORY" --json assets \
+              --jq '[.assets[] | select(.name == "appcast.xml")] | length')"
+            if [ "$HAS_ASSET" != 0 ]; then
+              gh release download legacy-feed --pattern appcast.xml --dir "$BACKUP" --repo "$GITHUB_REPOSITORY"
+            else
+              echo "::warning::legacy-feed has no appcast.xml — nothing to back up"
+            fi
+            if ! gh release upload legacy-feed dist/appcast.xml --clobber --repo "$GITHUB_REPOSITORY"; then
+              echo "::error::appcast upload failed — restoring the previous feed"
+              if [ -f "$BACKUP/appcast.xml" ]; then
+                gh release upload legacy-feed "$BACKUP/appcast.xml" --clobber --repo "$GITHUB_REPOSITORY"
+              fi
+              exit 1
+            fi
+          else
+            gh release create legacy-feed dist/appcast.xml --repo "$GITHUB_REPOSITORY" \
+              --latest=false --target "$GITHUB_SHA" \
+              --title "Legacy update feed (macOS 10.13–12)" \
+              --notes "Sparkle appcast for the legacy build. Updated by each legacy-v* release; not a download page."
+          fi
+          # 고정 주소가 방금 올린 내용을 내주는지 확인(자산 반영 지연을 조건 폴링으로 기다린다).
+          for _ in 1 2 3 4 5 6; do
+            if curl -fsSL "$FEED_URL" -o "$RUNNER_TEMP/live-appcast.xml" && cmp -s "$RUNNER_TEMP/live-appcast.xml" dist/appcast.xml; then
+              echo "✅ $FEED_URL serves the new appcast"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::error::$FEED_URL does not serve the new appcast"
+          if [ -f "$RUNNER_TEMP/feed-backup/appcast.xml" ]; then
+            echo "::error::restoring the previous feed"
+            gh release upload legacy-feed "$RUNNER_TEMP/feed-backup/appcast.xml" --clobber --repo "$GITHUB_REPOSITORY"
+          fi
+          exit 1
+
+      - name: Assert main latest release (after)
+        env:
+          LATEST_BEFORE: ${{ steps.latest.outputs.tag }}
+        run: |
+          set -euo pipefail
+          tag="$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName -q .tagName)"
+          [ "$tag" = "$LATEST_BEFORE" ] \
+            || { echo "::error::Latest release moved from $LATEST_BEFORE to $tag — main users' feed now points elsewhere"; exit 1; }
+          echo "✅ Latest release unchanged: $tag"

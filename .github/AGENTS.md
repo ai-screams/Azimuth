@@ -9,15 +9,15 @@ GitHub Actions CI/CD configuration. **See [`CICD.md`](CICD.md) for the full over
 ## Subdirectories
 | Directory | Purpose |
 |-----------|---------|
-| `workflows/` | `ci.yml` (combined checks) · `codeql.yml` (SAST) · `release.yml` (releases) |
+| `workflows/` | `ci.yml` (combined checks) · `codeql.yml` (SAST) · `release-legacy.yml` (legacy releases; this branch has no `release.yml`) |
 
 ## Key Files
 | File | Description |
 |------|-------------|
 | `CICD.md` | The complete CI/CD document (workflows, defense layers, local equivalents, repository settings, how to release) |
-| `workflows/ci.yml` | `push: main` plus PRs, on `macos-15`. **secret-scan** (gitleaks + SARIF) and **lint-and-build** (SwiftFormat → SwiftLint strict → xcodebuild → `scripts/test.sh` → `make coverage` with the ≥90% gate). Concurrency cancels stale PR runs |
-| `workflows/codeql.yml` | CodeQL **Swift** SAST (on push to main and weekly). init → build → analyze → Security/Code scanning |
-| `workflows/release.yml` | Tag `v*` → the `environment: release` approval gate → build, sign, notarize, **DMG self-verification**, **SHA-256 checksum**, **EdDSA signing-key match gate**, **Sparkle appcast signing and generation**, then publish the Release |
+| `workflows/ci.yml` | **Legacy branch:** push to and PRs into `legacy/10.13`, on `macos-15` with Xcode **26.3** pinned and asserted. **secret-scan** (gitleaks + SARIF) and **lint-and-build** (SwiftFormat → SwiftLint strict → xcodebuild Debug + Release → unsigned legacy bundle gate → `make coverage` with the ≥90% gate). Concurrency cancels stale PR runs |
+| `workflows/codeql.yml` | CodeQL **Swift** SAST on push to `legacy/10.13` (Xcode 26.3; no schedule — GitHub runs schedules only from the default branch). init → build → analyze → Security/Code scanning |
+| `workflows/release-legacy.yml` | **Legacy branch.** Tag `legacy-vX.Y.Z-N` → approval → main-latest assertion → `release.sh` (runtime bundling + signed gate + notarization) → DMG checks, EdDSA key match → Sparkle version-order gate → appcast pinned to macOS 10.13.0–12.99.99 → version release with `make_latest: false` → `legacy-feed` release's `appcast.xml` replaced → main latest unchanged. Details: `CICD.md` "레거시 브랜치" |
 | `dependabot.yml` | Weekly github-actions updates (refreshing the SHA pins) |
 | `FUNDING.yml` | The source for the repo's ♡ Sponsor button: `github: [ai-screams]` (organization Sponsors) + `ko_fi: pignuante`. The button also requires the repo's **Settings → Features → Sponsorships** toggle |
 | `CODEOWNERS` | Code owners (automatic reviewer assignment) |

@@ -3,6 +3,9 @@
 Azimuth의 지속적 통합·배포 구성 전체 개요. 워크플로 정의는 `.github/workflows/`, 릴리스 절차 상세는
 [`RELEASING.md`](../RELEASING.md), 커버리지 정책은 [`Tests/AGENTS.md`](../Tests/AGENTS.md) 참조.
 
+> **레거시 브랜치(`legacy/10.13`, macOS 10.13~12).** 이 브랜치의 워크플로는 본판과 다르다 — 아래
+> [레거시 브랜치](#레거시-브랜치-legacy1013) 절이 우선한다. 본판(main) 설명은 main의 이 파일이 출처다.
+
 ## 원칙
 - **로컬 = CI 동치**: 모든 CI 검사는 `make` 타깃·git 훅으로 로컬에서도 동일하게 돌릴 수 있다. 머지 전 로컬 green이면 CI도 green.
 - **검증된 것만 main/사용자에게**: 포맷·린트·빌드·테스트·커버리지·시크릿·SAST를 통과해야 머지, 서명·공증·검증을 통과해야 릴리스.
@@ -65,6 +68,18 @@ Azimuth의 지속적 통합·배포 구성 전체 개요. 워크플로 정의는
 1. **브랜치 보호**(Settings → Branches → `main`): 직접 푸시 금지, PR 필수, 필수 상태 체크(`lint-and-build`, `secret-scan`) 통과 강제, (선택)리뷰 1+·linear history. (CodeQL은 PR이 아닌 main 머지 후·주간 실행이라 PR 필수 체크에 넣지 않는다.)
 2. **`release` 환경**(Settings → Environments): required reviewer + 환경 scoped secret 6개(`DEVELOPER_ID_CERT_P12`, `DEVELOPER_ID_CERT_PASSWORD`, `APPLE_TEAM_ID`, `APPLE_ID`, `APPLE_APP_PASSWORD`, `SPARKLE_ED_PRIVATE_KEY`).
 3. (선택) **Tags 보호**(`v*`), **GitHub native Secret scanning + Push protection** 토글.
+
+## 레거시 브랜치 (`legacy/10.13`)
+
+| 워크플로 | 차이 |
+| -- | -- |
+| `ci.yml` | `legacy/10.13` push·PR. Xcode **26.3(17C529) 고정·단언**(27은 12.0 미만 타깃 거부). Debug+Release 빌드, Release 번들에 10.13 런타임 동봉(ad-hoc) 뒤 **서명 없는 번들 게이트**(`scripts/legacy-bundle-gate.sh`) |
+| `codeql.yml` | `legacy/10.13` push, Xcode 26.3. 주간 실행 없음(schedule은 기본 브랜치 파일로만 돈다) |
+| `release-legacy.yml` | 태그 `legacy-vX.Y.Z-N`(N은 레거시 채널 전체 일련번호, 기존 최대보다 커야 함). 승인 → 본판 latest 단언 → `release.sh`(런타임 동봉 + `--signed` 게이트 + 공증) → DMG 검증·체크섬·EdDSA 키 짝 → **버전 순서 게이트**(Sparkle 비교기: 직전 레거시 < 후보 < live 본판. 같음은 라이브 피드가 같은 태그를 가리킬 때의 재실행만) → appcast(모든 항목 macOS 10.13.0~12.99.99) → 버전 릴리스(`make_latest: false`) → **`legacy-feed` 릴리스의 `appcast.xml` 갱신**(없으면 `--latest=false`로 생성. 자산이 있으면 백업 필수, 교체·대조 실패 시 옛 appcast 되올림, 고정 주소를 내려받아 바이트 대조) → 본판 latest 불변 단언 |
+
+- 앱은 13+에서 본판 피드, 미만에서 `releases/download/legacy-feed/appcast.xml`을 읽는다(`Azimuth/Shared/UpdateFeed.swift`).
+  레거시 빌드 번호 `209.N`은 본판(커밋 수, 210+)보다 늘 작아 13+ 사용자는 본판으로 옮겨 간다.
+- 브랜치 보호·`release` 환경은 main과 같게 설정한다(필수 체크 `lint-and-build`·`secret-scan`).
 
 ## 릴리스 방법
 ```
