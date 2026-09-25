@@ -83,10 +83,10 @@ Before opening a PR: `make build && make lint && make test` (CI runs the same, p
   (`main.swift`, the Carbon hotkey callback, `AnimationSuppressor`'s main-queue work item).
 - 10.13 draws an empty button title as "Button": image-only buttons need `imagePosition = .imageOnly`.
 - Sparkle is pinned to **2.9.3 exact** (2.10+ requires macOS 12).
-- 10.13 has no Swift runtime and Xcode never embeds the back-deployed `libswift_Concurrency` below
-  10.15, yet default MainActor isolation weak-links it — missing, a pure-Swift object's deallocation
-  kills the app. `scripts/legacy-bundle-runtime.sh` adds it, `scripts/legacy-bundle-gate.sh` asserts
-  it; `release.sh` runs both before notarizing. `make legacy-app` builds a signed test app
+- 10.13 has no Swift runtime, and default MainActor isolation weak-links `libswift_Concurrency` —
+  missing, a pure-Swift object's deallocation kills the app. Xcode 26.3 embeds both (CI-verified); a
+  plain swiftc build does not. `scripts/legacy-bundle-runtime.sh` adds whatever is missing,
+  `scripts/legacy-bundle-gate.sh` asserts it; `release.sh` runs both before notarizing. `make legacy-app` builds a signed test app
   (`build/legacy/Azimuth.app`) for real hardware. Do not `cd` into a built bundle — a shell hook can
   drop a state folder there and break its sealed signature.
 - Updates: `UpdateFeed` picks the main appcast on 13+ (migration) and the `legacy-feed` release's

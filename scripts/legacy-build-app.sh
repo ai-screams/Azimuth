@@ -56,14 +56,10 @@ sed -e 's|$(DEVELOPMENT_LANGUAGE)|en|; s|$(EXECUTABLE_NAME)|Azimuth|; s|$(PRODUC
     "$CONTENTS/Info.plist"
 plutil -lint "$CONTENTS/Info.plist" >/dev/null
 
-print "▸ Sparkle.framework (nested components signed inside-out)"
+print "▸ Sparkle.framework"
 ditto "$SPARKLE_SLICE/Sparkle.framework" "$CONTENTS/Frameworks/Sparkle.framework"
-SPARKLE_B="$CONTENTS/Frameworks/Sparkle.framework/Versions/B"
-for component in "$SPARKLE_B"/XPCServices/*.xpc(N) "$SPARKLE_B/Autoupdate" "$SPARKLE_B/Updater.app"; do
-    codesign --force --sign "$SIGN_IDENTITY" --timestamp --options runtime "$component"
-done
-codesign --force --sign "$SIGN_IDENTITY" --timestamp --options runtime "$CONTENTS/Frameworks/Sparkle.framework"
 
-./scripts/legacy-bundle-runtime.sh "$APP" "$SIGN_IDENTITY"
+# 런타임 동봉 + Sparkle(안쪽부터)·dylib·앱 서명은 릴리스와 같은 스크립트가 한다.
+./scripts/legacy-bundle-runtime.sh "$APP" "$SIGN_IDENTITY" --resign-sparkle
 EXPECT_AUTHORITY="${SIGN_IDENTITY%%:*}" ./scripts/legacy-bundle-gate.sh "$APP" --signed
 print "✓ $APP ($MARKETING_VERSION, build $BUILD_NUMBER, $BUNDLE_ID)"
