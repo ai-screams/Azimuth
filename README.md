@@ -40,7 +40,7 @@ Design principle: **predictability over clever inference.** Every command does e
 
 ## Requirements
 
-- macOS 13 (Ventura) or later.
+- macOS 13 (Ventura) or later. Ventura no longer receives Apple security updates, so use the newest macOS your Mac supports.
 - **Accessibility permission** (Azimuth controls other apps' windows through the Accessibility API).
 
 ## Privacy

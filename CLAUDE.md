@@ -106,7 +106,8 @@ Before opening a PR: `make build && make lint && make test` (CI runs the same, p
   pbxproj / Xcode GUI. Deployment target: macOS **13.0**.
 - A macOS 14+ API is a compile error at that target — guard it with `if #available` and decide the
   13 fallback. Bring the app forward only through `NSApp.bringToFront()` (`Shared/`), never
-  `NSApp.activate…` directly.
+  `NSApp.activate…` directly. String-keyed resources (SF Symbol names, `x-apple.systempreferences:`
+  URLs) are not availability-checked — confirm they exist on macOS 13.
 - That auto-include does **not** reach the test harness: a new pure-logic file must be added to
   `scripts/harness-sources.sh` (the single list both `make test` and `make coverage` read).
 - Those lists are the **only** automatically tested code — `WindowAccess/**`, `WindowCommandExecutor`,
