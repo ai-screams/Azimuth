@@ -51,6 +51,12 @@ Before opening a PR: `make build && make lint && make test` (CI runs the same, p
   -destination platform=macOS -derivedDataPath /tmp/az-check CODE_SIGNING_ALLOWED=NO build`.
   `#if DEBUG` differs by configuration, so verify both `-configuration Debug` **and** `Release`
   when a change touches a `#if DEBUG` block.
+- `make run` builds **Debug**, which is not the shipped app: `LSUIElement=0` (Dock icon) and `#if DEBUG`
+  opens Settings on every launch, so it never exercises the `.accessory` first-run path. To test that
+  path (or on an older macOS), build `-configuration Release` with `CODE_SIGN_STYLE=Automatic
+  DEVELOPMENT_TEAM=7K6MK3KP9K PRODUCT_BUNDLE_IDENTIFIER=<a third id>` — a third id so neither the Debug
+  build's nor the installed app's defaults and TCC entry leak in. Remove that id's grant with
+  `tccutil reset Accessibility <id>` **before** deleting the app (tccutil looks the id up via LaunchServices).
 - `main` is branch-protected: `lint-and-build` / `gitleaks` / `secret-scan` must go green before
   `gh pr merge --squash` (it reports `BLOCKED` until then).
 - Squash-merge **deletes the head branch**, so a PR stacked on it auto-closes on merge and GitHub
