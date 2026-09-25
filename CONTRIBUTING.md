@@ -15,7 +15,8 @@ architecture and directory-level conventions, see [`AGENTS.md`](AGENTS.md) and t
 
 ## Prerequisites
 
-- macOS **14 (Sonoma)** or later, with Xcode.
+- A Mac with **Xcode 26** or later (the project uses the `SWIFT_DEFAULT_ACTOR_ISOLATION` build setting,
+  introduced with Swift 6.2). This is the development requirement; the app itself runs on macOS 13 or later.
 - Command-line tools used by the hooks and CI:
 
   ```bash

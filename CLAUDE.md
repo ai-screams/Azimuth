@@ -51,6 +51,12 @@ Before opening a PR: `make build && make lint && make test` (CI runs the same, p
   -destination platform=macOS -derivedDataPath /tmp/az-check CODE_SIGNING_ALLOWED=NO build`.
   `#if DEBUG` differs by configuration, so verify both `-configuration Debug` **and** `Release`
   when a change touches a `#if DEBUG` block.
+- `make run` builds **Debug**, which is not the shipped app: `LSUIElement=0` (Dock icon) and `#if DEBUG`
+  opens Settings on every launch, so it never exercises the `.accessory` first-run path. To test that
+  path (or on an older macOS), build `-configuration Release` with `CODE_SIGN_STYLE=Automatic
+  DEVELOPMENT_TEAM=7K6MK3KP9K PRODUCT_BUNDLE_IDENTIFIER=<a third id>` — a third id so neither the Debug
+  build's nor the installed app's defaults and TCC entry leak in. Remove that id's grant with
+  `tccutil reset Accessibility <id>` **before** deleting the app (tccutil looks the id up via LaunchServices).
 - `main` is branch-protected: `lint-and-build` / `gitleaks` / `secret-scan` must go green before
   `gh pr merge --squash` (it reports `BLOCKED` until then).
 - Squash-merge **deletes the head branch**, so a PR stacked on it auto-closes on merge and GitHub
@@ -103,7 +109,11 @@ Before opening a PR: `make build && make lint && make test` (CI runs the same, p
   Branch off `main`, keep PRs focused, **squash-merge**.
 - New source files under `Azimuth/` are auto-included via the Xcode **file-system synchronized
   group** — no `.pbxproj` edit needed. Adding a new target or SPM dependency still needs the
-  pbxproj / Xcode GUI. Deployment target: macOS **14.0**.
+  pbxproj / Xcode GUI. Deployment target: macOS **13.0**.
+- A macOS 14+ API is a compile error at that target — guard it with `if #available` and decide the
+  13 fallback. Bring the app forward only through `NSApp.bringToFront()` (`Shared/`), never
+  `NSApp.activate…` directly. String-keyed resources (SF Symbol names, `x-apple.systempreferences:`
+  URLs) are not availability-checked — confirm they exist on macOS 13.
 - That auto-include does **not** reach the test harness: a new pure-logic file must be added to
   `scripts/harness-sources.sh` (the single list both `make test` and `make coverage` read).
 - Those lists are the **only** automatically tested code — `WindowAccess/**`, `WindowCommandExecutor`,
