@@ -24,17 +24,9 @@ SPARKLE_DIR="$(find "$WORK_DIR/dd/SourcePackages/artifacts" -name Sparkle.xcfram
 SPARKLE_SLICE="$SPARKLE_DIR/macos-arm64_x86_64"
 [[ -d "$SPARKLE_SLICE" ]] || { echo "Sparkle xcframework not found" >&2; exit 1; }
 
-# 프로젝트 빌드 설정과 같은 언어 설정.
-SWIFT_FLAGS=(
-    -sdk "$SDK" -swift-version 5 -module-name Azimuth -default-isolation MainActor
-    -enable-upcoming-feature DisableOutwardActorInference
-    -enable-upcoming-feature GlobalActorIsolatedTypesUsability
-    -enable-upcoming-feature InferIsolatedConformances
-    -enable-upcoming-feature InferSendableFromCaptures
-    -enable-upcoming-feature MemberImportVisibility
-    -enable-upcoming-feature NonisolatedNonsendingByDefault
-    -F "$SPARKLE_SLICE"
-)
+# 프로젝트 빌드 설정과 같은 언어 설정(단일 출처: legacy-swift-flags.sh).
+source "$ROOT_DIR/scripts/legacy-swift-flags.sh"
+SWIFT_FLAGS=(-sdk "$SDK" "${LEGACY_SWIFT_FLAGS[@]}" -F "$SPARKLE_SLICE")
 
 FILES=(${(f)"$(find Azimuth -name '*.swift' | sort)"})
 status_code=0

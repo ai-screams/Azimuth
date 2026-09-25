@@ -32,14 +32,9 @@ xcodebuild -resolvePackageDependencies -project Azimuth.xcodeproj -scheme Azimut
 SPARKLE_XCF="$(find "$WORK_DIR/dd/SourcePackages/artifacts" -name Sparkle.xcframework -maxdepth 4 | head -1)"
 SPARKLE_SLICE="$SPARKLE_XCF/macos-arm64_x86_64"
 
+source "$ROOT_DIR/scripts/legacy-swift-flags.sh" # 언어 설정의 단일 출처
 SWIFT_FLAGS=(
-    -O -sdk "$SDK" -swift-version 5 -module-name Azimuth -default-isolation MainActor
-    -enable-upcoming-feature DisableOutwardActorInference
-    -enable-upcoming-feature GlobalActorIsolatedTypesUsability
-    -enable-upcoming-feature InferIsolatedConformances
-    -enable-upcoming-feature InferSendableFromCaptures
-    -enable-upcoming-feature MemberImportVisibility
-    -enable-upcoming-feature NonisolatedNonsendingByDefault
+    -O -sdk "$SDK" "${LEGACY_SWIFT_FLAGS[@]}"
     -F "$SPARKLE_SLICE" -framework Sparkle -Xlinker -rpath -Xlinker @executable_path/../Frameworks
 )
 SOURCES=(${(f)"$(find Azimuth -name '*.swift' | sort)"})

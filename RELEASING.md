@@ -8,6 +8,20 @@ orthodox path for a non–App Store macOS app that needs Accessibility access (n
 > `.github/workflows/release-legacy.yml` on Xcode 26.3 — `release.yml` does not exist on this branch.
 > A legacy release never becomes GitHub's "latest"; it replaces `appcast.xml` on the `legacy-feed`
 > release instead. See `.github/CICD.md` → "레거시 브랜치". The rest of this file describes main.
+>
+> Before tagging, push `legacy-rc-vX.Y.Z-N` (same N) to get a notarized **RC** as an Actions artifact only —
+> nothing is published, and the RC job has no write permission — and pass the hardware RC gate with it.
+> The RC app is identical in version and build number to the later `legacy-vX.Y.Z-N` release, and the
+> release workflow refuses a `legacy-vX.Y.Z-N` tag unless `legacy-rc-vX.Y.Z-N` exists on the **same commit** —
+> change anything after the RC and you start over with a new N.
+>
+> **Without CI** (runners lost), the same order by hand on a Mac with Xcode 26.3: `VERSION=legacy-vX.Y.Z-N
+> ./scripts/release.sh` (runtime bundling, signed gate, notarization, DMG) → `./scripts/legacy-version-order.sh
+> <build> <Sparkle.framework dir> <tag>` → `generate_appcast` from the pinned Sparkle artifact with
+> `--download-url-prefix …/releases/download/<tag>/` → `./scripts/legacy-appcast-finalize.py dist/appcast.xml
+> <repo> <tag>` → `gh release create <tag> … --latest=false` → back up, then `gh release upload legacy-feed
+> dist/appcast.xml --clobber`, and confirm the fixed feed URL serves it → confirm GitHub's latest is still the
+> main `vX.Y.Z`. `.github/workflows/release-legacy.yml` is the authoritative version of each step.
 
 ## One-time prerequisites
 

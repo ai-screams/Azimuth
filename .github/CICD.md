@@ -73,9 +73,9 @@ Azimuth의 지속적 통합·배포 구성 전체 개요. 워크플로 정의는
 
 | 워크플로 | 차이 |
 | -- | -- |
-| `ci.yml` | `legacy/10.13` push·PR. Xcode **26.3(17C529) 고정·단언**(27은 12.0 미만 타깃 거부). Debug+Release 빌드, Release 번들에 10.13 런타임 동봉(ad-hoc) 뒤 **서명 없는 번들 게이트**(`scripts/legacy-bundle-gate.sh`) |
+| `ci.yml` | `legacy/10.13` push·PR. Sparkle 2.9.3 고정 단언(`scripts/legacy-sparkle-pin.sh`), Xcode **26.3(17C529) 고정·단언**(27은 12.0 미만 타깃 거부). Debug+Release 빌드, Release 번들에 10.13 런타임 동봉(ad-hoc) 뒤 **서명 없는 번들 게이트**(`scripts/legacy-bundle-gate.sh`) |
 | `codeql.yml` | `legacy/10.13` push, Xcode 26.3. 주간 실행 없음(schedule은 기본 브랜치 파일로만 돈다) |
-| `release-legacy.yml` | 태그 `legacy-vX.Y.Z-N`(N은 레거시 채널 전체 일련번호, 기존 최대보다 커야 함). 승인 → 본판 latest 단언 → `release.sh`(런타임 동봉 + `--signed` 게이트 + 공증) → DMG 검증·체크섬·EdDSA 키 짝 → **버전 순서 게이트**(Sparkle 비교기: 직전 레거시 < 후보 < live 본판. 같음은 라이브 피드가 같은 태그를 가리킬 때의 재실행만) → appcast(모든 항목 macOS 10.13.0~12.99.99) → 버전 릴리스(`make_latest: false`) → **`legacy-feed` 릴리스의 `appcast.xml` 갱신**(없으면 `--latest=false`로 생성. 자산이 있으면 백업 필수, 교체·대조 실패 시 옛 appcast 되올림, 고정 주소를 내려받아 바이트 대조) → 본판 latest 불변 단언 |
+| `release-legacy.yml` | 태그 `legacy-vX.Y.Z-N`(N은 레거시 채널 전체 일련번호, 기존 최대보다 커야 함). 승인 → 본판 latest 단언 → `release.sh`(런타임 동봉 + `--signed` 게이트 + 공증) → DMG 검증·체크섬·EdDSA 키 짝 → **버전 순서 게이트**(Sparkle 비교기: 직전 레거시 < 후보 < live 본판. 같음은 라이브 피드가 같은 태그를 가리킬 때의 재실행만) → appcast(모든 항목 macOS 10.13.0~12.99.99) → 버전 릴리스(`make_latest: false`) → **`legacy-feed` 릴리스의 `appcast.xml` 갱신**(없으면 `--latest=false`로 생성. 자산이 있으면 백업 필수, 교체·대조 실패 시 옛 appcast 되올림, 고정 주소를 내려받아 바이트 대조) → 본판 latest 불변 단언. 잡을 둘로 나눈다: `build`(읽기 권한, `release` 환경 승인·서명 secret) → `publish`(쓰기 권한, secret 없음). **RC**: 태그 `legacy-rc-vX.Y.Z-N`은 `build`만 돌아 공증 DMG·appcast를 **Actions 산출물로만** 남긴다 — 게시·`legacy-feed` 변화 없음, 권한상 게시 불가. 앱은 같은 N의 실제 태그와 같은 버전·빌드 번호. 실기 RC 게이트는 이 산출물로 본다. 정식 태그는 같은 N의 RC 태그가 **같은 커밋**에 있어야만 진행된다(RC 뒤 변경 = 새 N) |
 
 - 앱은 13+에서 본판 피드, 미만에서 `releases/download/legacy-feed/appcast.xml`을 읽는다(`Azimuth/Shared/UpdateFeed.swift`).
   레거시 빌드 번호 `209.N`은 본판(커밋 수, 210+)보다 늘 작아 13+ 사용자는 본판으로 옮겨 간다.

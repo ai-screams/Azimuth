@@ -86,12 +86,12 @@ final class ShortcutsSectionView: NSView {
         fatalError("init(coder:) is not supported")
     }
 
-    /// 창을 열 때마다 전부 접힘으로 되돌린다. 상태를 저장하지 않으므로 창 높이가 항상 예측 가능하다.
-    /// 검색어도 지운다 — 남아 있으면 매칭 그룹이 자동으로 펼쳐져 "전부 접힘"이 아니게 된다.
     /// 행 스택의 전체 슬롯(구분선·그룹 머리·행)을 원래 순서로 기억한다. 숨은 슬롯은 계층에서 떼어
     /// 접힌 행 수백 개가 탭 교체 때마다 배치·키 뷰 루프 계산에 끼지 않게 한다(`pruneHiddenSlots`).
     var allSlots: [NSView] = []
 
+    /// 창을 열 때마다 전부 접힘으로 되돌린다. 상태를 저장하지 않으므로 보이는 행 수가 항상 예측 가능하다.
+    /// 검색어도 지운다 — 남아 있으면 매칭 그룹이 자동으로 펼쳐져 "전부 접힘"이 아니게 된다.
     func collapseAllGroups() {
         expandedGroups.removeAll()
         searchField.stringValue = ""
