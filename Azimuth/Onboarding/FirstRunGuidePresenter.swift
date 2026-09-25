@@ -4,7 +4,7 @@
 //
 //  첫 실행 안내 팝오버 presenter — 상태바 버튼에 앵커해 1회 표시한다.
 //  .accessory 앱에서 .transient 팝오버의 바깥 클릭 dismiss는 앱이 활성일 때만 동작하므로
-//  표시 직전 activate하고, 명시적 기본 버튼(Got it / Open Settings…)을 항상 제공한다.
+//  표시 직전 NSApp.bringToFront()로 활성화하고, 명시적 기본 버튼(Got it / Open Settings…)을 항상 제공한다.
 //
 
 import Cocoa
@@ -29,7 +29,7 @@ final class FirstRunGuidePresenter: NSObject, NSPopoverDelegate {
             onDone: { [weak self] in self?.dismiss() }
         )
         popover = pop
-        NSApp.activate()
+        NSApp.bringToFront()
         pop.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
     }
 

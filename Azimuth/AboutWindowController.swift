@@ -63,7 +63,7 @@ final class AboutWindowController: NSWindowController {
 
     /// About 창을 화면 중앙에 전면으로 띄운다(이미 떠 있으면 앞으로 가져온다).
     func show() {
-        NSApp.activate(ignoringOtherApps: true)
+        NSApp.bringToFront()
         if let window, !window.isVisible { window.center() }
         showWindow(nil)
         window?.makeKeyAndOrderFront(nil)

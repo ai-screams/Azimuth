@@ -41,7 +41,7 @@ final class SettingsWindowController {
         if let window = controller.window {
             centerOnActiveScreen(window)
         }
-        NSApp.activate(ignoringOtherApps: true)
+        NSApp.bringToFront()
         controller.showWindow(nil)
         controller.window?.makeKeyAndOrderFront(nil)
     }
