@@ -71,6 +71,19 @@ Before opening a PR: `make build && make lint && make test` (CI runs the same, p
 - Xcode, while open, rewrites `Azimuth.xcodeproj/project.pbxproj` on its own (key order, quoting).
   `git checkout --` it before committing so that noise does not ride along.
 
+## Legacy branch (`legacy/10.13`, #138)
+
+- Feature-frozen build for macOS 10.13–12. Only critical fixes; main stays on 13.0, Xcode 27, latest Sparkle.
+- **Local Xcode 27 rejects deployment targets below 12.0**, so `make build` / `make run` fail here. Use
+  `make legacy-check` (per-file typecheck at x86_64 10.13 and arm64 11, plus an x86_64 10.13 link).
+  Release builds come from CI on Xcode 26.3.
+- OS gaps go through `Shared/LegacySupport.swift` only: `NSImage.symbol(_:)` (nil below 11),
+  `NSImageView.setSymbol(_:)` (hides the view so its slot collapses), `setTint`, `LegacySupport.launchAtLogin`
+  (13+) / `.failureNotifications` (10.15+), and `unsafeAssumeMainActor` — three call sites only
+  (`main.swift`, the Carbon hotkey callback, `AnimationSuppressor`'s main-queue work item).
+- 10.13 draws an empty button title as "Button": image-only buttons need `imagePosition = .imageOnly`.
+- Sparkle is pinned to **2.9.3 exact** (2.10+ requires macOS 12).
+
 ## Non-negotiable rules
 
 - **Never bypass macOS permissions or security.** Request AX through the official API; the user
@@ -109,7 +122,7 @@ Before opening a PR: `make build && make lint && make test` (CI runs the same, p
   Branch off `main`, keep PRs focused, **squash-merge**.
 - New source files under `Azimuth/` are auto-included via the Xcode **file-system synchronized
   group** — no `.pbxproj` edit needed. Adding a new target or SPM dependency still needs the
-  pbxproj / Xcode GUI. Deployment target: macOS **13.0**.
+  pbxproj / Xcode GUI. Deployment target: macOS **10.13** on this `legacy/10.13` branch (main: 13.0).
 - A macOS 14+ API is a compile error at that target — guard it with `if #available` and decide the
   13 fallback. Bring the app forward only through `NSApp.bringToFront()` (`Shared/`), never
   `NSApp.activate…` directly. String-keyed resources (SF Symbol names, `x-apple.systempreferences:`

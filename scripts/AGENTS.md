@@ -1,5 +1,5 @@
 <!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-06-19 | Updated: 2026-09-22 -->
+<!-- Generated: 2026-06-19 | Updated: 2026-09-26 -->
 
 # scripts
 
@@ -19,6 +19,7 @@ Shell scripts for build, run, quality, security and release work. The `Makefile`
 | `harness-sources.sh` | **The single source for what the harness compiles** (`HARNESS_SRC`, `HARNESS_TESTS`). `test.sh` and `coverage.sh` source it, so a new pure file is added in one place. It defines arrays only and carries no `set` line (see below) |
 | `test.sh` | Compiles and runs the list from `harness-sources.sh` with `swiftc`. Propagates the exit code |
 | `coverage.sh` | Builds and runs the **same list** with `swiftc -profile-generate` and measures llvm-cov line coverage. Gate **≥90%** (adjustable via the `COVERAGE_MIN` env var) |
+| `legacy-check.sh` | **Legacy branch.** `make legacy-check`: per-file typecheck of every source at x86_64 macOS 10.13 and arm64 macOS 11 (`-primary-file`, so one failing file cannot hide the rest), then an x86_64 10.13 link against the resolved Sparkle 2.9.3 xcframework. Needed because local Xcode 27 rejects deployment targets below 12.0 |
 | `lint.sh` | `swiftlint lint --strict --no-cache --config .swiftlint.yml` |
 | `format.sh` | Runs SwiftFormat |
 | `secret-scan.sh` | gitleaks secret scan |

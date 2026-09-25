@@ -139,10 +139,10 @@ final class AboutWindowController: NSWindowController {
 
     private func makeButton(_ link: Link) -> NSButton {
         let button = NSButton.rounded(title: "  \(link.title)", target: self, action: #selector(openLink(_:)))
-        button.image = NSImage(systemSymbolName: link.symbol, accessibilityDescription: nil)
+        button.image = NSImage.symbol(link.symbol, accessibilityDescription: nil)
         button.imagePosition = .imageLeading
         button.identifier = NSUserInterfaceItemIdentifier(link.url)
-        if let tint = link.tint { button.contentTintColor = tint }
+        if let tint = link.tint { button.setTint(tint) }
         return button
     }
 

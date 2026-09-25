@@ -18,7 +18,7 @@ final class BadgeLabel: NSView {
         translatesAutoresizingMaskIntoConstraints = false
         wantsLayer = true
         layer?.cornerRadius = 5
-        layer?.cornerCurve = .continuous
+        if #available(macOS 10.15, *) { layer?.cornerCurve = .continuous }
 
         // VoiceOver에는 배지 전체를 하나의 텍스트 요소로 노출한다 — 안쪽 라벨만 읽히면
         // "Duplicate"처럼 문맥 없는 단어만 들린다. 전체 라벨은 configure에서 채운다.
@@ -58,8 +58,8 @@ final class BadgeLabel: NSView {
     func configure(text: String, symbol: String, color: NSColor) {
         label.stringValue = text
         label.textColor = color
-        iconView.image = NSImage(systemSymbolName: symbol, accessibilityDescription: nil)
-        iconView.contentTintColor = color
+        iconView.setSymbol(symbol)
+        iconView.setTint(color)
         layer?.backgroundColor = color.withAlphaComponent(0.14).cgColor
         toolTip = "\(text) — this shortcut won't trigger this command."
         setAccessibilityLabel(toolTip)

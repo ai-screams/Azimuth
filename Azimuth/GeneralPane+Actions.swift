@@ -32,6 +32,11 @@ extension GeneralPaneViewController {
             notifyApprovalLabel.isHidden = true
             return
         }
+        guard #available(macOS 10.15, *) else {
+            sender.state = .off
+            preferencesStore.notifyOnCommandFailure = false
+            return
+        }
         Task { @MainActor in
             let result = await requestNotificationAuthorization()
             // 권한 프롬프트를 기다리는 사이 사용자가 토글을 껐다면 그 의사를 존중한다
@@ -50,6 +55,7 @@ extension GeneralPaneViewController {
                 notifyApprovalLabel.stringValue =
                     "Enable notifications for Azimuth in System Settings > Notifications, then try again."
                 notifyApprovalLabel.isHidden = false
+                refitWindowToContent()
                 Log.app.info("Notification permission denied — notify-on-failure toggle reverted.")
             case .failed:
                 // 요청 자체 에러(예: DerivedData 개발 빌드는 알림 미등록). 이 경우 앱이

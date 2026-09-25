@@ -21,6 +21,7 @@ nonisolated enum NotificationAuthorizationResult {
     case failed
 }
 
+@available(macOS 10.15, *)
 @MainActor
 final class CommandFailureNotifier: NSObject, UNUserNotificationCenterDelegate {
     private let center = UNUserNotificationCenter.current()
@@ -63,6 +64,6 @@ final class CommandFailureNotifier: NSObject, UNUserNotificationCenterDelegate {
         _ center: UNUserNotificationCenter,
         willPresent notification: UNNotification
     ) async -> UNNotificationPresentationOptions {
-        [.banner, .list]
+        if #available(macOS 11.0, *) { [.banner, .list] } else { [.alert] }
     }
 }

@@ -18,10 +18,7 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         let item = NSMenuItem()
         item.isEnabled = false
         item.isHidden = true
-        item.image = NSImage(
-            systemSymbolName: "exclamationmark.triangle",
-            accessibilityDescription: "Last command failed"
-        )
+        item.image = NSImage.symbol("exclamationmark.triangle", accessibilityDescription: "Last command failed")
         return item
     }()
 
@@ -73,12 +70,14 @@ final class StatusBarController: NSObject, NSMenuDelegate {
     private func updateStatusButton(isTrusted: Bool) {
         guard let button = statusItem?.button else { return }
         let symbol = isTrusted ? "macwindow.on.rectangle" : "exclamationmark.triangle"
-        let image = NSImage(
-            systemSymbolName: symbol,
-            accessibilityDescription: isTrusted ? "Azimuth" : "Azimuth — Accessibility access required"
-        )
-        image?.isTemplate = true
+        let description = isTrusted ? "Azimuth" : "Azimuth — Accessibility access required"
+        // 메뉴바 아이콘은 이미지 전용이라 nil이면 상태 아이템이 사라진다 → 11 미만은 직접 그린 템플릿으로 대체.
+        let image = NSImage.symbol(symbol, accessibilityDescription: description)
+            ?? LegacyStatusIcon.make(isTrusted: isTrusted)
+        image.isTemplate = true
         button.image = image
+        // 11 미만 대체 아이콘은 이미지 설명이 없다 — 앱의 주 진입점이 이름 없이 읽히지 않게 버튼에 직접 단다.
+        button.setAccessibilityLabel(description)
         button.toolTip = isTrusted ? "Azimuth" : "Azimuth needs Accessibility access"
     }
 

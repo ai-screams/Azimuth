@@ -89,7 +89,7 @@ final class AnimationSuppressor {
     func scheduleRestore(pid: pid_t) {
         pendingRestores[pid]?.cancel()
         let work = DispatchWorkItem { [self] in
-            MainActor.assumeIsolated {
+            unsafeAssumeMainActor {
                 if let state = suppressed[pid] {
                     if state.enhanced { AXAttribute.set(state.appElement, enhancedUIAttribute, true) }
                     if state.manual { AXAttribute.set(state.appElement, manualAccessibilityAttribute, true) }

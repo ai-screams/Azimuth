@@ -26,7 +26,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let preferencesStore = PreferencesStore()
     private let launchAtLoginService = LaunchAtLoginService()
     /// 명령 실패 알림(opt-in). 권한 요청은 Settings 토글을 켤 때만 일어난다.
-    private let failureNotifier = CommandFailureNotifier()
+    /// 레거시판: 10.15 미만에는 알림 경로가 없어 nil(설정 토글도 숨김).
+    private let failureNotifier: AnyObject? = {
+        if #available(macOS 10.15, *) { return CommandFailureNotifier() }
+        return nil
+    }()
+
     private var registrationFailureIdentifiers: Set<String> = []
     /// 권한 미부여로 단축키가 실패했을 때 이번 세션에 이미 안내(Settings 유도)를 했는지.
     /// 매 실패마다 창을 띄우면 성가시므로 세션당 1회만.
@@ -44,7 +49,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         setResolveTimeout: { seconds in FocusedWindowResolver.setResolveTimeout(seconds) },
         checkForUpdates: { [weak self] in self?.updaterController.checkForUpdates(nil) },
         requestNotificationAuthorization: { [weak self] in
-            await self?.failureNotifier.requestAuthorization() ?? .failed
+            if #available(macOS 10.15, *), let notifier = self?.failureNotifier as? CommandFailureNotifier {
+                return await notifier.requestAuthorization()
+            }
+            return .failed
         }
     )
     private lazy var statusBarController = StatusBarController(
@@ -212,7 +220,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // (`notify`가 참인 경우는 항상 `.set` 직후라) 그 안전이 두 필드의 우연한 합의에 기댄다 —
         // `.keep`과 `notify`가 함께 참이 되는 조합이 생기면 **지난 실패 문구가 새 알림으로** 나간다.
         if feedback.notify, case let .set(message) = feedback.lastFailure {
-            failureNotifier.postCommandFailure(commandName: command.displayName, message: message)
+            if #available(macOS 10.15, *), let notifier = failureNotifier as? CommandFailureNotifier {
+                notifier.postCommandFailure(commandName: command.displayName, message: message)
+            }
         }
         if feedback.nudgeForPermission {
             nudgeForPermission()
