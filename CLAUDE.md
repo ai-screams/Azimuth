@@ -103,7 +103,10 @@ Before opening a PR: `make build && make lint && make test` (CI runs the same, p
   Branch off `main`, keep PRs focused, **squash-merge**.
 - New source files under `Azimuth/` are auto-included via the Xcode **file-system synchronized
   group** — no `.pbxproj` edit needed. Adding a new target or SPM dependency still needs the
-  pbxproj / Xcode GUI. Deployment target: macOS **14.0**.
+  pbxproj / Xcode GUI. Deployment target: macOS **13.0**.
+- A macOS 14+ API is a compile error at that target — guard it with `if #available` and decide the
+  13 fallback. Bring the app forward only through `NSApp.bringToFront()` (`Shared/`), never
+  `NSApp.activate…` directly.
 - That auto-include does **not** reach the test harness: a new pure-logic file must be added to
   `scripts/harness-sources.sh` (the single list both `make test` and `make coverage` read).
 - Those lists are the **only** automatically tested code — `WindowAccess/**`, `WindowCommandExecutor`,
