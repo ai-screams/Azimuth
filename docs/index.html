@@ -765,6 +765,10 @@
       box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
     }
 
+    pre.code-block:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
     pre.code-block .comment { color: rgba(160,190,230,0.5); }
     pre.code-block .cmd { color: #c8d8f4; }
     pre.code-block .arg { color: var(--accent-soft); }
@@ -1823,11 +1827,14 @@
               The download is Developer ID–signed and notarized by Apple, so it opens without Gatekeeper warnings.
             </p>
 
-            <p class="install-note" style="margin-bottom:.5rem;"
+            <p class="install-note" id="brew-label" style="margin-bottom:.5rem;"
                data-en="Or with Homebrew:" data-ko="또는 Homebrew로:">
               Or with Homebrew:
             </p>
-            <pre class="code-block"><code>brew install --cask ai-screams/tap/azimuth</code></pre>
+            <!-- Focusable scroll region: on narrow screens the command scrolls
+                 inside the pre, and keyboard users need focus to scroll it.
+                 Named by the (localized) label above. -->
+            <pre class="code-block" tabindex="0" role="region" aria-labelledby="brew-label"><code>brew install --cask ai-screams/tap/azimuth</code></pre>
           </div>
         </div>
       </div>
