@@ -31,6 +31,93 @@ extension CommandEngineTests {
                     CGPoint(x: 0, y: 25))
     }
 
+    // #100: 모든 크기 쓰기 뒤의 실제 frame으로, 작업영역 모서리에 닿아야 할 창을 그 모서리로 다시 붙인다.
+    static func testEdgeReanchor() {
+        let rightHalf = CGRect(x: 960, y: 25, width: 960, height: 1055)
+        func reanchor(
+            _ achieved: CGRect, target: CGRect = rightHalf, anchor: FrameAnchor = .workAreaEdges,
+            area: CGRect? = workArea, elapsed: TimeInterval = 0.1
+        ) -> CGPoint? {
+            EdgeReanchorPolicy.correctedOrigin(EdgeReanchorInput(
+                anchor: anchor, target: target, workArea: area, achieved: achieved,
+                sizeTolerance: FrameApply.sizeTolerance, originTolerance: FrameApply.originTolerance,
+                elapsed: elapsed, budget: 1
+            ))
+        }
+        func expectOrigin(_ label: String, _ got: CGPoint?, _ want: CGPoint?) {
+            checks += 1
+            let same = switch (got, want) {
+            case (nil, nil): true
+            case let (got?, want?): approx(got.x, want.x) && approx(got.y, want.y)
+            default: false
+            }
+            if !same {
+                failures += 1
+                print("FAIL \(label): got \(String(describing: got)) want \(String(describing: want))")
+            }
+        }
+        // 이슈의 재현값: 최대 폭 700인 앱에 Right 1/2 → 오른쪽 여백 260 대신 모서리에 붙는다.
+        expectOrigin("undersized right half hugs the right edge",
+                     reanchor(CGRect(x: 960, y: 25, width: 700, height: 1055)), CGPoint(x: 1220, y: 25))
+        expectOrigin("reached target needs nothing",
+                     reanchor(rightHalf), nil)
+        // 허용오차 8pt: 한 셀 모자란 터미널은 옮기지 않는다(엄격한 초과).
+        expectOrigin("7pt short stays", reanchor(CGRect(x: 960, y: 25, width: 953, height: 1055)), nil)
+        expectOrigin("exactly 8pt short stays", reanchor(CGRect(x: 960, y: 25, width: 952, height: 1055)), nil)
+        expectOrigin("9pt short moves", reanchor(CGRect(x: 960, y: 25, width: 951, height: 1055)),
+                     CGPoint(x: 969, y: 25))
+        // #37 현장 기록(L자 구성, 2880 폭): 목표보다 큰 앱도 같은 규칙으로 모서리를 지킨다.
+        let wide = CGRect(x: -824, y: -1589, width: 2880, height: 1589)
+        expectOrigin("oversized right half keeps the right edge",
+                     reanchor(CGRect(x: 616, y: -1589, width: 1464, height: 1589),
+                              target: CGRect(x: 616, y: -1589, width: 1440, height: 1589), area: wide),
+                     CGPoint(x: 592, y: -1589))
+        // 두 모서리에 모두 닿는 목표(최대화)는 좌상단 고정 — 여기서 옮기지 않는다.
+        expectOrigin("undersized maximize keeps top-left",
+                     reanchor(CGRect(x: 0, y: 25, width: 1500, height: 900), target: workArea), nil)
+        expectOrigin("undersized left half is already at its edge",
+                     reanchor(CGRect(x: 0, y: 25, width: 700, height: 1055),
+                              target: CGRect(x: 0, y: 25, width: 960, height: 1055)), nil)
+        let bottomHalf = FrameCalculator.halfRect(.bottom, workArea: workArea)
+        expectOrigin("undersized bottom half hugs the bottom edge",
+                     reanchor(CGRect(x: 0, y: bottomHalf.minY, width: 1920, height: 400), target: bottomHalf),
+                     CGPoint(x: 0, y: 680))
+        // 이미 보정된 자리면 다시 쓰지 않는다(2pt 안).
+        expectOrigin("already at the corrected origin",
+                     reanchor(CGRect(x: 1221, y: 25, width: 700, height: 1055)), nil)
+        // origin 허용오차 2pt(엄격한 초과)와 크기가 큰 쪽의 8pt 경계.
+        expectOrigin("exactly 2pt off the corrected origin stays",
+                     reanchor(CGRect(x: 1222, y: 25, width: 700, height: 1055)), nil)
+        expectOrigin("3pt off the corrected origin moves",
+                     reanchor(CGRect(x: 1223, y: 25, width: 700, height: 1055)), CGPoint(x: 1220, y: 25))
+        expectOrigin("exactly 8pt oversize stays",
+                     reanchor(CGRect(x: 960, y: 25, width: 968, height: 1055)), nil)
+        expectOrigin("9pt oversize moves", reanchor(CGRect(x: 960, y: 25, width: 969, height: 1055)),
+                     CGPoint(x: 951, y: 25))
+        // 판단할 수 없는 값·상황은 손대지 않는다.
+        expectOrigin("zero width", reanchor(CGRect(x: 960, y: 25, width: 0, height: 1055)), nil)
+        expectOrigin("NaN width", reanchor(CGRect(x: 960, y: 25, width: CGFloat.nan, height: 1055)), nil)
+        expectOrigin("negative height", reanchor(CGRect(x: 960, y: 25, width: 700, height: -5)), nil)
+        expectOrigin("unknown work area", reanchor(CGRect(x: 960, y: 25, width: 700, height: 1055), area: nil), nil)
+        expectOrigin("budget spent (boundary counts as spent)",
+                     reanchor(CGRect(x: 960, y: 25, width: 700, height: 1055), elapsed: 1), nil)
+        let short = CGRect(x: 960, y: 25, width: 700, height: 1055)
+        expectOrigin("invalid target", reanchor(short, target: CGRect(x: 960, y: 25, width: 0, height: 1055)), nil)
+        expectOrigin("invalid work area", reanchor(short, area: CGRect(x: 0, y: 25, width: CGFloat.nan, height: 1055)), nil)
+        func reanchor(_ achieved: CGRect, originTolerance: CGFloat) -> CGPoint? {
+            EdgeReanchorPolicy.correctedOrigin(EdgeReanchorInput(
+                anchor: .workAreaEdges, target: rightHalf, workArea: workArea, achieved: achieved,
+                sizeTolerance: FrameApply.sizeTolerance, originTolerance: originTolerance, elapsed: 0.1, budget: 1
+            ))
+        }
+        expectOrigin("NaN origin tolerance", reanchor(short, originTolerance: CGFloat.nan), nil)
+        expectOrigin("negative origin tolerance", reanchor(short, originTolerance: -1), nil)
+        for anchor in [FrameAnchor.topLeft, .right, .bottom] {
+            expectOrigin("anchor \(anchor) is not edge-reanchored",
+                         reanchor(CGRect(x: 960, y: 25, width: 700, height: 1055), anchor: anchor), nil)
+        }
+    }
+
     // M-4: 명시적 anchor로 실제 크기에 맞춰 고정 모서리를 유지(앱 반올림에 의한 드리프트 방지).
     static func testAnchoredOrigin() {
         let target = CGRect(x: 400, y: 100, width: 400, height: 300) // maxX=800, maxY=400

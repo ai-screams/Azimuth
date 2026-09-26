@@ -21,8 +21,9 @@ nonisolated struct FrameApplyResult: Equatable {
 /// 쓰기 전략(메이저 윈도우 매니저 컨센서스):
 ///  - `AnimationSuppressor`로 대상 앱의 애니메이션 속성을 잠시 꺼서 AX 쓰기를 동기·비애니메이션화한다(깜빡임 제거).
 ///  - 작아질 때만 size→position 순서(줄인 뒤 이동 → 옛 큰 크기로 옆 모니터 침범 방지), 커질 땐 position→size.
-///  - 제약 앱이 목표 크기에 못 미치면 실제 크기를 읽어 anchored origin을 "한 번만" 써서(KI-003 2단계 깜빡임 회피)
-///    스냅 모서리를 유지한다.
+///  - 제약 앱이 목표보다 크면 실제 크기를 읽어 anchored origin을 처음부터 써서(KI-003 2단계 깜빡임 회피)
+///    스냅 모서리를 유지한다. 목표보다 작거나 크기만 바꾸는 명령은 모든 크기 쓰기가 끝난 뒤 한 번 더 모서리로
+///    옮긴다(`reanchorToEdge`, #100) — 그 앱들에서만 두 단계 이동이 생길 수 있다.
 ///  - 성공/실패는 AX 쓰기 결과로 판정하고(제약 앱이 목표 미달이어도 쓰기 성공이면 성공), "실제로 변했는가"는
 ///    Executor가 achieved로 따로 판정한다(Undo 정합성 — 감사 H-1).
 @MainActor
@@ -83,10 +84,11 @@ enum WindowFrameWriter {
     // MARK: - 프레임 쓰기
 
     /// 바뀌는 축만 쓴다(권한 가드와 `moves`/`resizes` 계산은 `apply` 가 끝냈다). 이동만이면 size를,
-    /// 리사이즈만이면 position을 건드리지 않아 AX IPC와 부분 실패 면적을 줄인다(감사 M-3).
+    /// 리사이즈만이면 position을 건드리지 않아 AX IPC와 부분 실패 면적을 줄인다(감사 M-3). 예외 하나:
+    /// 작업영역 모서리에 닿아야 할 창이 실제 크기 때문에 떨어져 있으면 마지막에 position을 한 번 쓴다(#100).
     ///
-    /// **이 함수 안에서 시각을 읽지 않는다.** 재시도 예산의 기준점은 `request.startedAt`(명령 시작)이고,
-    /// 여기서 따로 시계를 잡으면 그 앞구간(해석·억제)의 프리즈가 예산에서 빠진다.
+    /// **예산의 기준점은 `request.startedAt`(명령 시작)이다.** 경과를 잴 때마다 그 시각에서 재고, 이 함수
+    /// 진입 시각 같은 별도 기준을 잡지 않는다 — 그러면 앞구간(해석·억제)의 프리즈가 예산에서 빠진다.
     private static func writeFrame(
         _ request: FrameWriteRequest,
         moves: Bool,
@@ -149,6 +151,18 @@ enum WindowFrameWriter {
         // 읽기 2회가 줄어든다(감사 H-1). 재시도를 건너뛴 느린 앱에서도 한 번 더 읽지 않는다.
         if retried || achieved == nil { achieved = readFrame(element) }
 
+        // (5) 모서리 재정렬(#100): 모든 크기 쓰기가 끝난 **뒤의** 실제 크기로, 작업영역 모서리에 닿아야 할 창이
+        // 목표보다 작거나 커서 떨어져 있으면 그 모서리로 한 번 옮긴다. 보정했으면 반드시 다시 읽는다 — 읽기에
+        // 실패하면 옛 frame을 남기지 않고 nil로 둬, 창은 옮겼는데 Undo·스냅 기록이 옛 위치를 믿는 일이 없게 한다.
+        // 이 쓰기는 position 축의 마지막 시도라 그 결과가 곧 position 결과다 — 성공하면 앞선 position 실패를
+        // 덮는다(재시도와 같은 규칙). 덮지 않으면 창은 모서리에 제대로 붙었는데 명령이 실패로 판정돼 스냅
+        // 기록이 지워지고, 같은 키를 다시 눌러도 옆 화면으로 던지지 않는다. size 실패는 따로 남는다.
+        if let reanchorError = reanchorToEdge(request, achieved: achieved, moves: moves) {
+            mutated = mutated || reanchorError == .success
+            positionError = reanchorError
+            achieved = readFrame(element)
+        }
+
         // 읽기 실패면 결과를 알 수 없어 achieved=nil(Executor가 mayHaveMutated로 복원점을 판단한다).
         guard let achieved else {
             return FrameApplyResult(achieved: nil, error: .applyFailed, mayHaveMutated: mutated)
@@ -168,11 +182,36 @@ enum WindowFrameWriter {
         return .applyFailed
     }
 
+    /// 모서리 재정렬이 필요하면 position을 한 번 쓰고 그 결과를, 쓰지 않았으면 nil을 돌려준다(#100).
+    /// 판단은 순수 정책(`EdgeReanchorPolicy`)이 한다. 원래 명령이 이동하지 않던(크기만 바꾸는) 경우엔
+    /// position 권한을 여기서 처음 확인하고, 옮길 수 없으면 보정을 건너뛴다 — 예전처럼 성공으로 끝나며
+    /// 새 실패음을 만들지 않는다.
+    private static func reanchorToEdge(_ request: FrameWriteRequest, achieved: CGRect?, moves: Bool) -> AXError? {
+        guard let achieved else { return nil }
+        let input = EdgeReanchorInput(
+            anchor: request.anchor,
+            target: request.target,
+            workArea: request.workArea,
+            achieved: achieved,
+            sizeTolerance: sizeTolerance,
+            originTolerance: FrameApply.originTolerance,
+            elapsed: ProcessInfo.processInfo.systemUptime - request.startedAt,
+            budget: AXMessagingTimeout.writeRetryBudget(for: FocusedWindowResolver.resolveTimeout)
+        )
+        let element = request.resolved.element
+        guard let origin = EdgeReanchorPolicy.correctedOrigin(input),
+              moves || isSettable(element, kAXPositionAttribute)
+        else { return nil }
+        return AXAttribute.set(element, kAXPositionAttribute as String, point: origin)
+    }
+
     /// 실제 크기를 읽어 anchor 의도대로 고정 모서리를 유지하는 origin.
     ///  - topLeft: 목표 origin 그대로(좌/상 고정 — AX 읽기 불필요).
     ///  - right/bottom: 상대 축소. 앱이 요청보다 작게/크게 반올림해도 그 모서리를 고정하려면 항상 실제
     ///    크기를 읽어 다시 계산한다(감사 M-4 — 반복 축소의 셀 단위 드리프트 방지).
-    ///  - workAreaEdges: 제약 앱이 목표보다 "클 때"만 스냅 모서리를 유지(기존 동작).
+    ///  - workAreaEdges: 제약 앱이 목표보다 "클 때"만 스냅 모서리를 유지한다. 목표보다 **작은** 창과 크기만
+    ///    바꾸는 명령은 모든 크기 쓰기가 끝난 뒤 `reanchorToEdge`가 맞춘다(여기서 하면 커지는 창의 "커지기 전"
+    ///    크기로 위치를 잡는다, #100).
     private static func anchoredOrigin(_ request: FrameWriteRequest) -> CGPoint {
         let element = request.resolved.element
         let target = request.target
