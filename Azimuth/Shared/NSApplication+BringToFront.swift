@@ -10,8 +10,9 @@ import AppKit
 
 extension NSApplication {
     /// 앱을 활성화해 이어서 띄울 창·팝오버가 전면에 오게 한다.
-    /// 14+ 전용 `activate()` 대신 이 API를 쓰는 이유는 macOS 13 지원이다. SDK상 to-be-deprecated라
-    /// 경고는 없고, 실제로 폐기되면 이 한 곳에서만 `if #available` 분기로 바꾼다.
+    /// 14+ 전용 `activate()` 대신 이 API를 쓰는 이유는 이 브랜치의 배포 대상(macOS 10.13)부터 지원하기
+    /// 위해서다(본판은 13 지원을 위해 같은 선택). SDK상 to-be-deprecated라 경고는 없고, 실제로 폐기되면 이 한
+    /// 곳에서만 `if #available` 분기로 바꾼다.
     func bringToFront() {
         activate(ignoringOtherApps: true)
     }

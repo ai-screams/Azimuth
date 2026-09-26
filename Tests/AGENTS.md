@@ -18,6 +18,7 @@ Regression tests for the command engine's **pure logic**. Instead of an Xcode te
 | `CommandEngineTests+Legacy.swift` | **Legacy branch.** `LogMessage` privacy folding (all public / unannotated / mixed / explicit private) and one pass through each log level; update-feed choice per macOS major version; `VersionDisplay` (`209.N` → `Legacy N`, other builds unchanged) |
 | `CommandEngineTests+Updates.swift` | Sparkle update-window version text (`UpdateVersionText`), incl. Legacy 1→2 and legacy→main migration pairs. Same file as main |
 | `CommandEngineTests+Hotkeys.swift` | The shortcut binding layer. Per-preset key assignment, overrides, the enabled filter, conflict detection, display strings, Codable round-trips and Carbon modifiers |
+| `CommandEngineTests+Permissions.swift` | Accessibility request path: prompt only on the first untrusted request, Settings afterwards; the migration default for upgrades; `PreferencesStore` migration timing (a new install still prompts after onboarding sets `didCompleteFirstRun`) and its defaults, persistence, shortcut and enable-state storage, timeout clamping. Same file as main |
 
 ## For AI Agents
 

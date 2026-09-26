@@ -35,3 +35,6 @@ Persistence for user settings. A thin wrapper over UserDefaults.
 
 <!-- MANUAL -->
 - `resolveTimeout` (Float, Advanced settings): the AX resolution-stage messaging timeout in seconds. **Pass it through `AXMessagingTimeout.clampedResolve` on both read and write** — the stored value can be hand-edited, and AX reads 0 as "return to the global default (6s)", so leaving it alone would silently make the default behavior worse simply because a setting exists.
+
+<!-- 2026-09-26 -->
+- `didAttemptAccessibilityPrompt`: whether the Accessibility alert was **requested** (not shown or granted). Migrated once in `init` before onboarding runs — see `Permissions/AccessibilityRequestPolicy`. `PreferencesStore` (and `Shared/Log.swift`) are in the test harness; `testPreferencesStore` pins defaults, persistence and clamping.
