@@ -346,6 +346,7 @@
       box-shadow: var(--shadow-card);
     }
     .btn-secondary:hover { background: var(--bg-card); border-color: var(--accent-soft); color: var(--text); }
+    .btn-legacy { margin-top: 0.6rem; }
 
     /* ─── Hero CSS desktop mockup ────────────────────────────────── */
     .hero-visual {
@@ -1837,6 +1838,20 @@
                data-ko="&lt;strong&gt;macOS 10.13~12인가요?&lt;/strong&gt; &lt;a href=&quot;https://github.com/ai-screams/Azimuth/releases/tag/legacy-v1.7.2-1&quot;&gt;레거시판(1.7.2 Legacy)을&lt;/a&gt; 받으세요. 핵심 기능은 같고 새 기능은 들어가지 않습니다. macOS 13 이상으로 업그레이드한 뒤 업데이트를 확인하면 일반판으로 전환됩니다.">
               <strong>macOS 10.13–12?</strong> Download the <a href="https://github.com/ai-screams/Azimuth/releases/tag/legacy-v1.7.2-1">legacy build (1.7.2 Legacy)</a>. It keeps the core features but gets no new ones. After you upgrade to macOS 13 or later, its next update check switches it to the regular version.
             </p>
+
+            <!-- Legacy DMG, direct. The label lives in its own <span> so the language toggle
+                 (textContent) keeps the icon. Bump the tag and file name with each legacy release. -->
+            <a id="download-legacy"
+               href="https://github.com/ai-screams/Azimuth/releases/download/legacy-v1.7.2-1/Azimuth-1.7.2-legacy-1.dmg"
+               class="btn btn-secondary btn-legacy">
+              <svg width="14" height="14" viewBox="0 0 15 15" fill="none" aria-hidden="true"
+                   xmlns="http://www.w3.org/2000/svg">
+                <path d="M7.5 1v8M4.5 6.5l3 3 3-3M2 11.5h11" stroke="currentColor"
+                      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span data-en="Download for macOS 10.13–12 (.dmg)"
+                    data-ko="macOS 10.13~12용 다운로드 (.dmg)">Download for macOS 10.13–12 (.dmg)</span>
+            </a>
 
             <p class="install-note" id="brew-label" style="margin-bottom:.5rem;"
                data-en="Or with Homebrew:" data-ko="또는 Homebrew로:">

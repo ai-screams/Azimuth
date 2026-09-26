@@ -40,6 +40,8 @@ inline design-token stylesheet.
   in the older-macOS FAQ; the hero's "Older Mac?" line is a separate `.dl-legacy` element so the
   `#dl-meta` rewrite cannot erase it. manual.html's macOS-version card has its own link as a separate
   `<p><a data-en data-ko>` (its text `<p>` swaps `textContent`, which would erase an inline `<a>`).
+  The `#download-legacy` button links the DMG itself (`releases/download/<tag>/Azimuth-X.Y.Z-legacy-N.dmg`);
+  its label is an inner `<span data-en data-ko>` so the toggle keeps the icon.
   The current tag is `legacy-v1.7.2-1`; bump it after each legacy release (README and SECURITY too).
   JSON-LD `SoftwareApplication` stays "macOS 13+" on purpose: it describes the `/releases/latest` download.
 - **Funding links live in index.html's support block.** Ko-fi `https://ko-fi.com/pignuante`
