@@ -33,6 +33,7 @@ HARNESS_SRC=(
     "Azimuth/Shared/Log.swift"
     "Azimuth/Shared/UpdateFeed.swift"
     "Azimuth/Shared/BundleVersion.swift"
+    "Azimuth/Shared/UpdateVersionText.swift"
 )
 
 # 테스트 파일. 함께 컴파일하되 커버리지 분모에는 넣지 않는다.
@@ -45,4 +46,5 @@ HARNESS_TESTS=(
     "Tests/CommandEngineTests+Model.swift"
     "Tests/CommandEngineTests+Hotkeys.swift"
     "Tests/CommandEngineTests+Legacy.swift"
+    "Tests/CommandEngineTests+Updates.swift"
 )

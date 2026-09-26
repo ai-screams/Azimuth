@@ -33,6 +33,7 @@ Shell scripts for build, run, quality, security and release work. The `Makefile`
 | `secret-scan.sh` | gitleaks secret scan |
 | `install-hooks.sh` | Installs `.githooks/pre-commit` as the git hooks path |
 | `release.sh` | The release pipeline: archive → sign → notarize → build and stage the DMG. Called from `make release` and (on this branch) `release-legacy.yml`. **Legacy branch:** takes only `legacy-vX.Y.Z-N` tags (N is a channel-wide serial that must exceed every existing `legacy-v*` tag's N) → short version `X.Y.Z`, build `209.N`, `Azimuth-X.Y.Z-legacy-N.dmg`; after export it runs `legacy-bundle-runtime.sh` then `legacy-bundle-gate.sh --signed` before notarizing. Needs Xcode 26.3 or older |
+| `sparkle-adapter-check.sh` | `make sparkle-adapter-check`, CI: compiles `UpdateVersionText` + `UpdateVersionDisplayer` against the pinned Sparkle and fails unless the displayer answers Sparkle's three ObjC selectors (a misnamed Swift method only warns and silently falls back). Same script as main |
 | `make-dmg-background.swift` | Generates the DMG background image in code (a `swiftc` run script) |
 
 ## For AI Agents
