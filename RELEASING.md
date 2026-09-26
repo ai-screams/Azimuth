@@ -125,6 +125,12 @@ update before the next Sparkle-verified update can work).
 version via the GitHub Releases API, so no manual edit is needed per release — once a tagged release
 exists, the site's Download button points to its `.dmg` automatically.
 
+The **legacy build** (macOS 10.13–12) is the exception: it is released from the `legacy/10.13` branch
+with `legacy-vX.Y.Z-N` tags (see that branch's `RELEASING.md`), never becomes "latest", and the site
+(`index.html`, `manual.html`), README and SECURITY link to its tag page by hand — after each legacy
+release, bump the current tag (`legacy-v1.7.2-1`) and README's DMG name. Merge those doc edits only
+**after** the legacy release is published, or the links point at a page that does not exist yet.
+
 ## First-launch note for users
 
 The app launches immediately after dragging to Applications, but window control only works after the

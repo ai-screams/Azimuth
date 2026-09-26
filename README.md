@@ -7,7 +7,7 @@
 [![Homebrew](https://img.shields.io/badge/Homebrew-ai--screams%2Ftap-F9AB00?logo=homebrew&logoColor=white)](#homebrew)
 
 <!-- Built with -->
-[![Platform](https://img.shields.io/badge/macOS-13%2B-555555?logo=apple&logoColor=white)](#requirements)
+[![Platform](https://img.shields.io/badge/macOS-13%2B%20%C2%B7%20legacy%2010.13--12-555555?logo=apple&logoColor=white)](#requirements)
 [![Swift](https://img.shields.io/badge/Swift-5-F05138?logo=swift&logoColor=white)](https://swift.org)
 [![AppKit](https://img.shields.io/badge/AppKit-1a2a4a?logo=apple&logoColor=white)](https://developer.apple.com/documentation/appkit)
 [![Auto-update](https://img.shields.io/badge/Auto--update-Sparkle-8A4FFF)](https://sparkle-project.org)
@@ -41,6 +41,7 @@ Design principle: **predictability over clever inference.** Every command does e
 ## Requirements
 
 - macOS 13 (Ventura) or later. Ventura no longer receives Apple security updates, so use the newest macOS your Mac supports.
+- **On macOS 10.13–12**, use the [legacy build](https://github.com/ai-screams/Azimuth/releases/tag/legacy-v1.7.2-1) (`1.7.2 Legacy`) — see [Older macOS](#older-macos-legacy-build).
 - **Accessibility permission** (Azimuth controls other apps' windows through the Accessibility API).
 
 ## Privacy
@@ -56,6 +57,19 @@ Azimuth runs entirely on your Mac. It collects no data, has no telemetry or anal
 3. Launch it, then enable **Azimuth** in **System Settings → Privacy & Security → Accessibility**.
 
 The build is Developer ID–signed and notarized, so it opens without Gatekeeper warnings.
+
+### Older macOS (legacy build)
+
+Download `Azimuth-1.7.2-legacy-1.dmg` from the [legacy release](https://github.com/ai-screams/Azimuth/releases/tag/legacy-v1.7.2-1) and install it the same way
+(on these versions the setting lives in **System Preferences → Security & Privacy → Privacy → Accessibility**).
+
+- **Same core features, no new ones.** Window commands, shortcuts, the menu and undo all work, as do most settings;
+  new features ship only in the regular version. Launch at login needs macOS 13, and failure notifications need 10.15.
+- **Updates itself, then moves on.** It checks its own update feed; after you upgrade the Mac to macOS 13 or later,
+  its next update check switches it to the regular version.
+- **Tested** on a real Mac with macOS 10.13.6 (a 2009 MacBook) and in macOS 12 and 13 virtual machines, including the
+  switch to the regular version on 13. macOS 10.14–11 have not been tested on real hardware.
+- These macOS versions no longer receive Apple security updates — upgrade macOS if your Mac can.
 
 ### Homebrew
 

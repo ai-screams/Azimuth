@@ -34,6 +34,14 @@ inline design-token stylesheet.
 - **No hardcoded version.** The download CTA and JSON-LD `downloadUrl` point at
   `/releases/latest` — keep it that way so releases don't require doc edits. Canonical/OG URLs
   are absolute (`ai-scream.ai/Azimuth/...`); update only if the Pages URL changes.
+- **Legacy build link is the one hardcoded version.** The macOS 10.13–12 legacy build never becomes
+  `/releases/latest`, so index.html links its tag page (tag format `legacy-vX.Y.Z-N`) in the
+  `#legacy` `.install-note` (an `<a>` inside, safe because that class swaps `innerHTML`) and names it
+  in the older-macOS FAQ; the hero's "Older Mac?" line is a separate `.dl-legacy` element so the
+  `#dl-meta` rewrite cannot erase it. manual.html's macOS-version card has its own link as a separate
+  `<p><a data-en data-ko>` (its text `<p>` swaps `textContent`, which would erase an inline `<a>`).
+  The current tag is `legacy-v1.7.2-1`; bump it after each legacy release (README and SECURITY too).
+  JSON-LD `SoftwareApplication` stays "macOS 13+" on purpose: it describes the `/releases/latest` download.
 - **Funding links live in index.html's support block.** Ko-fi `https://ko-fi.com/pignuante`
   and GitHub Sponsors `https://github.com/sponsors/ai-screams` (see `.github/FUNDING.yml`).
 - `assets/` holds only images — no `AGENTS.md` of its own.

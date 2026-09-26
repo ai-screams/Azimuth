@@ -779,6 +779,7 @@
       line-height: 1.55;
     }
     .install-note strong { color: var(--text-mid); font-weight: 600; }
+    .install-note a, .dl-legacy a { color: var(--text-mid); text-decoration: underline; text-underline-offset: 2px; }
 
     /* ─── Download meta note ─────────────────────────────────────── */
     .dl-meta {
@@ -1100,6 +1101,11 @@
                data-en="Universal · macOS 13+ · .dmg"
                data-ko="macOS 13+ · .dmg">
               Universal · macOS 13+ · .dmg
+            </p>
+            <p class="dl-meta dl-legacy">
+              <a href="#legacy"
+                 data-en="Older Mac (macOS 10.13–12)? Get the legacy build →"
+                 data-ko="구형 Mac(macOS 10.13~12)이라면 레거시판 받기 →">Older Mac (macOS 10.13–12)? Get the legacy build →</a>
             </p>
           </div>
 
@@ -1780,13 +1786,13 @@
           <div class="req-card">
             <h3 data-en="Requirements" data-ko="요구사항">Requirements</h3>
             <ul class="req-list">
-              <li data-en="macOS 13 (Ventura) or later. Ventura no longer receives Apple security updates, so use the newest macOS your Mac supports."
-                  data-ko="macOS 13 (Ventura) 이상. Ventura는 Apple의 보안 업데이트 지원이 종료되었으므로, 사용 중인 Mac에서 지원하는 최신 macOS를 사용하는 것이 좋습니다.">
-                macOS 13 (Ventura) or later. Ventura no longer receives Apple security updates, so use the newest macOS your Mac supports.
+              <li data-en="macOS 13 (Ventura) or later — on macOS 10.13–12, use the legacy build below. Ventura no longer receives Apple security updates, so use the newest macOS your Mac supports."
+                  data-ko="macOS 13 (Ventura) 이상 — macOS 10.13~12에서는 아래 레거시판을 쓰세요. Ventura는 Apple의 보안 업데이트 지원이 종료되었으므로, 사용 중인 Mac에서 지원하는 최신 macOS를 사용하는 것이 좋습니다.">
+                macOS 13 (Ventura) or later — on macOS 10.13–12, use the legacy build below. Ventura no longer receives Apple security updates, so use the newest macOS your Mac supports.
               </li>
-              <li data-en="Accessibility permission — Azimuth controls other apps' windows via the Accessibility API. Grant it in System Settings on first launch."
-                  data-ko="손쉬운 사용 권한 — Azimuth는 손쉬운 사용 API로 다른 앱의 윈도우를 제어합니다. 첫 실행 시 시스템 설정에서 허용하세요.">
-                Accessibility permission — Azimuth controls other apps' windows via the Accessibility API. Grant it in System Settings on first launch.
+              <li data-en="Accessibility permission — Azimuth controls other apps' windows via the Accessibility API. Grant it in System Settings on first launch (macOS 10.13–12: System Preferences)."
+                  data-ko="손쉬운 사용 권한 — Azimuth는 손쉬운 사용 API로 다른 앱의 윈도우를 제어합니다. 첫 실행 시 시스템 설정에서 허용하세요(macOS 10.13~12: 시스템 환경설정).">
+                Accessibility permission — Azimuth controls other apps' windows via the Accessibility API. Grant it in System Settings on first launch (macOS 10.13–12: System Preferences).
               </li>
             </ul>
           </div>
@@ -1802,8 +1808,8 @@
                   data-ko="Azimuth를 응용 프로그램 폴더로 드래그합니다.">Drag Azimuth to your Applications folder.</li>
               <li data-en="Launch Azimuth from Applications."
                   data-ko="응용 프로그램에서 Azimuth를 실행합니다.">Launch Azimuth from Applications.</li>
-              <li data-en="Enable Azimuth in System Settings → Privacy &amp; Security → Accessibility."
-                  data-ko="시스템 설정 → 개인 정보 보호 및 보안 → 손쉬운 사용에서 Azimuth를 활성화합니다.">Enable Azimuth in System Settings → Privacy &amp; Security → Accessibility.</li>
+              <li data-en="Enable Azimuth in System Settings → Privacy &amp; Security → Accessibility (macOS 10.13–12: System Preferences → Security &amp; Privacy → Privacy → Accessibility)."
+                  data-ko="시스템 설정 → 개인 정보 보호 및 보안 → 손쉬운 사용에서 Azimuth를 활성화합니다(macOS 10.13~12: 시스템 환경설정 → 보안 및 개인 정보 보호 → 개인 정보 보호 → 손쉬운 사용).">Enable Azimuth in System Settings → Privacy &amp; Security → Accessibility (macOS 10.13–12: System Preferences → Security &amp; Privacy → Privacy → Accessibility).</li>
             </ol>
 
             <a id="download-btn-2"
@@ -1824,6 +1830,12 @@
                data-en="The download is Developer ID–signed and notarized by Apple, so it opens without Gatekeeper warnings."
                data-ko="다운로드 파일은 Developer ID 서명 + Apple 공증을 거쳐 Gatekeeper 경고 없이 바로 열립니다.">
               The download is Developer ID–signed and notarized by Apple, so it opens without Gatekeeper warnings.
+            </p>
+
+            <p class="install-note" id="legacy"
+               data-en="&lt;strong&gt;macOS 10.13–12?&lt;/strong&gt; Download the &lt;a href=&quot;https://github.com/ai-screams/Azimuth/releases/tag/legacy-v1.7.2-1&quot;&gt;legacy build (1.7.2 Legacy)&lt;/a&gt;. It keeps the core features but gets no new ones. After you upgrade to macOS 13 or later, its next update check switches it to the regular version."
+               data-ko="&lt;strong&gt;macOS 10.13~12인가요?&lt;/strong&gt; &lt;a href=&quot;https://github.com/ai-screams/Azimuth/releases/tag/legacy-v1.7.2-1&quot;&gt;레거시판(1.7.2 Legacy)을&lt;/a&gt; 받으세요. 핵심 기능은 같고 새 기능은 들어가지 않습니다. macOS 13 이상으로 업그레이드한 뒤 업데이트를 확인하면 일반판으로 전환됩니다.">
+              <strong>macOS 10.13–12?</strong> Download the <a href="https://github.com/ai-screams/Azimuth/releases/tag/legacy-v1.7.2-1">legacy build (1.7.2 Legacy)</a>. It keeps the core features but gets no new ones. After you upgrade to macOS 13 or later, its next update check switches it to the regular version.
             </p>
 
             <p class="install-note" id="brew-label" style="margin-bottom:.5rem;"
@@ -1874,9 +1886,9 @@
               Does it work on older macOS?
             </summary>
             <p class="faq-answer"
-               data-en="Azimuth supports macOS 13 (Ventura) and later. Ventura no longer receives Apple security updates, so use the newest macOS your Mac supports."
-               data-ko="Azimuth는 macOS 13 (Ventura) 이상을 지원합니다. Ventura는 Apple의 보안 업데이트 지원이 종료되었으므로, 사용 중인 Mac에서 지원하는 최신 macOS를 사용하는 것이 좋습니다.">
-              Azimuth supports macOS 13 (Ventura) and later. Ventura no longer receives Apple security updates, so use the newest macOS your Mac supports.
+               data-en="Yes. On macOS 10.13 (High Sierra) through 12 (Monterey), use the legacy build (1.7.2 Legacy) from Requirements &amp; install. It keeps the core features (window commands, shortcuts, menu, undo) and most settings, but gets no new ones. Launch at login needs macOS 13 and failure notifications need macOS 10.15. It updates itself, and after you upgrade to macOS 13 or later its next update check switches it to the regular version. Tested on a real Mac with macOS 10.13.6 and in macOS 12 and 13 virtual machines; 10.14–11 have not been tested on real hardware. These macOS versions no longer get Apple security updates, so upgrade if your Mac can."
+               data-ko="네. macOS 10.13(High Sierra)부터 12(Monterey)까지는 요구사항 &amp; 설치에 있는 레거시판(1.7.2 Legacy)을 쓰세요. 핵심 기능(윈도우 명령, 단축키, 메뉴, 되돌리기)과 대부분의 설정은 같고, 새 기능은 들어가지 않습니다. 다만 로그인 시 실행은 macOS 13 이상, 실패 알림은 macOS 10.15 이상에서만 쓸 수 있습니다. 스스로 업데이트되며, macOS 13 이상으로 업그레이드한 뒤 업데이트를 확인하면 일반판으로 전환됩니다. macOS 10.13.6 실제 Mac과 macOS 12·13 가상 머신에서 확인했고, 10.14~11은 실제 Mac에서 확인하지 않았습니다. 이 macOS들은 Apple 보안 업데이트가 끝났으므로, 가능하면 macOS를 업그레이드하는 것이 좋습니다.">
+              Yes. On macOS 10.13 (High Sierra) through 12 (Monterey), use the legacy build (1.7.2 Legacy) from Requirements &amp; install. It keeps the core features (window commands, shortcuts, menu, undo) and most settings, but gets no new ones. Launch at login needs macOS 13 and failure notifications need macOS 10.15. It updates itself, and after you upgrade to macOS 13 or later its next update check switches it to the regular version. Tested on a real Mac with macOS 10.13.6 and in macOS 12 and 13 virtual machines; 10.14–11 have not been tested on real hardware. These macOS versions no longer get Apple security updates, so upgrade if your Mac can.
             </p>
           </details>
 

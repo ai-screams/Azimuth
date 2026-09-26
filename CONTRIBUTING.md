@@ -16,7 +16,8 @@ architecture and directory-level conventions, see [`AGENTS.md`](AGENTS.md) and t
 ## Prerequisites
 
 - A Mac with **Xcode 26** or later (the project uses the `SWIFT_DEFAULT_ACTOR_ISOLATION` build setting,
-  introduced with Swift 6.2). This is the development requirement; the app itself runs on macOS 13 or later.
+  introduced with Swift 6.2). This is the development requirement; the app itself runs on macOS 13 or later (a
+  feature-frozen legacy build for 10.13–12 lives on the `legacy/10.13` branch — see its `CLAUDE.md`).
 - Command-line tools used by the hooks and CI:
 
   ```bash

@@ -7,13 +7,19 @@ implied by the Accessibility permission — seriously.
 
 ## Supported versions
 
-Azimuth ships as a single, auto-updating app (via Sparkle). Only the **latest release** receives
-security fixes; older builds are expected to update in place.
+Azimuth auto-updates in place (via Sparkle) on two channels: the **regular** release for macOS 13 and later,
+and a feature-frozen **legacy** build for macOS 10.13–12 (branch `legacy/10.13`). Only the latest build of
+each channel receives fixes; older builds are expected to update in place.
 
 | Version | Supported |
 |---------|-----------|
-| Latest release (`v1.x`) | ✅ |
+| Latest release (`v1.x`, macOS 13+) | ✅ |
+| Latest legacy build ([`legacy-v1.7.2-1`](https://github.com/ai-screams/Azimuth/releases/tag/legacy-v1.7.2-1), macOS 10.13–12) | ✅ security fixes and other critical bug fixes only |
 | Older releases | ❌ (update to the latest) |
+
+The legacy build depends on an older update framework (Sparkle 2.9.x, the last line that runs on macOS 10.13).
+If that can no longer be shipped safely, the legacy build will be retired with notice in its release notes and here;
+after upgrading to macOS 13 or later, a legacy install switches to the regular channel on its next update check.
 
 ## Reporting a vulnerability
 
