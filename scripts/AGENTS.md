@@ -1,5 +1,5 @@
 <!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-06-19 | Updated: 2026-09-22 -->
+<!-- Generated: 2026-06-19 | Updated: 2026-09-26 -->
 
 # scripts
 
@@ -25,6 +25,8 @@ Shell scripts for build, run, quality, security and release work. The `Makefile`
 | `install-hooks.sh` | Installs `.githooks/pre-commit` as the git hooks path |
 | `release.sh` | The release pipeline: archive → sign → notarize → build and stage the DMG. Called from `make release` and `release.yml` |
 | `sparkle-adapter-check.sh` | `make sparkle-adapter-check`, CI: resolves the pinned Sparkle, compiles `UpdateVersionText` + `UpdateVersionDisplayer` with `sparkle-adapter-check/main.swift`, and fails unless the displayer answers Sparkle's three ObjC selectors, conforms to `SUVersionDisplay`, and formats the up-to-date text as `v1.7.2` |
+| `previous-release-tag.sh` | Reads published release tags on stdin and prints the compare base for a release's auto-generated notes: the highest stable `vA.B.C` below a main tag, or the highest `legacy-v…-M` with M < N for `legacy-vX.Y.Z-N` (a channel's first legacy release falls back to the highest `vA.B.C` ≤ X.Y.Z); empty only for an empty list, and it **fails** when nothing fits rather than let GitHub guess. Used by `release.yml` and, **as the same file**, `legacy/10.13`'s `release-legacy.yml`. bash + POSIX awk only (macOS and ubuntu runners) |
+| `previous-release-tag-test.sh` | Fixed-list checks for the above; CI runs it on macOS (`lint-and-build`) and ubuntu (`release-scripts`, which also `cmp`s both files against `legacy/10.13` and fails if either is missing or differs) |
 | `make-dmg-background.swift` | Generates the DMG background image in code (a `swiftc` run script) |
 
 ## For AI Agents

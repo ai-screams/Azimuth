@@ -117,6 +117,21 @@ jobs:
           python3 -c 'import sys,xml.sax.saxutils as x; p="dist/appcast.xml"; repo,tag=sys.argv[1],sys.argv[2]; link=x.escape(f"https://github.com/{repo}/releases/tag/{tag}"); s=open(p).read(); s=(s if "<sparkle:releaseNotesLink>" in s else s.replace("<enclosure ", f"<sparkle:releaseNotesLink>{link}</sparkle:releaseNotesLink>\n            <enclosure ", 1)); open(p,"w").write(s)' "$GITHUB_REPOSITORY" "$GITHUB_REF_NAME"
           echo "appcast.xml generated ($(wc -l < dist/appcast.xml) lines)."
 
+      # 자동 목록("What's Changed")의 비교 기준: 직전 정식 본판. 비워 두면 GitHub이 스스로 고르는데, 레거시판과
+      # 피드 전용 릴리스(legacy-feed)가 같은 저장소에 있어 그쪽을 잡을 수 있다.
+      - name: Pick the previous release for the notes
+        id: notes_base
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # 개수 상한 없이 끝까지 넘긴다(상한에 걸려 직전 본판이 빠지면 엉뚱한 기준을 고른다). 초안은 제외.
+          gh api --paginate "repos/${GITHUB_REPOSITORY}/releases?per_page=100" \
+            --jq '.[] | select(.draft | not) | .tag_name' > "$RUNNER_TEMP/release-tags.txt"
+          TAG="$(./scripts/previous-release-tag.sh "$GITHUB_REF_NAME" < "$RUNNER_TEMP/release-tags.txt")"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Release notes compare base: ${TAG:-GitHub default}"
+
       - name: Create GitHub Release with DMG
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3
         with:
@@ -125,6 +140,7 @@ jobs:
             dist/*.dmg.sha256
             dist/appcast.xml
           generate_release_notes: true
+          previous_tag: ${{ steps.notes_base.outputs.tag }}
           fail_on_unmatched_files: true
           # 하이픈 포함 태그(v1.2.0-rc1, -beta 등)는 프리릴리스로 표시 → GitHub "latest" 및
           # releases/latest/download/appcast.xml(Sparkle 피드)에서 자동 제외. 정식 vX.Y.Z만 최신.
