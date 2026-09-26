@@ -77,21 +77,35 @@ enum AccessibilityPermissionService {
         trustedCache = nil
     }
 
-    /// 권한 요청 프롬프트를 띄우고 캐시를 갱신한다. 반환값은 쓰이지 않는다 —
-    /// 프롬프트 직후의 신뢰 상태는 사용자가 System Settings에서 조작하기 전 값이라 의미가 없다.
-    static func requestPrompt() {
+    /// 권한 요청 알림을 띄우고 캐시를 갱신한다. 알림은 비동기라 반환값(신뢰 여부)은 사용자가 답하기 전
+    /// 값이므로 쓰지 않는다.
+    private static func requestPrompt() {
         let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
         trustedCache = AXIsProcessTrustedWithOptions(options)
     }
 
-    /// "권한 설정 열기" 버튼/메뉴의 동작 전체. 프롬프트를 띄우고 System Settings를 연다.
-    /// 설정창을 열지 못했으면 false — 호출부가 사용자에게 알린다(피드백은 UI의 몫이라 여기서 소리내지 않는다).
+    /// "권한 설정 열기" 버튼/메뉴(설정창 Permissions 카드, 상태바 메뉴)의 동작 전체. 알림을 띄울지 설정을
+    /// 바로 열지는 `AccessibilityRequestPolicy`가 정한다 — 둘을 동시에 하면 알림에 답하기 전에 설정이 먼저
+    /// 뜬다. 알림 경로는 시도 기록을 **먼저** 남기고, 앱을 앞으로 가져온 뒤 다음 런루프에서 요청한다
+    /// (활성화는 즉시 끝난다는 보장이 없어, 메뉴 막대에서 누른 경우 알림이 다른 창 뒤에 숨지 않게).
     ///
-    /// 두 곳(설정창 Permissions 카드, 상태바 메뉴)이 같은 다섯 줄을 복제하고 있어 합쳤다.
+    /// 반환: 알림 요청을 보냈거나 설정을 열었으면 true, 설정을 열지 못했으면 false(호출부가 알린다 — 피드백은
+    /// UI의 몫이라 여기서 소리내지 않는다). true가 알림이 실제로 떴다거나 권한이 생겼다는 뜻은 아니다.
     @discardableResult
-    static func promptAndOpenSettings() -> Bool {
-        requestPrompt()
-        return openSystemSettings()
+    static func requestAccess(preferences: PreferencesStore) -> Bool {
+        invalidateCache()
+        let action = AccessibilityRequestPolicy.decide(
+            isTrusted: isTrustedCached(), didAttemptPrompt: preferences.didAttemptAccessibilityPrompt
+        )
+        switch action {
+        case .systemPrompt:
+            preferences.didAttemptAccessibilityPrompt = true
+            NSApp.bringToFront()
+            DispatchQueue.main.async { requestPrompt() }
+            return true
+        case .openSettings:
+            return openSystemSettings()
+        }
     }
 
     @discardableResult

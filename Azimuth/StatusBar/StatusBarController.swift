@@ -4,6 +4,9 @@ import os
 @MainActor
 final class StatusBarController: NSObject, NSMenuDelegate {
     var onOpenSettings: (() -> Void)?
+    /// "Open Accessibility Settings" 동작. 성공(알림 요청 또는 설정 열기)이면 true — 실패면 이 컨트롤러가 알린다.
+    /// 권한 알림 시도 기록(`PreferencesStore`)을 모르게 하려고 AppDelegate가 주입한다.
+    var onRequestAccessibility: (() -> Bool)?
     /// Sparkle 업데이터의 (타깃, 셀렉터). install() 전에 설정하면 메뉴에 "Check for Updates…"가 추가된다.
     /// Sparkle import를 StatusBarController로 끌어오지 않으려고 제네릭 타깃/셀렉터로 받는다.
     var checkForUpdates: (target: AnyObject, action: Selector)?
@@ -213,7 +216,11 @@ final class StatusBarController: NSObject, NSMenuDelegate {
     }
 
     @objc private func openAccessibilitySettings(_ sender: Any?) {
-        if !AccessibilityPermissionService.promptAndOpenSettings() { NSSound.beep() }
+        // 주입이 빠졌어도(nil) 조용히 넘어가지 않고 실패로 알린다.
+        guard onRequestAccessibility?() == true else {
+            NSSound.beep()
+            return
+        }
     }
 
     @objc private func quit(_ sender: Any?) {
