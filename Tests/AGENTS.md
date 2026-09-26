@@ -16,6 +16,7 @@ Regression tests for the command engine's **pure logic**. Instead of an Xcode te
 | `CommandEngineTests+Apply.swift` | anchor, FrameApply, CommandOutcomePolicy and WriteRetryPolicy (the retry decision and its budget boundary). Verifies the state commit for partial AX application, ignored successful writes and a failed final read, all from values |
 | `CommandEngineTests+Model.swift` | Command groups, primitive strings, the command model, identifiers and helpText exhaustively, plus the failure-feedback decision and the row-display truth table (`ShortcutRowPolicy`: the checkbox's two axes and badge priority) |
 | `CommandEngineTests+Hotkeys.swift` | The shortcut binding layer. Per-preset key assignment, overrides, the enabled filter, conflict detection, display strings, Codable round-trips and Carbon modifiers |
+| `CommandEngineTests+Updates.swift` | Sparkle update-window version text (`UpdateVersionText`): `v` prefix (no double v, empty short), legacy `209.N` only, update/bundle pairs incl. Legacy 1→2 and legacy→main migration, `(build)` only for identical labels with distinct non-empty builds. Shared verbatim with `legacy/10.13` |
 
 ## For AI Agents
 

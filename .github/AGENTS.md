@@ -15,7 +15,7 @@ GitHub Actions CI/CD configuration. **See [`CICD.md`](CICD.md) for the full over
 | File | Description |
 |------|-------------|
 | `CICD.md` | The complete CI/CD document (workflows, defense layers, local equivalents, repository settings, how to release) |
-| `workflows/ci.yml` | `push: main` plus PRs, on `macos-15`. **secret-scan** (gitleaks + SARIF) and **lint-and-build** (SwiftFormat → SwiftLint strict → xcodebuild → `scripts/test.sh` → `make coverage` with the ≥90% gate). Concurrency cancels stale PR runs |
+| `workflows/ci.yml` | `push: main` plus PRs, on `macos-15`. **secret-scan** (gitleaks + SARIF) and **lint-and-build** (SwiftFormat → SwiftLint strict → xcodebuild → Sparkle version-displayer check (`scripts/sparkle-adapter-check.sh`) → `make coverage` with the ≥90% gate). Concurrency cancels stale PR runs |
 | `workflows/codeql.yml` | CodeQL **Swift** SAST (on push to main and weekly). init → build → analyze → Security/Code scanning |
 | `workflows/release.yml` | Tag `v*` → the `environment: release` approval gate → build, sign, notarize, **DMG self-verification**, **SHA-256 checksum**, **EdDSA signing-key match gate**, **Sparkle appcast signing and generation**, then publish the Release |
 | `dependabot.yml` | Weekly github-actions updates (refreshing the SHA pins) |
