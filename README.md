@@ -41,7 +41,7 @@ Design principle: **predictability over clever inference.** Every command does e
 ## Requirements
 
 - macOS 13 (Ventura) or later. Ventura no longer receives Apple security updates, so use the newest macOS your Mac supports.
-- **On macOS 10.13–12**, use the [legacy build](https://github.com/ai-screams/Azimuth/releases/tag/legacy-v1.7.2-1) (`1.7.2 Legacy`) — see [Older macOS](#older-macos-legacy-build).
+- **On macOS 10.13–12**, use the [legacy build](https://github.com/ai-screams/Azimuth/releases/tag/legacy-v1.7.2-3) (`1.7.2 Legacy`) — see [Older macOS](#older-macos-legacy-build).
 - **Accessibility permission** (Azimuth controls other apps' windows through the Accessibility API).
 
 ## Privacy
@@ -60,7 +60,7 @@ The build is Developer ID–signed and notarized, so it opens without Gatekeeper
 
 ### Older macOS (legacy build)
 
-Download [`Azimuth-1.7.2-legacy-1.dmg`](https://github.com/ai-screams/Azimuth/releases/download/legacy-v1.7.2-1/Azimuth-1.7.2-legacy-1.dmg) (release notes: [legacy release](https://github.com/ai-screams/Azimuth/releases/tag/legacy-v1.7.2-1)) and install it the same way
+Download [`Azimuth-1.7.2-legacy-3.dmg`](https://github.com/ai-screams/Azimuth/releases/download/legacy-v1.7.2-3/Azimuth-1.7.2-legacy-3.dmg) (release notes: [legacy release](https://github.com/ai-screams/Azimuth/releases/tag/legacy-v1.7.2-3)) and install it the same way
 (on these versions the setting lives in **System Preferences → Security & Privacy → Privacy → Accessibility**).
 
 - **Same core features, no new ones.** Window commands, shortcuts, the menu and undo all work, as do most settings;

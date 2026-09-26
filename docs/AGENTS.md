@@ -42,7 +42,7 @@ inline design-token stylesheet.
   `<p><a data-en data-ko>` (its text `<p>` swaps `textContent`, which would erase an inline `<a>`).
   The `#download-legacy` button links the DMG itself (`releases/download/<tag>/Azimuth-X.Y.Z-legacy-N.dmg`);
   its label is an inner `<span data-en data-ko>` so the toggle keeps the icon.
-  The current tag is `legacy-v1.7.2-1`; bump it after each legacy release (README and SECURITY too).
+  The current tag is `legacy-v1.7.2-3`; bump it after each legacy release (README and SECURITY too).
   JSON-LD `SoftwareApplication` stays "macOS 13+" on purpose: it describes the `/releases/latest` download.
 - **Funding links live in index.html's support block.** Ko-fi `https://ko-fi.com/pignuante`
   and GitHub Sponsors `https://github.com/sponsors/ai-screams` (see `.github/FUNDING.yml`).
