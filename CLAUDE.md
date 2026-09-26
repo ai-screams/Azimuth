@@ -131,9 +131,9 @@ Before opening a PR: `make build && make lint && make test` (CI runs the same, p
 - Strings like "N commands" / "N shortcuts" must match `WindowCommand.menuCommands`
   (currently **34**). Bumping a command means updating both HTML files and the README.
 - The **legacy build** (macOS 10.13–12, branch `legacy/10.13`) is linked by its release tag
-  `releases/tag/legacy-v1.7.2-1` (currently) from `index.html` (`#legacy` note), `manual.html` (macOS
+  `releases/tag/legacy-v1.7.2-3` (currently) from `index.html` (`#legacy` note), `manual.html` (macOS
   version card), README ("Older macOS (legacy build)") and SECURITY (supported-versions table), and the
-  direct DMG URL `…/releases/download/legacy-v1.7.2-1/Azimuth-1.7.2-legacy-1.dmg` is in `index.html`
+  direct DMG URL `…/releases/download/legacy-v1.7.2-3/Azimuth-1.7.2-legacy-3.dmg` is in `index.html`
   (`#download-legacy` button) and README. Each new legacy release means bumping those; the
   legacy code, CI and release workflow live on that branch (see its `CLAUDE.md`).
 - Merging to `main` triggers the **"pages build and deployment"** workflow. The live site

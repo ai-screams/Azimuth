@@ -14,7 +14,7 @@ each channel receives fixes; older builds are expected to update in place.
 | Version | Supported |
 |---------|-----------|
 | Latest release (`v1.x`, macOS 13+) | ✅ |
-| Latest legacy build ([`legacy-v1.7.2-1`](https://github.com/ai-screams/Azimuth/releases/tag/legacy-v1.7.2-1), macOS 10.13–12) | ✅ security fixes and other critical bug fixes only |
+| Latest legacy build ([`legacy-v1.7.2-3`](https://github.com/ai-screams/Azimuth/releases/tag/legacy-v1.7.2-3), macOS 10.13–12) | ✅ security fixes and other critical bug fixes only |
 | Older releases | ❌ (update to the latest) |
 
 The legacy build depends on an older update framework (Sparkle 2.9.x, the last line that runs on macOS 10.13).
