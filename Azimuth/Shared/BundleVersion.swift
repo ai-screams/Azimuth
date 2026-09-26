@@ -21,9 +21,10 @@ extension Bundle {
 
 /// 표시 버전 규칙(순수 함수, `make test` 대상).
 nonisolated enum VersionDisplay {
-    /// 레거시판 빌드 번호 `209.N`의 앞자리. `scripts/release.sh`의 `LEGACY_BUILD_MAJOR`와 같아야 한다.
-    /// 본판 빌드 번호(커밋 수, 210 이상)보다 늘 작아서 Sparkle이 13+에서 본판을 더 새것으로 본다.
-    static let legacyBuildMajor = "209"
+    /// 레거시판 빌드 번호 `209.N`의 앞자리 — 판정과 함께 `UpdateVersionText`가 한 곳에서 갖는다(업데이트 창과
+    /// About·설정창이 같은 규칙을 쓰게). 본판 빌드 번호(커밋 수, 210 이상)보다 늘 작아서 Sparkle이 13+에서 본판을
+    /// 더 새것으로 본다.
+    static let legacyBuildMajor = UpdateVersionText.legacyBuildMajor
 
     /// "<prefix> <short>", build가 short와 다르면 "<prefix> <short> (<build>)",
     /// 레거시 빌드(`209.N`)면 "<prefix> <short> Legacy <N>". short 미상 시 "—".
@@ -31,9 +32,8 @@ nonisolated enum VersionDisplay {
         let short = short ?? "—"
         let build = build ?? ""
         if build.isEmpty || build == short { return "\(prefix) \(short)" }
-        let parts = build.split(separator: ".", omittingEmptySubsequences: false)
-        if parts.count == 2, parts[0] == legacyBuildMajor, Int(parts[1]) != nil {
-            return "\(prefix) \(short) Legacy \(parts[1])"
+        if let sequence = UpdateVersionText.legacySequence(build: build) {
+            return "\(prefix) \(short) Legacy \(sequence)"
         }
         return "\(prefix) \(short) (\(build))"
     }

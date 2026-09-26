@@ -19,8 +19,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private lazy var updaterController = SPUStandardUpdaterController(
         startingUpdater: true,
         updaterDelegate: self,
-        userDriverDelegate: nil
+        userDriverDelegate: updateVersionDisplayer
     )
+    /// 업데이트 창의 버전을 "v1.7.2 Legacy N"으로 표시한다. Sparkle은 delegate를 약하게 잡으므로 여기서 보유한다.
+    private let updateVersionDisplayer = UpdateVersionDisplayer()
     private let frontmostAppTracker = FrontmostAppTracker()
     private let windowUndoStore = WindowUndoStore()
     private let windowSnapStore = SnapStateStore()

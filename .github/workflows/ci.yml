@@ -130,5 +130,10 @@ jobs:
           ./scripts/legacy-bundle-runtime.sh "$APP" -
           ./scripts/legacy-bundle-gate.sh "$APP"
 
+      # 업데이트 창 버전 표기("v1.7.2 Legacy N")는 Sparkle이 ObjC 이름으로 찾는 optional 메서드라, 이름이
+      # 어긋나도 빌드는 통과한다. 실제 Sparkle과 링크해 응답하는지 확인한다.
+      - name: Sparkle version displayer check
+        run: ./scripts/sparkle-adapter-check.sh
+
       - name: Tests + coverage gate (pure logic >= 90%)
         run: make coverage # 테스트 실행 + 순수 로직 라인 ≥ 90% 게이트(중복 test 스텝 제거)
