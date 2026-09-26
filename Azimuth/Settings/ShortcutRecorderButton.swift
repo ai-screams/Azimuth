@@ -67,6 +67,11 @@ final class ShortcutRecorderButton: NSButton {
         onRecordingStateChanged?(true)
     }
 
+    /// 녹화 중이면 취소한다(전역 단축키 재개). 포커스를 옮기지 못한 채 행을 숨겨야 할 때 쓴다(#137).
+    func cancelRecordingIfNeeded() {
+        cancelRecording()
+    }
+
     private func cancelRecording() {
         guard isRecording else { return }
         isRecording = false

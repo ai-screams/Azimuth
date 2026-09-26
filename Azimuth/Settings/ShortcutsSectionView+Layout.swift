@@ -264,6 +264,7 @@ extension ShortcutsSectionView {
             views.disclosure.isEnabled = !isSearching
         }
         emptyLabel.isHidden = !matchedCounts.isEmpty || !isSearching
+        pruneHiddenSlots() // 숨은 슬롯을 계층에서 뗀다(`ShortcutsSectionView+Pruning`, #137)
     }
 
     func capture(_ shortcut: HotkeyShortcut, for command: WindowCommand) {

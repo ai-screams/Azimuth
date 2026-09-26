@@ -88,6 +88,7 @@ final class SettingsWindowController {
         )
         let tabController = SettingsTabController(panes: [generalPane, shortcutsPane, advancedPane])
         window.contentViewController = tabController
+        window.autorecalculatesKeyViewLoop = true // Shortcuts 행을 떼고 붙여도 Tab 순서가 보이는 컨트롤을 따른다(#137)
         applyResizeLimits(to: window, tabController: tabController)
         window.center()
         return NSWindowController(window: window)
