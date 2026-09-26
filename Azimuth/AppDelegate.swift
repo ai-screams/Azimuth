@@ -14,11 +14,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Sparkle 자동 업데이트. startingUpdater: true로 즉시 시작 → 피드(appcast)를 주기적으로
     /// 확인한다. 자동 확인 동의는 Sparkle 표준 동작(둘째 실행 시 프롬프트)에 맡긴다.
     /// "Check for Updates…" 메뉴 항목의 타깃이 된다(canCheckForUpdates에 따라 자동 활성화).
-    private let updaterController = SPUStandardUpdaterController(
+    /// 첫 접근(`installMainMenu`)에서 만들어지며 그때 업데이터가 시작된다.
+    private lazy var updaterController = SPUStandardUpdaterController(
         startingUpdater: true,
         updaterDelegate: nil,
-        userDriverDelegate: nil
+        userDriverDelegate: updateVersionDisplayer
     )
+    /// 업데이트 창의 버전을 "v1.7.2"로 표시한다. Sparkle은 delegate를 약하게 잡으므로 여기서 보유한다.
+    private let updateVersionDisplayer = UpdateVersionDisplayer()
     private let frontmostAppTracker = FrontmostAppTracker()
     private let windowUndoStore = WindowUndoStore()
     private let windowSnapStore = SnapStateStore()

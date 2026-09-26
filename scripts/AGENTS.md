@@ -24,6 +24,7 @@ Shell scripts for build, run, quality, security and release work. The `Makefile`
 | `secret-scan.sh` | gitleaks secret scan |
 | `install-hooks.sh` | Installs `.githooks/pre-commit` as the git hooks path |
 | `release.sh` | The release pipeline: archive → sign → notarize → build and stage the DMG. Called from `make release` and `release.yml` |
+| `sparkle-adapter-check.sh` | `make sparkle-adapter-check`, CI: resolves the pinned Sparkle, compiles `UpdateVersionText` + `UpdateVersionDisplayer` with `sparkle-adapter-check/main.swift`, and fails unless the displayer answers Sparkle's three ObjC selectors, conforms to `SUVersionDisplay`, and formats the up-to-date text as `v1.7.2` |
 | `make-dmg-background.swift` | Generates the DMG background image in code (a `swiftc` run script) |
 
 ## For AI Agents
