@@ -24,8 +24,11 @@ grant Accessibility?" — are answered there.
 ## Common first checks
 
 - **Shortcuts do nothing?** Make sure Accessibility is enabled in
-  **System Settings → Privacy & Security → Accessibility**, and check the Settings window — a
+  **System Settings → Privacy & Security → Accessibility** (macOS 10.13–12: **System Preferences → Security &
+  Privacy → Privacy → Accessibility**), and check the Settings window — a
   combo shown as *"In use by system"* is claimed elsewhere and can be remapped.
+- **On macOS 10.13–12?** Use the legacy build — see
+  [Older macOS](README.md#older-macos-legacy-build) in the README.
 - **Running an old version?** Azimuth updates in place via Sparkle — use **Check for Updates…**
   from the menu bar or Settings.
 

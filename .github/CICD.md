@@ -33,7 +33,8 @@ Azimuth의 지속적 통합·배포 구성 전체 개요. 워크플로 정의는
 > 설계 메모:
 > - **단일-항목 피드**: appcast는 매 릴리스 새 DMG 1건만 담는다("항상 최신 제공" 모델). 고정 URL이 항상 최신 릴리스의 appcast로 연결되므로 "내 버전보다 새 게 있나" 판정에 충분하다(델타 업데이트·다채널은 미사용). 의도된 설계.
 > - **generate_appcast 출처**: 별도 tarball 다운로드(미검증) 대신 **SPM이 `Package.resolved`에 핀해 체크섬 검증으로 받아둔 Sparkle 아티팩트**의 도구를 쓴다(서명키 옆에서 도는 코드의 공급망 위험 제거).
-> - **CFBundleVersion**: Sparkle 버전 비교용으로 `release.sh`가 **git 커밋 수(단조 증가 정수)** 를 주입한다(SemVer 문자열은 `-rc`/`-dev`서 비교가 꼬일 수 있어 회피). 표시 버전은 `MARKETING_VERSION`(태그 SemVer). 그래서 release 체크아웃은 `fetch-depth: 0`.
+> - **CFBundleVersion**: Sparkle 버전 비교용으로 `release.sh`가 **git 커밋 수(단조 증가 정수)** 를 주입한다(SemVer 문자열은 `-rc`/`-dev`서 비교가 꼬일 수 있어 회피). 표시 버전은 `MARKETING_VERSION`(태그 SemVer). 그래서 release 체크아웃은 `fetch-depth: 0`. **210 이상을 유지해야 한다** — 레거시판(10.13~12)은 빌드 번호 `209.N`을 쓰고, 13 이상으로 올린 레거시 사용자는 본판 번호가 더 클 때만 본판으로 옮겨 온다.
+> - **레거시판**: `legacy/10.13` 브랜치의 `release-legacy.yml`이 `legacy-v*` 태그로 따로 낸다(최신 릴리스를 차지하지 않고 `legacy-feed` 릴리스의 appcast만 갱신). 본판 `release.yml`의 `v*` 태그와 겹치지 않는다.
 > - **릴리스 노트**: appcast `<item>`에 `sparkle:releaseNotesLink`(이 릴리스의 GitHub 태그 페이지)를 주입 → 업데이트 창에서 변경점을 본다.
 > - **prerelease 태그**: 하이픈 포함 태그(`v1.2.0-rc1`·`-beta`)는 `prerelease: true`로 발행 → GitHub "latest" 및 `releases/latest/download/appcast.xml` 피드에서 자동 제외(정식 `vX.Y.Z`만 사용자에게 노출).
 
