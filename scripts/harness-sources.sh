@@ -22,6 +22,9 @@ HARNESS_SRC=(
     "Azimuth/Commands/WriteRetryPolicy.swift"
     "Azimuth/Commands/EdgeReanchorPolicy.swift"
     "Azimuth/Shared/UpdateVersionText.swift"
+    "Azimuth/Permissions/AccessibilityRequestPolicy.swift"
+    "Azimuth/Preferences/PreferencesStore.swift"
+    "Azimuth/Shared/Log.swift"
     "Azimuth/Commands/ShortcutListPolicy.swift"
     "Azimuth/Commands/ShortcutRowPolicy.swift"
     "Azimuth/Commands/CommandFeedbackPolicy.swift"
@@ -44,4 +47,5 @@ HARNESS_TESTS=(
     "Tests/CommandEngineTests+Model.swift"
     "Tests/CommandEngineTests+Hotkeys.swift"
     "Tests/CommandEngineTests+Updates.swift"
+    "Tests/CommandEngineTests+Permissions.swift"
 )

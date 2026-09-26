@@ -17,6 +17,7 @@ final class PreferencesStore {
     private let disabledGroupsKey = "disabledGroupTokens"
     private let menuBarIconHiddenKey = "menuBarIconHidden"
     private let didCompleteFirstRunKey = "didCompleteFirstRun"
+    private let didAttemptAccessibilityPromptKey = "didAttemptAccessibilityPrompt"
     private let resolveTimeoutKey = "resolveTimeout"
     private let migratedAbsoluteHalfRemovedKey = "migration.absoluteHalfRemoved.v1"
 
@@ -42,7 +43,19 @@ final class PreferencesStore {
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
+        migrateAccessibilityPromptHistory()
         migrateAbsoluteHalfRemoved()
+    }
+
+    /// 권한 알림 시도 기록이 없으면 한 번만 정해 저장한다. 첫 실행 안내가 `didCompleteFirstRun`을 켜기 전인
+    /// 여기서 해야 새 설치본이 "이미 시도함"으로 잘못 정해지지 않는다(`AccessibilityRequestPolicy`).
+    private func migrateAccessibilityPromptHistory() {
+        let recorded = defaults.object(forKey: didAttemptAccessibilityPromptKey) as? Bool
+        guard recorded == nil else { return }
+        let initial = AccessibilityRequestPolicy.initialAttemptFlag(
+            recorded: recorded, didCompleteFirstRun: defaults.bool(forKey: didCompleteFirstRunKey)
+        )
+        defaults.set(initial, forKey: didAttemptAccessibilityPromptKey)
     }
 
     private func migrateAbsoluteHalfRemoved() {
@@ -152,6 +165,12 @@ final class PreferencesStore {
     var menuBarIconHidden: Bool {
         get { defaults.bool(forKey: menuBarIconHiddenKey) }
         set { defaults.set(newValue, forKey: menuBarIconHiddenKey) }
+    }
+
+    /// 손쉬운 사용 권한 알림을 시도했는가(실제로 떴는지·허용했는지가 아니라 **요청을 보냈는지**).
+    var didAttemptAccessibilityPrompt: Bool {
+        get { defaults.bool(forKey: didAttemptAccessibilityPromptKey) }
+        set { defaults.set(newValue, forKey: didAttemptAccessibilityPromptKey) }
     }
 
     /// 첫 실행 온보딩(권한 안내 창)을 이미 띄웠는지. 미설정(false)=아직 안 띄움 → 첫 실행에서만 1회 노출.

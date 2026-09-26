@@ -94,6 +94,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusBarController.onOpenSettings = { [weak self] in
             self?.settingsWindowController.show()
         }
+        statusBarController.onRequestAccessibility = { [weak self] in
+            guard let self else { return false }
+            return AccessibilityPermissionService.requestAccess(preferences: preferencesStore)
+        }
         statusBarController.checkForUpdates = (
             target: updaterController,
             action: #selector(SPUStandardUpdaterController.checkForUpdates(_:))

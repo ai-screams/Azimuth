@@ -11,10 +11,13 @@ import os
 
 extension GeneralPaneViewController {
     @objc func openAccessibilitySettings(_ sender: Any?) {
-        if !AccessibilityPermissionService.promptAndOpenSettings() { NSSound.beep() }
+        if !AccessibilityPermissionService.requestAccess(preferences: preferencesStore) { NSSound.beep() }
     }
 
     @objc func handleDidBecomeActive(_ notification: Notification) {
+        // 사용자가 System Settings에서 권한을 바꿨을 수 있다. AppDelegate도 같은 알림에서 캐시를 비우지만
+        // 관찰자 호출 순서는 보장되지 않으므로, 이 화면이 낡은 값을 그리지 않게 여기서도 비운다.
+        AccessibilityPermissionService.invalidateCache()
         updatePermissionUI()
         updateBehaviorUI()
     }
