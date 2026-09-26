@@ -137,3 +137,18 @@ jobs:
 
       - name: Tests + coverage gate (pure logic >= 90%)
         run: make coverage # 테스트 실행 + 순수 로직 라인 ≥ 90% 게이트(중복 test 스텝 제거)
+
+      - name: Previous release tag selection (macOS awk)
+        run: ./scripts/previous-release-tag-test.sh
+
+  # 출시 본문의 비교 기준을 고르는 스크립트는 release-legacy.yml의 publish 잡(ubuntu mawk)에서 돈다.
+  # main과 같은 파일이고, 두 사본의 대조는 main CI가 한다.
+  release-scripts:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Previous release tag selection
+        run: ./scripts/previous-release-tag-test.sh

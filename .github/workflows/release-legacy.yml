@@ -212,6 +212,25 @@ jobs:
           name: legacy-dist
           path: dist
 
+      # 자동 목록("What's Changed")의 비교 기준: 직전 정식 레거시판(첫 레거시면 갈라져 나온 본판). 비워 두면 GitHub이
+      # 피드 전용 릴리스(legacy-feed)를 골랐다(Legacy 3). 개수 상한 없이 끝까지 넘기고 초안은 제외한다.
+      # 스크립트는 main과 같은 파일이다. main CI는 레거시 쪽만 바뀐 경우를 못 보므로 게시 직전에 main 사본과 대조한다.
+      - name: Pick the previous release for the notes
+        id: notes_base
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin main
+          for f in previous-release-tag.sh previous-release-tag-test.sh; do
+            git show "FETCH_HEAD:scripts/$f" | cmp - "scripts/$f"
+          done
+          gh api --paginate "repos/${GITHUB_REPOSITORY}/releases?per_page=100" \
+            --jq '.[] | select(.draft | not) | .tag_name' > "$RUNNER_TEMP/release-tags.txt"
+          TAG="$(./scripts/previous-release-tag.sh "$GITHUB_REF_NAME" < "$RUNNER_TEMP/release-tags.txt")"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Release notes compare base: ${TAG:-GitHub default}"
+
       - name: Create GitHub Release with DMG (never latest)
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3
         with:
@@ -220,6 +239,7 @@ jobs:
             dist/*.dmg.sha256
             dist/appcast.xml
           generate_release_notes: true
+          previous_tag: ${{ steps.notes_base.outputs.tag }}
           fail_on_unmatched_files: true
           make_latest: "false"
 
