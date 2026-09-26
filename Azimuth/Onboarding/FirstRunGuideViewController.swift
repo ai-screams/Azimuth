@@ -123,10 +123,12 @@ final class FirstRunGuideViewController: NSViewController {
 
     private func makeGuideRow(symbol: String, tint: NSColor, text: String) -> NSView {
         let icon = NSImageView()
-        icon.image = NSImage(systemSymbolName: symbol, accessibilityDescription: nil)?
-            .withSymbolConfiguration(.init(pointSize: 13, weight: .regular))
+        if #available(macOS 11.0, *) {
+            icon.image = NSImage.symbol(symbol)?.withSymbolConfiguration(.init(pointSize: 13, weight: .regular))
+        }
+        icon.isHidden = icon.image == nil
         icon.setAccessibilityElement(false) // 장식용 — 의미는 옆 텍스트가 전달한다
-        icon.contentTintColor = tint
+        icon.setTint(tint)
         icon.translatesAutoresizingMaskIntoConstraints = false
         icon.widthAnchor.constraint(equalToConstant: Layout.iconColumnWidth).isActive = true
 
@@ -149,6 +151,7 @@ final class FirstRunGuideViewController: NSViewController {
             action: #selector(launchAtLoginChanged(_:))
         )
         checkbox.state = launchService.isEnabled ? .on : .off
+        checkbox.isHidden = !LegacySupport.launchAtLogin
         return checkbox
     }
 

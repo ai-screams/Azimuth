@@ -104,7 +104,7 @@ final class GeneralPaneViewController: NSViewController, SettingsPane {
         view = NSView(frame: NSRect(x: 0, y: 0, width: SettingsTabController.windowWidth, height: 640))
     }
 
-    /// 콘텐츠 전체를 다 보여주기 위한 자연 높이(스크롤 없이 필요한 높이). 창 초기/최대 높이 산정에 쓴다.
+    /// 콘텐츠 전체를 다 보여주기 위한 자연 높이(스크롤 없이 필요한 높이). 레거시판의 고정 창 높이가 이 값에서 나온다.
     func naturalContentHeight() -> CGFloat {
         SettingsPaneScaffold.naturalContentHeight(of: documentView, in: view)
     }
@@ -144,6 +144,12 @@ final class GeneralPaneViewController: NSViewController, SettingsPane {
         NotificationCenter.default.removeObserver(self)
     }
 
+    /// General의 내용 높이가 바뀌었을 수 있을 때 창을 다시 맞춘다(레거시판: 창 높이 = General 자연 높이).
+    /// 컨테이너는 AppKit 뷰 컨트롤러 포함 관계(`parent`)로 얻는다. 창이 아직 없으면 아무 일도 하지 않는다.
+    func refitWindowToContent() {
+        (parent as? SettingsTabController)?.applyFixedWindowSize()
+    }
+
     func updatePermissionUI() {
         let status = AccessibilityPermissionService.currentStatus()
 
@@ -153,8 +159,8 @@ final class GeneralPaneViewController: NSViewController, SettingsPane {
         actionButton.isHidden = status.isTrusted
 
         let symbol = status.isTrusted ? "checkmark.circle.fill" : "exclamationmark.triangle.fill"
-        statusIcon.image = NSImage(systemSymbolName: symbol, accessibilityDescription: nil)
-        statusIcon.contentTintColor = status.isTrusted ? .systemGreen : .systemOrange
+        statusIcon.setSymbol(symbol)
+        statusIcon.setTint(status.isTrusted ? .systemGreen : .systemOrange)
     }
 
     /// SMAppService는 상태 변경 알림(KVO/Notification)을 제공하지 않으므로, 로그인 항목 상태는
@@ -169,6 +175,8 @@ final class GeneralPaneViewController: NSViewController, SettingsPane {
         menuBarIconButton.state = preferencesStore.menuBarIconHidden ? .on : .off
         launchAtLoginButton.state = launchService.isEnabled ? .on : .off
 
+        launchAtLoginButton.isHidden = !LegacySupport.launchAtLogin
+        notifyOnFailureButton.isHidden = !LegacySupport.failureNotifications
         let needsApproval = launchService.requiresApproval
         launchApprovalLabel.isHidden = !needsApproval
         launchApprovalButton.isHidden = !needsApproval
@@ -176,5 +184,7 @@ final class GeneralPaneViewController: NSViewController, SettingsPane {
             launchApprovalLabel.stringValue =
                 "Login item is registered but needs approval in System Settings > General > Login Items."
         }
+        // 권한·동작 갱신은 늘 이 순서로 짝지어 불리므로(`viewWillAppear`, 앱 활성화) 창 맞춤은 여기서 한 번만 한다.
+        refitWindowToContent()
     }
 }

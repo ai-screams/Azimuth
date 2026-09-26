@@ -39,7 +39,12 @@ nonisolated enum AccessibilityPermissionStatus {
         case .granted:
             "Accessibility access is enabled. Shortcuts and menu commands can move and resize other app windows."
         case .required:
-            "Enable Accessibility access for Azimuth in System Settings > Privacy & Security > Accessibility."
+            if #available(macOS 13.0, *) {
+                "Enable Accessibility access for Azimuth in System Settings > Privacy & Security > Accessibility."
+            } else {
+                "Enable Accessibility access for Azimuth in "
+                    + "System Preferences > Security & Privacy > Privacy > Accessibility."
+            }
         }
     }
 }

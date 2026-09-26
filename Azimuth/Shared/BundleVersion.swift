@@ -9,12 +9,32 @@
 import Foundation
 
 extension Bundle {
-    /// "<prefix> <short>" 또는 build가 short와 다르면 "<prefix> <short> (<build>)".
-    /// short 미상 시 "—". prefix는 호출부가 지정("Version"·"Azimuth" 등).
+    /// 번들의 짧은 버전·빌드 번호로 `VersionDisplay.string`을 만든다. prefix는 호출부가 지정("Version"·"Azimuth" 등).
     func displayVersion(prefix: String) -> String {
-        let short = infoDictionary?["CFBundleShortVersionString"] as? String ?? "—"
-        let build = infoDictionary?["CFBundleVersion"] as? String ?? ""
+        VersionDisplay.string(
+            prefix: prefix,
+            short: infoDictionary?["CFBundleShortVersionString"] as? String,
+            build: infoDictionary?["CFBundleVersion"] as? String
+        )
+    }
+}
+
+/// 표시 버전 규칙(순수 함수, `make test` 대상).
+nonisolated enum VersionDisplay {
+    /// 레거시판 빌드 번호 `209.N`의 앞자리. `scripts/release.sh`의 `LEGACY_BUILD_MAJOR`와 같아야 한다.
+    /// 본판 빌드 번호(커밋 수, 210 이상)보다 늘 작아서 Sparkle이 13+에서 본판을 더 새것으로 본다.
+    static let legacyBuildMajor = "209"
+
+    /// "<prefix> <short>", build가 short와 다르면 "<prefix> <short> (<build>)",
+    /// 레거시 빌드(`209.N`)면 "<prefix> <short> Legacy <N>". short 미상 시 "—".
+    static func string(prefix: String, short: String?, build: String?) -> String {
+        let short = short ?? "—"
+        let build = build ?? ""
         if build.isEmpty || build == short { return "\(prefix) \(short)" }
+        let parts = build.split(separator: ".", omittingEmptySubsequences: false)
+        if parts.count == 2, parts[0] == legacyBuildMajor, Int(parts[1]) != nil {
+            return "\(prefix) \(short) Legacy \(parts[1])"
+        }
         return "\(prefix) \(short) (\(build))"
     }
 }

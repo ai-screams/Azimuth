@@ -1,5 +1,5 @@
 <!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-06-19 | Updated: 2026-09-22 -->
+<!-- Generated: 2026-06-19 | Updated: 2026-09-26 -->
 
 # StatusBar
 
@@ -9,6 +9,7 @@ The menu-bar status item and its menu. Shows permission state, opens settings, q
 ## Key Files
 | File | Description |
 |------|-------------|
+| `LegacyStatusIcon.swift` | **Legacy branch.** Menu-bar template image drawn with `NSBezierPath` for macOS below 11 (no SF Symbols): two overlapping windows when trusted, a warning triangle when not. Without it the image-only status item has zero width and the app is unreachable |
 | `StatusBarController.swift` | `@MainActor`, `NSMenuDelegate`. A compact SF Symbol status icon (`macwindow.on.rectangle` when permission is granted, `exclamationmark.triangle` when it is needed). The menu holds: permission state / open Accessibility settings / the last command failure reason (an informational row fed by the `lastFailureText` closure that AppDelegate injects, hidden when there is no failure) / Check for Updates… / Open Settings (`⌘,`) / Quit (`⌘q`). Under DEBUG it also offers focused-window identification and a submenu of all 34 commands (`WindowCommand.menuCommands`) |
 
 ## For AI Agents

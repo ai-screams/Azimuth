@@ -14,9 +14,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Sparkle 자동 업데이트. startingUpdater: true로 즉시 시작 → 피드(appcast)를 주기적으로
     /// 확인한다. 자동 확인 동의는 Sparkle 표준 동작(둘째 실행 시 프롬프트)에 맡긴다.
     /// "Check for Updates…" 메뉴 항목의 타깃이 된다(canCheckForUpdates에 따라 자동 활성화).
-    private let updaterController = SPUStandardUpdaterController(
+    /// 레거시판: delegate(self)가 OS 버전으로 목록을 고른다(`feedURLString(for:)`). self를 넘기므로 lazy이고,
+    /// 기동 때 메인 메뉴를 만들며 처음 접근돼 시작된다.
+    private lazy var updaterController = SPUStandardUpdaterController(
         startingUpdater: true,
-        updaterDelegate: nil,
+        updaterDelegate: self,
         userDriverDelegate: nil
     )
     private let frontmostAppTracker = FrontmostAppTracker()
@@ -26,7 +28,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let preferencesStore = PreferencesStore()
     private let launchAtLoginService = LaunchAtLoginService()
     /// 명령 실패 알림(opt-in). 권한 요청은 Settings 토글을 켤 때만 일어난다.
-    private let failureNotifier = CommandFailureNotifier()
+    /// 레거시판: 10.15 미만에는 알림 경로가 없어 nil(설정 토글도 숨김).
+    private let failureNotifier: AnyObject? = {
+        if #available(macOS 10.15, *) { return CommandFailureNotifier() }
+        return nil
+    }()
+
     private var registrationFailureIdentifiers: Set<String> = []
     /// 권한 미부여로 단축키가 실패했을 때 이번 세션에 이미 안내(Settings 유도)를 했는지.
     /// 매 실패마다 창을 띄우면 성가시므로 세션당 1회만.
@@ -44,7 +51,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         setResolveTimeout: { seconds in FocusedWindowResolver.setResolveTimeout(seconds) },
         checkForUpdates: { [weak self] in self?.updaterController.checkForUpdates(nil) },
         requestNotificationAuthorization: { [weak self] in
-            await self?.failureNotifier.requestAuthorization() ?? .failed
+            if #available(macOS 10.15, *), let notifier = self?.failureNotifier as? CommandFailureNotifier {
+                return await notifier.requestAuthorization()
+            }
+            return .failed
         }
     )
     private lazy var statusBarController = StatusBarController(
@@ -60,6 +70,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         configureActivationPolicy()
         installMainMenu()
+        // 과거 `setFeedURL`로 저장된 주소가 있으면 delegate보다 뒤지만, 이주 뒤 되살아나지 않게 지운다.
+        updaterController.updater.clearFeedURLFromUserDefaults()
         installStatusBar()
         // 고급 설정의 해석 상한을 기동 시 한 번 반영한다(setter 가 다시 클램프하므로 이중 안전).
         FocusedWindowResolver.setResolveTimeout(preferencesStore.resolveTimeout)
@@ -212,7 +224,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // (`notify`가 참인 경우는 항상 `.set` 직후라) 그 안전이 두 필드의 우연한 합의에 기댄다 —
         // `.keep`과 `notify`가 함께 참이 되는 조합이 생기면 **지난 실패 문구가 새 알림으로** 나간다.
         if feedback.notify, case let .set(message) = feedback.lastFailure {
-            failureNotifier.postCommandFailure(commandName: command.displayName, message: message)
+            if #available(macOS 10.15, *), let notifier = failureNotifier as? CommandFailureNotifier {
+                notifier.postCommandFailure(commandName: command.displayName, message: message)
+            }
         }
         if feedback.nudgeForPermission {
             nudgeForPermission()
@@ -314,5 +328,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let policy: NSApplication.ActivationPolicy = hasWindow ? .regular : .accessory
         guard NSApp.activationPolicy() != policy else { return }
         NSApp.setActivationPolicy(policy)
+    }
+}
+
+// MARK: - Sparkle (레거시판 목록 전환)
+
+extension AppDelegate: SPUUpdaterDelegate {
+    /// 10.13~12는 레거시 목록, 13 이상은 본판 목록. 두 경우 모두 nil이 아니다 — nil이면 Sparkle이
+    /// UserDefaults·`SUFeedURL`로 내려가 결정 위치가 흐려진다.
+    func feedURLString(for updater: SPUUpdater) -> String? {
+        UpdateFeed.url(forMajorVersion: ProcessInfo.processInfo.operatingSystemVersion.majorVersion)
     }
 }

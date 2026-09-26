@@ -39,7 +39,7 @@ enum SettingsCard {
         box.borderType = .lineBorder
         box.cornerRadius = Metric.cornerRadius
         box.borderWidth = Metric.borderWidth
-        box.borderColor = .separatorColor
+        if #available(macOS 10.14, *) { box.borderColor = .separatorColor } else { box.borderColor = .gridColor }
         box.fillColor = .controlBackgroundColor // 창 배경 위에 떠 보이는 카드 채움.
         box.contentViewMargins = .zero
         box.translatesAutoresizingMaskIntoConstraints = false
@@ -59,9 +59,9 @@ enum SettingsCard {
 
     private static func makeHeader(symbolName: String, title: String) -> NSStackView {
         let icon = NSImageView()
-        icon.image = NSImage(systemSymbolName: symbolName, accessibilityDescription: nil)
+        icon.setSymbol(symbolName)
         icon.setAccessibilityElement(false) // 장식용 — 의미는 옆 타이틀 라벨이 전달한다
-        icon.contentTintColor = .secondaryLabelColor
+        icon.setTint(.secondaryLabelColor)
         icon.imageScaling = .scaleProportionallyDown
         icon.translatesAutoresizingMaskIntoConstraints = false
 

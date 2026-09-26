@@ -30,6 +30,9 @@ HARNESS_SRC=(
     "Azimuth/Hotkeys/HotkeyShortcut.swift"
     "Azimuth/Hotkeys/HotkeyPreset.swift"
     "Azimuth/Hotkeys/BindingResolver.swift"
+    "Azimuth/Shared/Log.swift"
+    "Azimuth/Shared/UpdateFeed.swift"
+    "Azimuth/Shared/BundleVersion.swift"
 )
 
 # 테스트 파일. 함께 컴파일하되 커버리지 분모에는 넣지 않는다.
@@ -41,4 +44,5 @@ HARNESS_TESTS=(
     "Tests/CommandEngineTests+Apply.swift"
     "Tests/CommandEngineTests+Model.swift"
     "Tests/CommandEngineTests+Hotkeys.swift"
+    "Tests/CommandEngineTests+Legacy.swift"
 )

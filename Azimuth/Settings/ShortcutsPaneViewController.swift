@@ -63,23 +63,19 @@ final class ShortcutsPaneViewController: NSViewController, SettingsPane {
         documentView = SettingsPaneScaffold.install(
             in: view, contentStack: SettingsPaneScaffold.makeContentStack([card])
         )
-        sectionView.onExpansionChanged = { [weak self] in self?.fitWindowToContent() }
     }
 
-    /// 창을 열거나 이 탭으로 올 때마다 그룹을 전부 접는다(상태 비저장 — 창 높이 예측 가능).
-    /// 접은 뒤 창 높이를 다시 맞춰, 닫을 때 펼쳐 둔 키 큰 창이 접힌 내용 아래 빈 공간을 남기지 않게 한다.
+    /// 창을 열거나 이 탭으로 올 때마다 그룹을 전부 접는다(상태 비저장 — 늘 같은 모습으로 시작).
+    /// 창 크기는 고정이라(레거시판) 높이를 다시 맞추지 않는다. 긴 내용은 페인 안에서 스크롤한다.
     override func viewWillAppear() {
         super.viewWillAppear()
         sectionView.collapseAllGroups()
         sectionView.refresh()
-        fitWindowToContent()
     }
 
-    /// 콘텐츠 높이가 바뀌면 창 높이를 다시 맞춘다. 탭 전환과 같은 경로(`resizeWindowToSelectedPane`)를
-    /// 타야 최대 높이 상한도 함께 갱신된다 — 상한이 접힌 높이에 묶인 채면 펼친 그룹을 창을 늘려 볼 수 없다.
-    /// 컨테이너는 AppKit 뷰 컨트롤러 포함 관계(`parent`)로 얻는다.
-    private func fitWindowToContent() {
-        (parent as? SettingsTabController)?.resizeWindowToSelectedPane()
+    /// 단축키 34개 탭의 자연스러운 진입점. 항상 보이고 접근성 레이블이 있다.
+    var initialFocusView: NSView? {
+        sectionView.searchField
     }
 
     func naturalContentHeight() -> CGFloat {

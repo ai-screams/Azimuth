@@ -1,8 +1,10 @@
 #!/bin/zsh
 #
-# Azimuth 배포본 빌드: archive → Developer ID export → 공증(notarize) → staple → DMG
+# Azimuth 레거시판(macOS 10.13~12) 배포본 빌드:
+#   archive → Developer ID export → 10.13 런타임 동봉·재서명 → 번들 게이트 → 공증 → staple → DMG
 #
-# 결과물: dist/Azimuth-<version>.dmg  (드래그-투-Applications, Gatekeeper 통과)
+# 결과물: dist/Azimuth-<version>-legacy-<N>.dmg  (드래그-투-Applications, Gatekeeper 통과)
+# Xcode 26.3 이하가 필요하다(27은 10.13 타깃을 거부한다).
 #
 # 정공법: Developer ID Application 인증서로 정상 서명 + Hardened Runtime + Apple 공증.
 # (Apple Development/ad-hoc 서명은 배포 불가 — 공증이 거부된다.)
@@ -15,7 +17,7 @@
 #   (A) NOTARY_PROFILE      `xcrun notarytool store-credentials`로 저장한 키체인 프로필 이름
 #   (B) APPLE_ID + APPLE_APP_PASSWORD(앱 암호) + DEVELOPMENT_TEAM
 #
-#   VERSION                 미지정 시 git 최신 태그(앞의 v 제거), 없으면 0.0.0-dev  [선택]
+#   VERSION                 레거시 태그 `legacy-vX.Y.Z-N`(또는 `X.Y.Z-N`). 미지정 시 최신 legacy-v* 태그  [선택]
 # ─────────────────────────────────────────────────────────────────────────────
 
 set -euo pipefail
@@ -44,26 +46,38 @@ if [[ -z "${NOTARY_PROFILE:-}" ]]; then
         || die "공증 자격 없음: NOTARY_PROFILE 또는 (APPLE_ID + APPLE_APP_PASSWORD) 필요"
 fi
 
-# 버전 결정: 인자 > VERSION > git 태그 > 기본값
-VERSION="${1:-${VERSION:-}}"
-if [[ -z "$VERSION" ]]; then
-    VERSION="$(git describe --tags --abbrev=0 2>/dev/null || echo "0.0.0-dev")"
+# 버전 결정: 인자 > VERSION > 최신 legacy-v* 태그
+TAG="${1:-${VERSION:-}}"
+if [[ -z "$TAG" ]]; then
+    TAG="$(git describe --tags --abbrev=0 --match 'legacy-v*' 2>/dev/null)" || die "legacy-v* 태그 없음"
 fi
-VERSION="${VERSION#v}"  # 앞의 v 제거
-# 형식 방어: SemVer만 허용. CI에서 VERSION은 git 태그(github.ref_name)에서 오는데, 태그명에
+# 형식 방어: `legacy-vX.Y.Z-N`만 허용. CI에서 이 값은 git 태그(github.ref_name)에서 오는데, 태그명에
 # 셸/경로/XML 특수문자가 들어가면 DMG 경로·ExportOptions.plist를 오염시킬 수 있다(모든 사용처는
 # 인용돼 인젝션은 불가하나, 방어적으로 형식을 강제한다).
-[[ "$VERSION" =~ '^[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.-]+)?$' ]] \
-    || die "예상치 못한 VERSION 거부: '$VERSION' (SemVer X.Y.Z 형식만 허용)"
-DMG="$DIST_DIR/$APP_NAME-$VERSION.dmg"
+[[ "$TAG" =~ '^(legacy-v)?([0-9]+\.[0-9]+\.[0-9]+)-([1-9][0-9]{0,5})$' ]] \
+    || die "예상치 못한 VERSION 거부: '$TAG' (legacy-vX.Y.Z-N 형식만 허용, N은 1~999999)"
+VERSION="${match[2]}"
+LEGACY_N="${match[3]}"
 
-# CFBundleVersion(=CURRENT_PROJECT_VERSION)은 Sparkle이 "더 최신인가"를 비교하는 값이라
-# 반드시 단조 증가해야 한다. SemVer 문자열($VERSION)을 그대로 쓰면 -rc/-dev 태그서 비교가
-# 꼬일 수 있으므로, git 커밋 수(단조 증가 정수)를 빌드번호로 쓴다. 표시용 MARKETING_VERSION은
-# 태그의 SemVer를 유지(CFBundleShortVersionString). CI 체크아웃은 fetch-depth: 0이어야 정확.
-BUILD_NUMBER="$(git rev-list --count HEAD 2>/dev/null || echo 1)"
+# N은 버전별 회차가 아니라 **레거시 채널 전체의 일련번호**다(1.7.2-3 다음 1.7.3이면 -4). 빌드 번호가
+# 209.N이라 N이 줄면 Sparkle이 새 릴리스를 옛것으로 보고 제안하지 않는다 → 기존 legacy-v* 태그의 최대 N보다
+# 커야 한다(CI 체크아웃은 fetch-depth: 0이어야 태그가 다 보인다).
+PREV_MAX_N=0
+for other in ${(f)"$(git tag --list 'legacy-v*')"}; do
+    [[ "$other" == "legacy-v$VERSION-$LEGACY_N" ]] && continue
+    [[ "$other" =~ '-([0-9]{1,6})$' ]] && (( match[1] > PREV_MAX_N )) && PREV_MAX_N=${match[1]}
+done
+(( LEGACY_N > PREV_MAX_N )) || die "레거시 일련번호 N=$LEGACY_N 이 기존 최대 $PREV_MAX_N 보다 크지 않다"
+DMG="$DIST_DIR/$APP_NAME-$VERSION-legacy-$LEGACY_N.dmg"
 
-print "▸ Azimuth $VERSION (build $BUILD_NUMBER) 배포본 빌드 (team=$DEVELOPMENT_TEAM, id='$DEVELOPER_ID_IDENTITY')"
+# CFBundleVersion(=CURRENT_PROJECT_VERSION)은 Sparkle이 "더 최신인가"를 비교하는 값이다.
+# 레거시판은 `209.N`: N은 태그의 레거시 회차(단조 증가), 209는 본판 빌드 번호(커밋 수, 210 이상)보다
+# 늘 작아서 13+로 올라간 레거시 사용자가 본판을 더 새것으로 받는다. 짧은 버전(CFBundleShortVersionString)은
+# 기반 본판 버전 X.Y.Z. 화면에는 "X.Y.Z Legacy N"으로 보인다(`VersionDisplay.legacyBuildMajor`와 같은 값).
+LEGACY_BUILD_MAJOR=209
+BUILD_NUMBER="$LEGACY_BUILD_MAJOR.$LEGACY_N"
+
+print "▸ Azimuth $VERSION Legacy $LEGACY_N (build $BUILD_NUMBER) 배포본 빌드 (team=$DEVELOPMENT_TEAM, id='$DEVELOPER_ID_IDENTITY')"
 
 rm -rf "$BUILD_DIR" "$DIST_DIR"
 mkdir -p "$BUILD_DIR" "$DIST_DIR"
@@ -108,6 +122,11 @@ xcodebuild -exportArchive \
     -exportOptionsPlist "$EXPORT_OPTS" \
     | tail -3
 [[ -d "$APP" ]] || die "export 실패: $APP 없음"
+
+# ── 3.5) 10.13 런타임 동봉·재서명 → 번들 게이트(서명 포함). 공증은 동봉 런타임까지 포함해 받는다.
+print "▸ [2.5/6] 10.13 런타임 동봉 + 번들 게이트…"
+"$ROOT_DIR/scripts/legacy-bundle-runtime.sh" "$APP" "$DEVELOPER_ID_IDENTITY"
+EXPECT_TEAM="$DEVELOPMENT_TEAM" "$ROOT_DIR/scripts/legacy-bundle-gate.sh" "$APP" --signed
 
 # ── 4) 서명/Hardened Runtime 검증 ────────────────────────────────────────────
 print "▸ [3/6] 서명 검증…"

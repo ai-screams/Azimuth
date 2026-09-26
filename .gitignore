@@ -440,3 +440,7 @@ $RECYCLE.BIN/
 **/xcshareddata/WorkspaceSettings.xcsettings
 
 # End of https://www.toptal.com/developers/gitignore/api/windows,linux,macos,git,vim,emacs,visualstudiocode,jetbrains+all,xcode,swift,swiftpackagemanager,swiftpm,objective-c
+
+# Python cache (scripts/*.py)
+__pycache__/
+*.py[cod]

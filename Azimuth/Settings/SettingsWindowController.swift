@@ -39,6 +39,10 @@ final class SettingsWindowController {
         let controller = windowController ?? makeWindowController()
         windowController = controller
         if let window = controller.window {
+            // 대상 화면으로 먼저 옮긴 뒤 크기를 되돌린다(크기 제한은 창이 속한 화면 기준). 높이가 바뀌면
+            // 중심도 바뀌므로 한 번 더 가운데로 맞춘다.
+            centerOnActiveScreen(window)
+            (window.contentViewController as? SettingsTabController)?.applyFixedWindowSize()
             centerOnActiveScreen(window)
         }
         NSApp.bringToFront()
@@ -88,14 +92,14 @@ final class SettingsWindowController {
         )
         let tabController = SettingsTabController(panes: [generalPane, shortcutsPane, advancedPane])
         window.contentViewController = tabController
+        window.autorecalculatesKeyViewLoop = true // 행을 떼고 붙여도 Tab 순서가 보이는 컨트롤을 따른다
         applyResizeLimits(to: window, tabController: tabController)
         window.center()
         return NSWindowController(window: window)
     }
 
-    /// 폭은 디자인 값(`SettingsTabController.windowWidth`)으로 고정하고, 세로만 리사이즈를 허용한다.
-    /// 최소 높이 아래로 줄여도 페인 내부 스크롤뷰가 콘텐츠를 스크롤하므로 어떤 섹션도 잘리지 않는다.
-    /// 최대 높이는 선택된 페인의 자연 높이로 두어, 그 이상 늘려 빈 공간이 생기지 않게 한다.
+    /// 레거시판: 폭은 디자인 값(`SettingsTabController.windowWidth`), 높이는 General의 자연 높이로 고정한다.
+    /// 더 긴 페인은 페인 스크롤뷰 안에서 스크롤하므로 어떤 섹션도 잘리지 않는다.
     private func applyResizeLimits(to window: NSWindow, tabController: SettingsTabController) {
         // 폭을 확정한 뒤 자연 높이를 잰다. 탭 컨트롤러 도입 후로 이 호출은 방어가 아니라 **필수**다 —
         // 탭뷰에 막 추가된 페인 뷰의 기본 프레임은 560x640이 아니라 500x500이고, 이 setContentSize가
@@ -104,7 +108,7 @@ final class SettingsWindowController {
         let width = SettingsTabController.windowWidth
         window.setContentSize(NSSize(width: width, height: 640))
         window.contentMinSize = NSSize(width: width, height: SettingsTabController.minWindowHeight)
-        // 최대 높이와 실제 크기는 탭 전환과 **같은 경로**로 정한다. 따로 계산하면 두 곳이 어긋날 수 있다.
-        tabController.resizeWindowToSelectedPane()
+        // 폭을 맞춘 뒤 General의 자연 높이로 창을 고정한다(레거시판: 탭마다 크기를 바꾸지 않는다).
+        tabController.applyFixedWindowSize()
     }
 }

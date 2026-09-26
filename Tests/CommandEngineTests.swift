@@ -62,6 +62,9 @@ enum CommandEngineTests {
         testShortcutDisplay()
         testShortcutCodableRoundTrip()
         testCarbonModifier()
+        testLegacyLogPrivacy()
+        testUpdateFeedSelection()
+        testVersionDisplay()
 
         if failures == 0 {
             print("PASS — all \(checks) checks")

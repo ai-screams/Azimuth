@@ -123,6 +123,7 @@ extension ShortcutsSectionView {
     func addGroupHeader(_ group: CommandGroup, separator: NSView) {
         let disclosure = NSButton(title: "", target: self, action: #selector(groupDisclosureToggled(_:)))
         disclosure.bezelStyle = .disclosure
+        disclosure.imagePosition = .imageOnly // 10.13은 빈 제목을 기본 제목 "Button"으로 그린다
         disclosure.setButtonType(.onOff)
         disclosure.state = .off
         disclosure.setAccessibilityLabel("\(group.displayName) shortcuts") // 펼침/접힘은 disclosure 역할이 전달한다
@@ -144,6 +145,7 @@ extension ShortcutsSectionView {
 
     func makeRow(for command: WindowCommand) -> Row {
         let enable = NSButton(checkboxWithTitle: "", target: self, action: #selector(commandEnableToggled(_:)))
+        enable.imagePosition = .imageOnly // 10.13은 빈 제목을 기본 제목 "Button"으로 그린다
         enable.setAccessibilityLabel("Enable \(command.displayName)")
 
         let name = NSTextField(labelWithString: command.displayName)
@@ -197,7 +199,12 @@ extension ShortcutsSectionView {
         let dot = NSView()
         dot.translatesAutoresizingMaskIntoConstraints = false
         dot.wantsLayer = true
-        dot.layer?.backgroundColor = NSColor.controlAccentColor.cgColor
+        let dotColor: NSColor = if #available(macOS 10.14, *) {
+            .controlAccentColor
+        } else {
+            .keyboardFocusIndicatorColor
+        }
+        dot.layer?.backgroundColor = dotColor.cgColor
         dot.layer?.cornerRadius = Metric.dotSize / 2
         dot.toolTip = "Customized — differs from the preset default."
         dot.isHidden = true
@@ -264,6 +271,41 @@ extension ShortcutsSectionView {
             views.disclosure.isEnabled = !isSearching
         }
         emptyLabel.isHidden = !matchedCounts.isEmpty || !isSearching
+        pruneHiddenSlots()
+    }
+
+    /// 뗄 슬롯 안에 키보드 포커스가 있으면 검색창으로 옮긴다. 녹화 중인 단축키 버튼은
+    /// `resignFirstResponder`에서 녹화를 취소하므로 전역 단축키가 멈춘 채 남지 않는다.
+    private func moveFocusOutOfSlots(leaving visibleIDs: Set<ObjectIdentifier>) {
+        guard let responder = window?.firstResponder as? NSView,
+              let slot = rowsStack.arrangedSubviews.first(where: { responder.isDescendant(of: $0) }),
+              !visibleIDs.contains(ObjectIdentifier(slot))
+        else { return }
+        window?.makeFirstResponder(searchField)
+    }
+
+    /// 숨은 슬롯은 뷰 계층에서 떼고 새로 보이는 슬롯만 제자리에 끼운다. `addArrangedSubview`로 넣은 뷰는
+    /// `isHidden`이어도 계층에 남아 모두 접힌 상태에서도 뷰가 약 690개였다(탭 전환마다 AppKit이 배치·키 뷰
+    /// 루프를 다시 계산) → 약 110개. 떼면 부모(rowsStack)에 걸린 폭 제약과 구분선 뒤 간격이 사라지므로
+    /// 다시 끼울 때 되살린다. 떼기 전에 포커스를 검색창으로 옮긴다(`moveFocusOutOfSlots`).
+    func pruneHiddenSlots() {
+        if allSlots.isEmpty { allSlots = rowsStack.arrangedSubviews }
+        let visible = allSlots.filter { !$0.isHidden }
+        let visibleIDs = Set(visible.map(ObjectIdentifier.init))
+        moveFocusOutOfSlots(leaving: visibleIDs)
+        for view in rowsStack.arrangedSubviews where !visibleIDs.contains(ObjectIdentifier(view)) {
+            rowsStack.removeArrangedSubview(view)
+            view.removeFromSuperview()
+        }
+        let separators = Set(groupViews.values.map { ObjectIdentifier($0.separator) })
+        for (index, view) in visible.enumerated() where view.superview !== rowsStack {
+            rowsStack.insertArrangedSubview(view, at: index)
+            view.widthAnchor.constraint(equalTo: rowsStack.widthAnchor).isActive = true
+            if separators.contains(ObjectIdentifier(view)) {
+                rowsStack.setCustomSpacing(Metric.groupGap, after: view)
+            }
+        }
+        window?.recalculateKeyViewLoop()
     }
 
     func capture(_ shortcut: HotkeyShortcut, for command: WindowCommand) {
@@ -297,7 +339,7 @@ extension ShortcutsSectionView {
     ///
     /// 위젯 상태(`sender.state`)가 아니라 모델(`expandedGroups`)을 기준으로 뒤집는다. 검색 중에는
     /// `applyFilter`가 매칭 그룹의 삼각형을 모델과 무관하게 `.on`으로 두므로, 위젯을 믿으면 클릭 한 번이
-    /// 모델을 조용히 지우고(검색을 지운 뒤 펼쳐 뒀던 그룹이 접혀 있음) 창까지 다시 맞춘다.
+    /// 모델을 조용히 지운다(검색을 지운 뒤 펼쳐 뒀던 그룹이 접혀 있음).
     /// 검색 중에는 삼각형을 비활성화하므로 여기 오지 않지만, 같은 이유로 방어적으로 한 번 더 거른다.
     @objc func groupDisclosureToggled(_ sender: NSButton) {
         guard let group = groupViews.first(where: { $0.value.disclosure == sender })?.key else { return }
@@ -308,7 +350,6 @@ extension ShortcutsSectionView {
         }
         if expandedGroups.contains(group) { expandedGroups.remove(group) } else { expandedGroups.insert(group) }
         applyFilter("")
-        onExpansionChanged?()
     }
 
     @objc func groupToggled(_ sender: NSButton) {

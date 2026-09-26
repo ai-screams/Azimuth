@@ -64,7 +64,7 @@ enum MainMenuBuilder {
         settings.target = actions.target
         // 시스템 항목(About/Hide/Quit)은 macOS가 SF Symbol 아이콘을 자동으로 붙이지만
         // 커스텀 "Settings…"는 없어 통일성이 깨진다 → gearshape 심볼을 직접 단다.
-        settings.image = NSImage(systemSymbolName: "gearshape", accessibilityDescription: nil)
+        settings.image = NSImage.symbol("gearshape", accessibilityDescription: nil)
         menu.addItem(.separator())
         menu.addItem(withTitle: "Hide \(appName)", action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
         let hideOthers = menu.addItem(withTitle: "Hide Others",

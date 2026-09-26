@@ -116,7 +116,7 @@ private nonisolated func hotkeyEventHandler(
     guard status == noErr else { return status }
     let id = hotKeyID.id
     let service = Unmanaged<HotkeyService>.fromOpaque(userData).takeUnretainedValue()
-    MainActor.assumeIsolated {
+    unsafeAssumeMainActor {
         service.handle(id: id)
     }
     return noErr

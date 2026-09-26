@@ -1,4 +1,4 @@
-<!-- Generated: 2026-06-19 | Updated: 2026-09-25 -->
+<!-- Generated: 2026-06-19 | Updated: 2026-09-26 -->
 
 # Azimuth
 
@@ -14,7 +14,7 @@ Azimuth is a macOS menu-bar **window manager** (in the Magnet/Rectangle family).
 | `SECURITY.md` · `CONTRIBUTING.md` · `SUPPORT.md` · `CODE_OF_CONDUCT.md` | GitHub community health files (security reporting, contribution guide, support, code of conduct) |
 | `RELEASING.md` | Release procedure |
 | `LICENSE` · `NOTICE` | Apache-2.0 license + notices |
-| `Azimuth.xcodeproj` | Xcode project. Non-sandboxed, `DEVELOPMENT_TEAM=7K6MK3KP9K`, `SWIFT_DEFAULT_ACTOR_ISOLATION=MainActor`, deployment target macOS 13.0 |
+| `Azimuth.xcodeproj` | Xcode project. Non-sandboxed, `DEVELOPMENT_TEAM=7K6MK3KP9K`, `SWIFT_DEFAULT_ACTOR_ISOLATION=MainActor`, deployment target macOS **10.13** on the `legacy/10.13` branch (main is 13.0) |
 | `.swiftlint.yml` | SwiftLint strict configuration |
 | `.swiftformat` | SwiftFormat configuration (`--lint` in pre-commit and CI) |
 | `.gitleaks.toml` | Secret-scan rules |
