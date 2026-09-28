@@ -136,6 +136,9 @@ Before opening a PR: `make build && make lint && make test` (CI runs the same, p
   direct DMG URL `…/releases/download/legacy-v1.7.2-3/Azimuth-1.7.2-legacy-3.dmg` is in `index.html`
   (`#download-legacy` button) and README. Each new legacy release means bumping those; the
   legacy code, CI and release workflow live on that branch (see its `CLAUDE.md`).
+- **`LEGACY.md`** is the source for how main and legacy relate: which fixes to port (critical/security only),
+  how, and `scripts/shared-with-legacy.txt` — files kept byte-identical on both branches, `cmp`'d by main CI
+  (`release-scripts`). Changing one means a matching `legacy/10.13` PR, merged **first**.
 - Merging to `main` triggers the **"pages build and deployment"** workflow. The live site
   (`ai-scream.ai/Azimuth`) lags until that run finishes — poll it to `completed`/`success`
   before verifying live content; catching the old page mid-deploy is expected.
