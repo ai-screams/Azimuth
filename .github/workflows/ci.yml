@@ -63,7 +63,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - name: Assert Sparkle pin (2.9.3 exact — 2.10+ needs macOS 12)
+      - name: Assert Sparkle pin (2.9.6 exact — 2.10+ needs macOS 12)
         run: ./scripts/legacy-sparkle-pin.sh
 
       - name: Select Xcode
