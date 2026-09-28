@@ -16,7 +16,8 @@ architecture and directory-level conventions, see [`AGENTS.md`](AGENTS.md) and t
 ## Prerequisites
 
 - A Mac with **Xcode 26** or later (the project uses the `SWIFT_DEFAULT_ACTOR_ISOLATION` build setting,
-  introduced with Swift 6.2). This is the development requirement; the app itself runs on macOS 13 or later.
+  introduced with Swift 6.2). This is the development requirement. This `legacy/10.13` branch builds the feature-frozen legacy app for
+  macOS 10.13–12 (CI pins Xcode 26.3; locally use `make legacy-check`) — see [`LEGACY.md`](LEGACY.md).
 - Command-line tools used by the hooks and CI:
 
   ```bash
@@ -75,7 +76,8 @@ make build && make lint && make test
 
 - Use **Conventional Commits**: `feat(scope): …`, `fix(scope): …`, `docs(…)`, `refactor(…)`,
   `chore(…)`.
-- Branch off `main`; keep PRs focused. Fill in the pull request template.
+- Branch off `main` (or `legacy/10.13` for a legacy port); keep PRs focused. Fill in the pull request template,
+  including its legacy section ([`LEGACY.md`](LEGACY.md)).
 - CI (lint + macOS `xcodebuild` build + gitleaks secret scan) must be green before merge.
 
 ## Reporting bugs & security issues

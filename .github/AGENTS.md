@@ -21,7 +21,7 @@ GitHub Actions CI/CD configuration. **See [`CICD.md`](CICD.md) for the full over
 | `dependabot.yml` | Weekly github-actions updates (refreshing the SHA pins) |
 | `FUNDING.yml` | The source for the repo's ♡ Sponsor button: `github: [ai-screams]` (organization Sponsors) + `ko_fi: pignuante`. The button also requires the repo's **Settings → Features → Sponsorships** toggle |
 | `CODEOWNERS` | Code owners (automatic reviewer assignment) |
-| `PULL_REQUEST_TEMPLATE.md` | The default PR body template |
+| `PULL_REQUEST_TEMPLATE.md` | The default PR body template, including a **Legacy build** section (port needed or not, see `LEGACY.md`). Kept identical on both branches (`scripts/shared-with-legacy.txt`) |
 
 ## For AI Agents
 

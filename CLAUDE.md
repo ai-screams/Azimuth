@@ -74,6 +74,8 @@ Before opening a PR: `make build && make lint && make test` (CI runs the same, p
 ## Legacy branch (`legacy/10.13`, #138)
 
 - Feature-frozen build for macOS 10.13–12. Only critical fixes; main stays on 13.0, Xcode 27, latest Sparkle.
+  **`LEGACY.md`** covers what to port and how, and `scripts/shared-with-legacy.txt` lists files kept
+  byte-identical with `main` (main CI compares them).
 - **Local Xcode 27 rejects deployment targets below 12.0**, so `make build` / `make run` fail here. Use
   `make legacy-check` (per-file typecheck at x86_64 10.13 and arm64 11, plus an x86_64 10.13 link).
   Release builds come from CI on Xcode 26.3.
