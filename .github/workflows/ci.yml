@@ -111,7 +111,7 @@ jobs:
         run: ./scripts/previous-release-tag-test.sh
 
   # 출시 본문의 비교 기준을 고르는 스크립트는 release.yml(macOS awk)과 legacy 브랜치 publish 잡(ubuntu mawk)
-  # 양쪽에서 돈다. macOS 쪽은 lint-and-build에서, ubuntu 쪽은 여기서 확인하고, 두 브랜치의 사본이 같은지 대조한다.
+  # 양쪽에서 돈다. macOS 쪽은 lint-and-build에서, ubuntu 쪽은 여기서 확인한다. 공유 파일의 브랜치 간 대조도 여기서 한다.
   release-scripts:
     runs-on: ubuntu-latest
     permissions:
@@ -121,11 +121,14 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Previous release tag selection
         run: ./scripts/previous-release-tag-test.sh
-      # 한쪽만 고치면 다음 레거시 출시가 옛 규칙으로 기준을 고른다. 없거나 다르면 실패한다.
-      - name: Same script on legacy/10.13
+      # 양쪽에 똑같이 두기로 한 파일(scripts/shared-with-legacy.txt, LEGACY.md)이 legacy/10.13과 같은지 본다.
+      # 한쪽만 고치면 다른 판이 옛 규칙으로 돈다. 없거나 다르면 실패한다.
+      - name: Shared files match legacy/10.13
         run: |
           set -euo pipefail
           git fetch --no-tags --depth=1 origin legacy/10.13
-          for f in previous-release-tag.sh previous-release-tag-test.sh; do
-            git show "FETCH_HEAD:scripts/$f" | cmp - "scripts/$f"
-          done
+          while IFS= read -r f || [ -n "$f" ]; do
+            f="${f%$'\r'}"
+            case "$f" in '' | '#'*) continue ;; esac
+            git show "FETCH_HEAD:$f" | cmp - "$f" || { echo "::error file=$f::differs from legacy/10.13"; exit 1; }
+          done < scripts/shared-with-legacy.txt

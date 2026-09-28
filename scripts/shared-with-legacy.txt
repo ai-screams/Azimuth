@@ -1,0 +1,14 @@
+# Files kept byte-for-byte identical on `main` and `legacy/10.13` (see LEGACY.md).
+# main CI (`release-scripts`) compares each path with legacy/10.13 and fails if one is missing or different.
+# One repo-relative path per line; lines starting with # are ignored.
+LEGACY.md
+.github/PULL_REQUEST_TEMPLATE.md
+scripts/shared-with-legacy.txt
+scripts/previous-release-tag.sh
+scripts/previous-release-tag-test.sh
+scripts/sparkle-adapter-check.sh
+scripts/sparkle-adapter-check/main.swift
+Azimuth/Shared/UpdateVersionText.swift
+Azimuth/UpdateVersionDisplayer.swift
+Tests/CommandEngineTests+Updates.swift
+Tests/CommandEngineTests+Permissions.swift
