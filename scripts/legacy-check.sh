@@ -17,7 +17,7 @@ WORK_DIR="${LEGACY_CHECK_DIR:-$(mktemp -d)}"
 SDK="$(xcrun --sdk macosx --show-sdk-path)"
 FRONTEND="$(xcrun -f swift-frontend)"
 
-# Sparkle 바이너리 아티팩트(2.9.3 xcframework)를 받는다. 해석만 하므로 Xcode 27로도 된다.
+# Sparkle 바이너리 아티팩트(2.9.6 xcframework)를 받는다. 해석만 하므로 Xcode 27로도 된다.
 xcodebuild -resolvePackageDependencies -project Azimuth.xcodeproj -scheme Azimuth \
     -derivedDataPath "$WORK_DIR/dd" >"$WORK_DIR/resolve.log" 2>&1
 SPARKLE_DIR="$(find "$WORK_DIR/dd/SourcePackages/artifacts" -name Sparkle.xcframework -maxdepth 4 | head -1)"

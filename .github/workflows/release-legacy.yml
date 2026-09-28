@@ -79,7 +79,7 @@ jobs:
             || { echo "::error::$GITHUB_REF_NAME ($GITHUB_SHA) is not the tested $rc_tag ($rc_commit)"; exit 1; }
           echo "✅ $GITHUB_REF_NAME is the tested RC commit ($rc_tag)"
 
-      - name: Assert Sparkle pin (2.9.3 exact — 2.10+ needs macOS 12)
+      - name: Assert Sparkle pin (2.9.6 exact — 2.10+ needs macOS 12)
         run: ./scripts/legacy-sparkle-pin.sh
 
       - name: Assert main latest release (before)
