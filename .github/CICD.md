@@ -63,9 +63,9 @@ Azimuth의 지속적 통합·배포 구성 전체 개요. 워크플로 정의는
 - 러너 `macos-15` 고정(재현성). Xcode는 `setup-xcode`로 latest-stable.
 
 ## 활성화에 필요한 저장소 설정 (코드 아님 — 관리자 수행)
-1. **브랜치 보호**(Settings → Branches → `main`): 직접 푸시 금지, PR 필수, 필수 상태 체크(`lint-and-build`, `secret-scan`) 통과 강제, (선택)리뷰 1+·linear history. (CodeQL은 PR이 아닌 main 머지 후·주간 실행이라 PR 필수 체크에 넣지 않는다.)
+1. **브랜치 보호**(Settings → Rules, 저장소 ruleset `main`·`legacy/10.13`): 직접 푸시·강제 푸시·삭제 금지, PR 필수, **squash 병합만**(linear history), 필수 상태 체크(`lint-and-build`, `secret-scan`, `gitleaks`, `release-scripts`) 통과 강제. 리뷰어 승인 수는 0(관리자 1인). (CodeQL은 PR이 아닌 push·주간 실행이라 PR 필수 체크에 넣지 않는다.)
 2. **`release` 환경**(Settings → Environments): required reviewer + 환경 scoped secret 6개(`DEVELOPER_ID_CERT_P12`, `DEVELOPER_ID_CERT_PASSWORD`, `APPLE_TEAM_ID`, `APPLE_ID`, `APPLE_APP_PASSWORD`, `SPARKLE_ED_PRIVATE_KEY`).
-3. (선택) **Tags 보호**(`v*`), **GitHub native Secret scanning + Push protection** 토글.
+3. **태그 보호**(Settings → Rules, 저장소 ruleset): `v*`·`legacy-v*`·`legacy-rc-v*`·`legacy-feed`는 관리자만 만들 수 있고("release tags: create"), 누구도 옮기거나 지울 수 없다("release tags: immutable", 예외 없음). `release` 환경은 이 태그 패턴(`v*`, `legacy-v*`, `legacy-rc-v*`)에서만 배포된다. 그리고 **GitHub native Secret scanning + Push protection** 토글.
 
 ## 릴리스 방법
 ```
