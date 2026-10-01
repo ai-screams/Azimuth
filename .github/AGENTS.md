@@ -18,7 +18,7 @@ GitHub Actions CI/CD configuration. **See [`CICD.md`](CICD.md) for the full over
 | `workflows/ci.yml` | `push: main` plus PRs, on `macos-15`. **secret-scan** (gitleaks + SARIF) and **lint-and-build** (SwiftFormat → SwiftLint strict → xcodebuild → Sparkle version-displayer check (`scripts/sparkle-adapter-check.sh`) → `make coverage` with the ≥90% gate). Concurrency cancels stale PR runs |
 | `workflows/codeql.yml` | CodeQL **Swift** SAST (on push to main and weekly). init → build → analyze → Security/Code scanning |
 | `workflows/release.yml` | Tag `v*` → the `environment: release` approval gate → build, sign, notarize, **DMG self-verification**, **SHA-256 checksum**, **EdDSA signing-key match gate**, **Sparkle appcast signing and generation**, then publish the Release |
-| `dependabot.yml` | Weekly github-actions updates (refreshing the SHA pins) |
+| `dependabot.yml` | Weekly github-actions updates (refreshing the SHA pins) for `main`, plus a second entry with `target-branch: legacy/10.13` for the legacy branch (Dependabot reads this file only from the default branch; see `LEGACY.md`) |
 | `FUNDING.yml` | The source for the repo's ♡ Sponsor button: `github: [ai-screams]` (organization Sponsors) + `ko_fi: pignuante`. The button also requires the repo's **Settings → Features → Sponsorships** toggle |
 | `CODEOWNERS` | Code owners (automatic reviewer assignment) |
 | `PULL_REQUEST_TEMPLATE.md` | The default PR body template, including a **Legacy build** section (port needed or not, see `LEGACY.md`). Kept identical on both branches (`scripts/shared-with-legacy.txt`) |

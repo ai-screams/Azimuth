@@ -73,10 +73,12 @@ in [`scripts/shared-with-legacy.txt`](scripts/shared-with-legacy.txt).
 A file that was ported with changes (for example `Permissions/AccessibilityRequestPolicy.swift`, whose comments
 name "System Preferences" on legacy) is **not** on the list. Port it by hand.
 
-## What does not happen automatically on legacy
+## Automation on legacy
 
-- **Dependabot** only watches `main`. The legacy branch keeps its GitHub Actions pins until someone updates them.
-  Update them there when a security advisory affects an action it uses, or when a pinned action stops working.
+- **Dependabot** reads its configuration only from `main`'s `.github/dependabot.yml` (the copy on this branch is
+  not used). A second entry there with `target-branch: legacy/10.13` opens GitHub Actions version-update PRs
+  against legacy; review them like any legacy change, since legacy CI runs on Xcode 26.3. Dependabot *security*
+  updates always target `main`, so an advisory for an action that only legacy uses needs a manual PR.
 - **Scheduled CodeQL** runs only from the default branch. Legacy CodeQL runs on pushes to `legacy/10.13`.
 - **Sparkle** on legacy is pinned to an exact 2.9.x release (asserted by `scripts/legacy-sparkle-pin.sh`),
   because 2.10 and later require macOS 12. The 2.9 series still gets security fixes, so a new 2.9.x with a
