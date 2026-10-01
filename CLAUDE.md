@@ -57,8 +57,13 @@ Before opening a PR: `make build && make lint && make test` (CI runs the same, p
   DEVELOPMENT_TEAM=7K6MK3KP9K PRODUCT_BUNDLE_IDENTIFIER=<a third id>` — a third id so neither the Debug
   build's nor the installed app's defaults and TCC entry leak in. Remove that id's grant with
   `tccutil reset Accessibility <id>` **before** deleting the app (tccutil looks the id up via LaunchServices).
-- `main` is branch-protected: `lint-and-build` / `gitleaks` / `secret-scan` must go green before
-  `gh pr merge --squash` (it reports `BLOCKED` until then).
+- `main` and `legacy/10.13` are protected by repository rulesets: PRs only, **squash merge only** (linear
+  history), no force push or deletion, and `lint-and-build` / `gitleaks` / `secret-scan` / `release-scripts`
+  must go green before `gh pr merge --squash` (it reports `BLOCKED` until then).
+- **Release tags are immutable.** `v*`, `legacy-v*`, `legacy-rc-v*` and `legacy-feed` can be created only by
+  admins and can never be moved or deleted (ruleset "release tags: immutable", no bypass). Check the commit
+  before pushing a tag; undoing one means disabling that ruleset for a moment in Settings → Rules. The
+  `release` environment (signing secrets) deploys only from those tag patterns.
 - Squash-merge **deletes the head branch**, so a PR stacked on it auto-closes on merge and GitHub
   won't let you reopen or re-target it — recreate it against `main`. And when one PR moves code
   another edits (e.g. splitting a test file that a second PR patches), merge the **content change
