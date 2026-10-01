@@ -23,3 +23,22 @@ updates:
         update-types:
           - "minor"
           - "patch"
+
+  # 레거시판 브랜치(legacy/10.13)의 Actions 핀. Dependabot은 기본 브랜치의 이 파일만 읽으므로 여기서 지정한다.
+  # target-branch를 쓴 항목은 버전 업데이트만 연다(보안 업데이트는 항상 기본 브랜치 대상). LEGACY.md 참고.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: "legacy/10.13"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Seoul"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "ci"
+    groups:
+      legacy-actions-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
