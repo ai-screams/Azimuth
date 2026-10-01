@@ -55,7 +55,7 @@ The app source root. From the programmatic AppKit entry (`main.swift`), `AppDele
 
 ### External
 - AppKit, ApplicationServices, Carbon.HIToolbox, ServiceManagement, os (Logger).
-- **Sparkle 2** (SPM, 2.9.6): `AppDelegate` creates `SPUStandardUpdaterController` (`startingUpdater: true`) to begin automatic feed checks. The "Check for Updates…" item appears in three places — the App menu (`MainMenuBuilder`), the status-bar menu (`StatusBarController`) and the Settings Updates card (`GeneralPaneViewController`) — and `AppDelegate` injects a closure or target/selector into each, so no individual component imports Sparkle. The feed URL and EdDSA public key (`SUPublicEDKey`) live in `Azimuth/Info.plist`.
+- **Sparkle 2** (SPM, 2.10.0): `AppDelegate` creates `SPUStandardUpdaterController` (`startingUpdater: true`) to begin automatic feed checks. The "Check for Updates…" item appears in three places — the App menu (`MainMenuBuilder`), the status-bar menu (`StatusBarController`) and the Settings Updates card (`GeneralPaneViewController`) — and `AppDelegate` injects a closure or target/selector into each, so no individual component imports Sparkle. The feed URL and EdDSA public key (`SUPublicEDKey`) live in `Azimuth/Info.plist`.
 
 ## Sparkle Auto-Update
 

@@ -55,6 +55,6 @@ Azimuth is a macOS menu-bar **window manager** (in the Magnet/Rectangle family).
 
 ### External
 - AppKit / Cocoa, ApplicationServices (AX), CoreGraphics, Carbon.HIToolbox (global hotkeys), ServiceManagement (launch at login).
-- **Sparkle 2** (SPM, 2.9.6, revision `ac2def2`; at least 2.9.6 for its installer security fixes): the auto-update framework. Initialized through `AppDelegate`'s `SPUStandardUpdaterController`, which is the target of every "Check for Updates…" item (App menu, status-bar menu, Settings Updates card).
+- **Sparkle 2** (SPM, 2.10.0, revision `eef1a53`; requires macOS 12, which main's 13.0 target covers — legacy stays on 2.9.x): the auto-update framework. Initialized through `AppDelegate`'s `SPUStandardUpdaterController`, which is the target of every "Check for Updates…" item (App menu, status-bar menu, Settings Updates card).
 
 <!-- MANUAL: Any manually added notes below this line are preserved on regeneration -->
