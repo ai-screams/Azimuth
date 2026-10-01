@@ -95,8 +95,10 @@ repo-wide secrets, so only the approved release job can read them):
 1. **Settings → Environments → New environment** → name it `release`. Add yourself as a
    **Required reviewer** (and optionally restrict deployment branches/tags).
 2. Add the secrets above to that environment (including `SPARKLE_ED_PRIVATE_KEY`).
-3. (Recommended) **Settings → Tags** → add a protection rule for `v*` so only maintainers can push
-   release tags.
+3. Protect release tags with **repository rulesets** (Settings → Rules): one ruleset lets only admins
+   *create* `v*`, `legacy-v*`, `legacy-rc-v*` and `legacy-feed`; another blocks *updating* and *deleting*
+   them for everyone. Limit the `release` environment's deployments to the tag patterns `v*`,
+   `legacy-v*` and `legacy-rc-v*`. (Both are already configured.)
 4. Push a tag (`git tag vX.Y.Z && git push origin vX.Y.Z`) → approve the run when prompted.
 
 > **Never tag a final release on the same commit as its pre-release.** `CFBundleVersion` is derived
