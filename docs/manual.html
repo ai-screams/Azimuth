@@ -774,9 +774,9 @@
             <div class="req-card-num" aria-hidden="true">3</div>
             <h3 data-en="Target window"
                 data-ko="대상 창">Target window</h3>
-            <p data-en="Azimuth operates on the focused window of the target app. Standard windows and dialogs are always accepted; any other window — including one whose type macOS does not report, as with some Java and Electron apps — is accepted when macOS says its position and size can both be changed. Full-screen spaces, minimized windows and windows that refuse to be moved or resized — sheets and panels, typically — are skipped with a clear failure message."
-               data-ko="Azimuth는 대상 앱의 포커스된 창에 작용합니다. 표준 창과 대화상자는 항상 받아들이고, 그 밖의 창은 — macOS가 종류를 알려주지 않는 창(일부 Java·Electron 앱)을 포함해 — 위치와 크기를 모두 바꿀 수 있다고 macOS가 답할 때 받아들입니다. 풀스크린 스페이스, 최소화된 창, 이동·리사이즈를 거부하는 창(보통 시트·패널)은 명확한 실패 메시지와 함께 건너뜁니다.">
-              Azimuth operates on the focused window of the target app. Standard windows and dialogs are always accepted; any other window — including one whose type macOS does not report, as with some Java and Electron apps — is accepted when macOS says its position and size can both be changed. Full-screen spaces, minimized windows and windows that refuse to be moved or resized — sheets and panels, typically — are skipped with a clear failure message.
+            <p data-en="Azimuth operates on the focused window of the target app. Standard windows and dialogs are always accepted; any other window — including one whose type macOS does not report, as with some Java and Electron apps — is accepted when macOS says its position and size can both be changed. Full-screen spaces, minimized windows and windows that refuse to be moved or resized — sheets and panels, typically — are skipped with a clear failure message. A standard window or dialog that can be moved but not resized keeps its size: placement commands only move it, to the edge the target area touches or to the target's center, and only Relative shrink reports a failure."
+               data-ko="Azimuth는 대상 앱의 포커스된 창에 작용합니다. 표준 창과 대화상자는 항상 받아들이고, 그 밖의 창은 — macOS가 종류를 알려주지 않는 창(일부 Java·Electron 앱)을 포함해 — 위치와 크기를 모두 바꿀 수 있다고 macOS가 답할 때 받아들입니다. 풀스크린 스페이스, 최소화된 창, 이동·리사이즈를 거부하는 창(보통 시트·패널)은 명확한 실패 메시지와 함께 건너뜁니다. 이동은 되지만 크기를 바꿀 수 없는 표준 창·대화상자는 크기를 그대로 두고, 배치 명령은 목표 영역이 닿은 모서리나 목표 영역의 가운데로 위치만 옮깁니다. 실패로 알리는 것은 상대 축소뿐입니다.">
+              Azimuth operates on the focused window of the target app. Standard windows and dialogs are always accepted; any other window — including one whose type macOS does not report, as with some Java and Electron apps — is accepted when macOS says its position and size can both be changed. Full-screen spaces, minimized windows and windows that refuse to be moved or resized — sheets and panels, typically — are skipped with a clear failure message. A standard window or dialog that can be moved but not resized keeps its size: placement commands only move it, to the edge the target area touches or to the target's center, and only Relative shrink reports a failure.
             </p>
           </div>
 
@@ -1299,6 +1299,18 @@
             </p>
           </div>
 
+          <!-- Fixed-size windows -->
+          <div class="cmd-card">
+            <div class="cmd-card-title">
+              <span data-en="Fixed-size windows" data-ko="크기 고정 창">Fixed-size windows</span>
+            </div>
+            <p class="cmd-card-body"
+               data-en="A standard window or dialog that can be moved but not resized (its green zoom button is greyed out) keeps its size, and placement commands only move it. On each axis it hugs the work-area edge the target touches, or is centered within the target when the target touches both edges or neither — Left 1/2 puts it on the left edge, vertically centered; Maximize centers it on the screen. Pressing the same direction again still throws it to the adjacent display. Relative shrink still reports “This window can’t be resized”."
+               data-ko="이동은 되지만 크기를 바꿀 수 없는 표준 창·대화상자(초록 확대 버튼이 회색인 창)는 크기를 그대로 두고, 배치 명령은 위치만 옮깁니다. 축마다 목표 영역이 닿은 작업영역 모서리에 붙고, 목표 영역이 양쪽 모서리에 다 닿거나 어느 쪽에도 닿지 않으면 목표 영역의 가운데에 놓입니다 — Left 1/2는 왼쪽 모서리·세로 가운데, Maximize는 화면 한가운데입니다. 같은 방향을 다시 누르면 지금처럼 옆 디스플레이로 던집니다. 상대 축소는 여전히 “This window can’t be resized”로 알립니다.">
+              A standard window or dialog that can be moved but not resized (its green zoom button is greyed out) keeps its size, and placement commands only move it. On each axis it hugs the work-area edge the target touches, or is centered within the target when the target touches both edges or neither — Left 1/2 puts it on the left edge, vertically centered; Maximize centers it on the screen. Pressing the same direction again still throws it to the adjacent display. Relative shrink still reports “This window can’t be resized”.
+            </p>
+          </div>
+
           <!-- Undo -->
           <div class="cmd-card">
             <div class="cmd-card-title">
@@ -1386,7 +1398,7 @@
                 <td data-en="⏸ Deferred" data-ko="⏸ 보류">⏸ Deferred</td>
               </tr>
               <tr>
-                <td>v1.5+</td>
+                <td data-en="Next" data-ko="다음">Next</td>
                 <td data-en="Anchor: snap or size-match the current window to another window on the same display"
                     data-ko="anchor: 동일 모니터 내 다른 창을 기준으로 현재 창 붙이기/크기 맞추기">
                   Anchor: snap or size-match the current window to another window on the same display
@@ -1394,7 +1406,7 @@
                 <td>🟡</td>
               </tr>
               <tr>
-                <td>v2</td>
+                <td data-en="Later" data-ko="이후">Later</td>
                 <td data-en="Workspaces: per-app default positions, named scene save/restore, monitor-aware scenes"
                     data-ko="워크스페이스: app별 기본 위치, named scene 저장/복원, monitor-aware scene">
                   Workspaces: per-app default positions, named scene save/restore, monitor-aware scenes
@@ -1402,7 +1414,7 @@
                 <td>🟡</td>
               </tr>
               <tr>
-                <td>v3</td>
+                <td data-en="Future" data-ko="장기">Future</td>
                 <td data-en="Automation: URL scheme, AppleScript/Shortcuts actions, per-app rules, edge stash/pin"
                     data-ko="자동화: URL scheme, AppleScript/Shortcuts action, app별 규칙, edge stash/pin">
                   Automation: URL scheme, AppleScript/Shortcuts actions, per-app rules, edge stash/pin

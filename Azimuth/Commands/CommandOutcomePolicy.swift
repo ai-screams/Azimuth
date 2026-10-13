@@ -32,6 +32,22 @@ nonisolated struct CommandOutcome: Equatable {
     let snappedEdge: SnapEdge?
 }
 
+extension CommandOutcome {
+    /// writer 결과로 만든다. `target`은 plan이 아니라 writer가 **실제로 노린** frame(`FrameApplyResult.target`)이다 —
+    /// 크기 고정 창은 위치만 바뀐 frame을 노리므로(#167), plan의 frame을 쓰면 이미 제자리인 창이 "무시된 쓰기"로
+    /// 보여 스냅 기록이 남지 않고 다음 snapThrow가 옆 모니터로 던지지 못한다. Executor는 이 init만 쓴다.
+    init(pre: CGRect, applied: FrameApplyResult, snappedEdge: SnapEdge?) {
+        self.init(
+            pre: pre,
+            target: applied.target,
+            achieved: applied.achieved,
+            failed: applied.error != nil,
+            mayHaveMutated: applied.mayHaveMutated,
+            snappedEdge: snappedEdge
+        )
+    }
+}
+
 /// 스냅 상태 저장소에 무엇을 할지.
 nonisolated enum SnapCommit: Equatable {
     /// 그대로 둔다(이 명령이 스냅 상태에 대해 아무 정보도 주지 않음).

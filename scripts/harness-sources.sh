@@ -21,6 +21,7 @@ HARNESS_SRC=(
     "Azimuth/Commands/CommandPlanPolicy.swift"
     "Azimuth/Commands/WriteRetryPolicy.swift"
     "Azimuth/Commands/EdgeReanchorPolicy.swift"
+    "Azimuth/Commands/FixedSizePlacementPolicy.swift"
     "Azimuth/Shared/UpdateVersionText.swift"
     "Azimuth/Permissions/AccessibilityRequestPolicy.swift"
     "Azimuth/Preferences/PreferencesStore.swift"

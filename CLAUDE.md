@@ -28,13 +28,20 @@ Sparkle 2 and ships Developer ID–signed, Apple-notarized, and EdDSA-verified.
 | `make run` | Build a **signed** app and launch it — use for anything needing Accessibility |
 | `make build` | Compile-only (ad-hoc signed; CI/compile checks) — **not** for permission testing |
 | `make test` | Pure-logic tests (swiftc). Sources listed in `scripts/harness-sources.sh` — **one place**, shared with `make coverage`. Not "AppKit-free": the bar is whether a type can be built as a *value* (an `AXUIElement`-carrying one cannot), so `Hotkeys/CarbonModifier.swift` is in despite `import AppKit`. Prints `PASS — all N checks` |
-| `make coverage` | LLVM line coverage on the pure-logic layer; gate **≥90%** (`COVERAGE_MIN`). The denominator is `harness-sources.sh` only — ~2,000 of ~6,500 lines, so a 99% figure says nothing about `WindowAccess/**` or the UI |
-| `make lint` / `make format` | SwiftLint (strict) / SwiftFormat |
+| `make coverage` | LLVM line coverage on the pure-logic layer; gate **≥90%** (`COVERAGE_MIN`). The denominator is `harness-sources.sh` only — a minority of the app's lines, so a high figure says nothing about `WindowAccess/**` or the UI |
+| `make lint` / `make format` | SwiftLint (strict) / SwiftFormat — both cover `Azimuth/` only; `Tests/` is unlinted, so keep its new lines ≤120 by hand |
+| `make sparkle-adapter-check` | Builds against Sparkle to confirm `UpdateVersionDisplayer` answers the ObjC names Sparkle looks up (the harness doesn't link Sparkle). CI runs it; run it after a Sparkle bump |
 | `make secrets` | gitleaks secret scan |
 | `make install-hooks` | pre-commit hook: SwiftFormat `--lint` + SwiftLint `--strict` |
 
-Before opening a PR: `make build && make lint && make test` (CI runs the same, plus gitleaks).
+Before opening a PR: `make build && make lint && make test` (CI runs `make coverage` instead of `make test`, plus
+`sparkle-adapter-check`, `previous-release-tag-test` and gitleaks). CI pins SwiftFormat / SwiftLint versions in
+`ci.yml`, and the pre-commit hook lints all of `Azimuth/` with your local brew copy — so a newer local SwiftFormat can
+block a commit over a file you never touched. Fetch the pinned release zip and lint with both before "fixing" it.
 
+- After an SPM bump (e.g. Sparkle), `make run` can fail with `SUAppcastItem.h has been modified since the
+  module file … .pcm was built`. `command rm -rf` DerivedData's
+  `Build/Intermediates.noindex/SwiftExplicitPrecompiledModules` and the built `Azimuth.app`, then rebuild.
 - After `make run`, `make build` can fail with a **Sparkle.framework "permission to save"** error —
   signed and ad-hoc builds share one DerivedData. Quit the app, `rm -rf` the built `Azimuth.app`, rebuild.
 - `make run` can fail at the **link step** two ways, both fixed the same way (quit, `command rm -rf` the
@@ -126,7 +133,9 @@ Before opening a PR: `make build && make lint && make test` (CI runs the same, p
   files still passes `make test` — run `xcodebuild` after touching them. To cover an AX failure mode,
   extract the decision into a pure function (values in → decision out) and test that; a protocol seam
   carrying `AXUIElement` cannot compile in the swiftc harness. `Commands/*Policy.swift` is that family:
-  outcome, plan, feedback, write-retry, shortcut-list, shortcut-row.
+  outcome, plan, feedback, write-retry, edge-reanchor, fixed-size-placement, shortcut-list, shortcut-row.
+  When the **order or count** of AX calls matters, pass the queries in as closures (`SettableQueries`) so a
+  test can record them.
 
 ## Docs (`docs/` is the GitHub Pages source)
 

@@ -31,6 +31,246 @@ extension CommandEngineTests {
                     CGPoint(x: 0, y: 25))
     }
 
+    // #167: 크기를 쓸 수 없는 창은 현재 크기 그대로, 목표가 닿은 모서리에 붙이고 아니면 목표 영역 가운데에 둔다.
+    // workArea = (0, 25, 1920×1055) → 세로 가운데는 (25 + 1080 − h) / 2.
+    static func testFixedSizePlacement() {
+        let size = CGSize(width: 800, height: 600)
+        func place(
+            _ requested: CGRect, size: CGSize = size, anchor: FrameAnchor = .workAreaEdges, area: CGRect? = workArea
+        ) -> CGRect? {
+            FixedSizePlacementPolicy.target(anchor: anchor, size: size, requested: requested, workArea: area)
+        }
+        func expectFrame(_ label: String, _ got: CGRect?, _ want: CGRect?) {
+            switch (got, want) {
+            case (nil, nil):
+                checks += 1
+            case let (got?, want?):
+                expect(label, got, want)
+            default:
+                checks += 1
+                failures += 1
+                print("FAIL \(label): got \(String(describing: got)) want \(String(describing: want))")
+            }
+        }
+        let leftHalf = FrameCalculator.halfRect(.left, workArea: workArea)
+        let rightHalf = FrameCalculator.halfRect(.right, workArea: workArea)
+        let bottomRight = CGRect(x: 960, y: 552.5, width: 960, height: 527.5)
+        let centerThird = CGRect(x: 640, y: 25, width: 640, height: 1055)
+        // 이것을 실패시키는 것: 앞쪽 모서리 분기를 지우면(가운데로 떨어짐) x=80이 된다.
+        expectFrame("left half: left edge, vertically centered",
+                    place(leftHalf), CGRect(x: 0, y: 252.5, width: 800, height: 600))
+        // 이것을 실패시키는 것: 뒤쪽 모서리 분기를 지우면 x=1040(목표 영역 가운데)이 된다.
+        expectFrame("right half: right edge, vertically centered",
+                    place(rightHalf), CGRect(x: 1120, y: 252.5, width: 800, height: 600))
+        expectFrame("bottom-right quarter: bottom-right corner",
+                    place(bottomRight), CGRect(x: 1120, y: 480, width: 800, height: 600))
+        // 양쪽 모서리에 닿는 목표(최대화)는 가운데 — 기존 anchorOrigin이면 좌상단 (0, 25)이었다.
+        expectFrame("maximize: centered on the screen",
+                    place(workArea), CGRect(x: 560, y: 252.5, width: 800, height: 600))
+        let gapped = FrameCalculator.targetFrame(for: .maximizeGaps, current: workArea, workArea: workArea)
+        expectFrame("gapped maximize: centered",
+                    place(gapped), CGRect(x: 560, y: 252.5, width: 800, height: 600))
+        expectFrame("center third: centered in the column",
+                    place(centerThird), CGRect(x: 560, y: 252.5, width: 800, height: 600))
+        // 목표보다 큰 창도 같은 규칙: 닿은 모서리를 지키고, 가운데 칸이면 칸의 가운데에 맞춘다.
+        let wide = CGSize(width: 1200, height: 600)
+        expectFrame("wider than the half keeps the right edge",
+                    place(rightHalf, size: wide), CGRect(x: 720, y: 252.5, width: 1200, height: 600))
+        expectFrame("wider than the column centers on it",
+                    place(centerThird, size: wide), CGRect(x: 360, y: 252.5, width: 1200, height: 600))
+        // 클램프: 가운데에 맞춘 위치가 작업영역 밖이면 안으로, 작업영역보다 크면 앞쪽 모서리로.
+        // 이것을 실패시키는 것: 클램프를 지우면 모서리에 닿지 않는 목표(1100–1800)의 가운데 x=500에 놓여 화면 밖으로 나간다.
+        expectFrame("clamped inside the work area",
+                    place(CGRect(x: 1100, y: 25, width: 700, height: 1055), size: CGSize(width: 1900, height: 600)),
+                    CGRect(x: 20, y: 252.5, width: 1900, height: 600))
+        expectFrame("larger than the work area pins to the leading edge",
+                    place(workArea, size: CGSize(width: 2000, height: 1200)),
+                    CGRect(x: 0, y: 25, width: 2000, height: 1200))
+        // 모서리 판정 허용오차 2pt(이하는 닿음, 넘으면 안 닿음).
+        // 이것을 실패시키는 것: 비교를 < 로 바꾸면 2pt에서 갈라진다.
+        expectFrame("2pt off the edge still counts as touching",
+                    place(CGRect(x: 2, y: 25, width: 958, height: 1055)),
+                    CGRect(x: 2, y: 252.5, width: 800, height: 600))
+        expectFrame("3pt off the edge centers in the target",
+                    place(CGRect(x: 3, y: 25, width: 957, height: 1055)),
+                    CGRect(x: 81.5, y: 252.5, width: 800, height: 600))
+        // 허용하지 않는 명령과 판단할 수 없는 값 → nil(호출자는 .notResizable).
+        expectFrame("relative shrink (right) is not allowed", place(rightHalf, anchor: .right), nil)
+        expectFrame("relative shrink (bottom) is not allowed", place(rightHalf, anchor: .bottom), nil)
+        expectFrame("undo (topLeft) is not allowed", place(rightHalf, anchor: .topLeft), nil)
+        expectFrame("unknown work area", place(rightHalf, area: nil), nil)
+        expectFrame("zero size", place(rightHalf, size: .zero), nil)
+        expectFrame("NaN target", place(CGRect(x: CGFloat.nan, y: 25, width: 960, height: 1055)), nil)
+        expectFrame("NaN work area", place(rightHalf, area: CGRect(x: 0, y: 25, width: CGFloat.nan, height: 1055)), nil)
+
+        testFixedSizeDecision()
+        testFixedSizeQueryOrder()
+        testFixedSizeSnapSequence()
+    }
+
+    // #167: writer가 size 권한 답을 넘기면 그대로 / 위치만 / 실패 중 무엇을 할지. 조회 실패는 잠김의 증거가 아니다.
+    static func testFixedSizeDecision() {
+        let current = CGRect(x: 300, y: 200, width: 800, height: 600)
+        let leftHalf = FrameCalculator.halfRect(.left, workArea: workArea)
+        let parked = CGRect(x: 0, y: 252.5, width: 800, height: 600)
+        func decide(
+            _ answer: SettableAnswer, requested: CGRect = leftHalf, anchor: FrameAnchor = .workAreaEdges,
+            area: CGRect? = workArea
+        ) -> FixedSizeWriteDecision {
+            FixedSizePlacementPolicy.decide(
+                anchor: anchor, current: current, requested: requested, workArea: area, sizeSettable: answer
+            )
+        }
+        func expectDecision(_ label: String, _ got: FixedSizeWriteDecision, _ want: FixedSizeWriteDecision) {
+            checks += 1
+            if got != want {
+                failures += 1
+                print("FAIL \(label): got \(got) want \(want)")
+            }
+        }
+        expectDecision("resizable window writes the request as is", decide(.settable), .proceed)
+        expectDecision("locked size moves only", decide(.notSettable), .retarget(parked))
+        // 이것을 실패시키는 것: .unknown을 .notSettable과 같은 arm에 두면 retarget(parked)가 나온다 —
+        // 타임아웃 난 크기 조절 가능 창이 위치만 옮겨지고 조용히 성공하던 결함.
+        expectDecision("a failed settable query keeps .notResizable", decide(.unknown), .fail(.notResizable))
+        expectDecision("relative shrink on a locked size still fails",
+                       decide(.notSettable, anchor: .right), .fail(.notResizable))
+        expectDecision("unknown work area on a locked size fails",
+                       decide(.notSettable, area: nil), .fail(.notResizable))
+        // 크기가 안 바뀌는 요청(Move)은 답과 무관하게 그대로 — writer는 이때 size를 묻지도 않는다.
+        // 이것을 실패시키는 것: resizesSize 가드를 지우면 Move가 .unknown에서 실패한다.
+        let moveOnly = CGRect(x: 1100, y: 200, width: 800, height: 600)
+        expectDecision("move-only request ignores a failed query", decide(.unknown, requested: moveOnly), .proceed)
+        expectDecision("move-only request ignores a locked size", decide(.notSettable, requested: moveOnly), .proceed)
+    }
+
+    // #167: 쓰기 전 AX 권한 조회의 여부와 순서. 클로저가 호출을 기록한다.
+    static func testFixedSizeQueryOrder() {
+        // AX 조회 결과 → 답. 이것을 실패시키는 것: init을 `querySucceeded && settable ? .settable : .notSettable`로
+        // 합치면 조회 실패가 잠김이 되어(1번 결함) 아래 첫 케이스가 .notSettable을 낸다.
+        expectName("failed query is unknown", "\(SettableAnswer(querySucceeded: false, settable: false))", "unknown")
+        expectName("failed query ignores the flag",
+                   "\(SettableAnswer(querySucceeded: false, settable: true))", "unknown")
+        expectName("answered settable", "\(SettableAnswer(querySucceeded: true, settable: true))", "settable")
+        expectName("answered not settable", "\(SettableAnswer(querySucceeded: true, settable: false))", "notSettable")
+
+        final class CallLog { var calls: [String] = [] }
+        let topLeft = CGRect(x: 0, y: 25, width: 800, height: 600)
+        let floating = CGRect(x: 300, y: 200, width: 800, height: 600)
+        let leftHalf = FrameCalculator.halfRect(.left, workArea: workArea)
+        func run(
+            current: CGRect, requested: CGRect, movable: Bool = true, size: SettableAnswer = .settable
+        ) -> (FixedSizeWriteDecision, [String]) {
+            let log = CallLog()
+            let queries = SettableQueries(
+                positionSettable: { log.calls.append("position"); return movable },
+                sizeSettable: { log.calls.append("size"); return size }
+            )
+            let decision = FixedSizePlacementPolicy.resolve(
+                anchor: .workAreaEdges, current: current, requested: requested, workArea: workArea, queries: queries
+            )
+            return (decision, log.calls)
+        }
+        func expectRun(_ label: String, _ got: (FixedSizeWriteDecision, [String]),
+                       _ decision: FixedSizeWriteDecision, _ calls: [String]) {
+            checks += 1
+            if got.0 != decision || got.1 != calls {
+                failures += 1
+                print("FAIL \(label): got \(got.0) \(got.1) want \(decision) \(calls)")
+            }
+        }
+        let moveOnly = CGRect(x: 1100, y: 200, width: 800, height: 600)
+        let grow = CGRect(x: 300, y: 200, width: 1000, height: 700)
+        expectRun("no-op asks nothing", run(current: floating, requested: floating), .proceed, [])
+        expectRun("move only asks position only", run(current: floating, requested: moveOnly), .proceed, ["position"])
+        expectRun("resize only asks size only", run(current: floating, requested: grow), .proceed, ["size"])
+        // 이것을 실패시키는 것: size를 position보다 먼저 물으면 순서가 ["size", "position"]이 된다.
+        expectRun("move + resize asks position, then size",
+                  run(current: floating, requested: leftHalf), .proceed, ["position", "size"])
+        // 이것을 실패시키는 것: position 실패 뒤에도 size를 물으면 ["position", "size"]가 된다.
+        expectRun("immovable window never asks size",
+                  run(current: floating, requested: leftHalf, movable: false), .fail(.notMovable), ["position"])
+        let centered = CGRect(x: 560, y: 252.5, width: 800, height: 600)
+        // 이미 좌상단에 있는 창에 Maximize: 원래 요청은 크기만 바꾸지만, 위치만으로 낮춘 frame은 위치를 바꾼다.
+        // 이것을 실패시키는 것: 재확인을 지우면 ["size"]에서 멈추고 움직일 수 없는 창에 .retarget이 나온다.
+        expectRun("resize-only fallback that moves asks position once",
+                  run(current: topLeft, requested: workArea, size: .notSettable), .retarget(centered),
+                  ["size", "position"])
+        expectRun("resize-only fallback on an immovable window fails",
+                  run(current: topLeft, requested: workArea, movable: false, size: .notSettable),
+                  .fail(.notMovable), ["size", "position"])
+        // 이것을 실패시키는 것: `!movesRequested` 조건을 지우면 position을 두 번 묻는다.
+        expectRun("fallback after a moving request does not ask position again",
+                  run(current: floating, requested: leftHalf, size: .notSettable),
+                  .retarget(CGRect(x: 0, y: 252.5, width: 800, height: 600)), ["position", "size"])
+        // 작업영역보다 큰 창이 이미 좌상단: 원래 요청도 대체 frame도 위치를 안 바꾼다 → position을 묻지 않는다.
+        // 이것을 실패시키는 것: 재확인 조건에서 movesNow를 지우면 ["size", "position"]이 된다.
+        let oversized = CGRect(x: 0, y: 25, width: 2000, height: 1200)
+        expectRun("fallback that stays in place asks size only",
+                  run(current: oversized, requested: workArea, size: .notSettable), .retarget(oversized), ["size"])
+        expectRun("failed size query keeps .notResizable",
+                  run(current: floating, requested: leftHalf, size: .unknown),
+                  .fail(.notResizable), ["position", "size"])
+    }
+
+    // #167: 크기 고정 창의 snapThrow 두 번 — 첫 입력이 스냅을 기록하고, 두 번째 입력이 옆 모니터로 던진다.
+    // writer 결과에서 결과 정책 입력을 만드는 init(`CommandOutcome(pre:applied:snappedEdge:)`)까지 거친다.
+    static func testFixedSizeSnapSequence() {
+        let leftHalf = FrameCalculator.halfRect(.left, workArea: workArea)
+        let parked = CGRect(x: 0, y: 252.5, width: 800, height: 600)
+        let adjacent = adjacentArea(.left)
+        // 창이 이미 대체 위치에 있다(예: 지난 실행에서 옮겼고 스냅 기록은 없음). writer는 쓰지 않고 성공한다.
+        let first = plan(.snapThrow(.left), current: parked, adjacent: adjacent)
+        expectPlan("first press plans the half (no record yet)",
+                   first, CommandPlan(target: leftHalf, snappedEdge: .left))
+        guard case let .retarget(aimed) = FixedSizePlacementPolicy.decide(
+            anchor: WindowCommand.snapThrow(.left).frameAnchor, current: parked, requested: first.target,
+            workArea: workArea, sizeSettable: .notSettable
+        ) else {
+            checks += 1
+            failures += 1
+            print("FAIL fixed-size snap: expected a retarget")
+            return
+        }
+        expect("fallback aims at where the window already is", aimed, parked)
+        let applied = FrameApplyResult(target: aimed, achieved: parked, error: nil, mayHaveMutated: false)
+        // 이것을 실패시키는 것: init이 applied.target 대신 다른 값(plan의 반쪽 등)을 target으로 쓰면 무시된 쓰기로
+        // 보여 .keep이 되고, 아래 두 번째 입력이 던지지 않고 다시 스냅한다.
+        let decision = CommandOutcomePolicy.decide(
+            CommandOutcome(pre: parked, applied: applied, snappedEdge: first.snappedEdge)
+        )
+        expectDecision("already-in-place fixed-size window records the snap",
+                       decision, OutcomeDecision(recordUndo: false, snap: .record(.left, frame: parked)))
+        guard case let .record(edge, frame) = decision.snap else { return }
+        let second = plan(.snapThrow(.left), current: parked, recorded: SnapRecord(edge: edge, frame: frame),
+                          adjacent: adjacent)
+        expectPlan("second press throws to the adjacent display", second,
+                   CommandPlan(target: FrameCalculator.halfRect(.right, workArea: adjacent), snappedEdge: .right))
+        // init이 결과 값을 빠짐없이 옮기는지. target과 achieved가 다른 케이스여야 둘을 바꿔 쓴 배선이 잡힌다.
+        // 이것을 실패시키는 것: init이 target에 achieved를 넣으면 앱이 무시한 쓰기가 의도된 no-op으로 보여 스냅이 기록된다.
+        let floating = CGRect(x: 300, y: 200, width: 800, height: 600)
+        let ignored = FrameApplyResult(target: parked, achieved: floating, error: nil, mayHaveMutated: true)
+        expectDecision("ignored fixed-size write records nothing",
+                       CommandOutcomePolicy.decide(CommandOutcome(pre: floating, applied: ignored, snappedEdge: .left)),
+                       OutcomeDecision(recordUndo: false, snap: .keep))
+        // 이것을 실패시키는 것: init이 error를 버리면(failed: false) 부분 적용이 스냅 완료로 기록된다.
+        let partial = CGRect(x: 0, y: 200, width: 800, height: 600)
+        let partialApply = FrameApplyResult(
+            target: parked, achieved: partial, error: .applyFailed, mayHaveMutated: true
+        )
+        expectDecision("partially applied fixed-size write clears the snap",
+                       CommandOutcomePolicy.decide(
+                           CommandOutcome(pre: floating, applied: partialApply, snappedEdge: .left)
+                       ),
+                       OutcomeDecision(recordUndo: true, snap: .clear))
+        let failedApply = FrameApplyResult(target: aimed, achieved: nil, error: .applyFailed, mayHaveMutated: true)
+        expectDecision("failed fixed-size write keeps a restore point and clears the snap",
+                       CommandOutcomePolicy.decide(
+                           CommandOutcome(pre: parked, applied: failedApply, snappedEdge: .left)
+                       ),
+                       OutcomeDecision(recordUndo: true, snap: .clear))
+    }
+
     // #100: 모든 크기 쓰기 뒤의 실제 frame으로, 작업영역 모서리에 닿아야 할 창을 그 모서리로 다시 붙인다.
     static func testEdgeReanchor() {
         let rightHalf = CGRect(x: 960, y: 25, width: 960, height: 1055)

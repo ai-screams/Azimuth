@@ -42,8 +42,8 @@ nonisolated enum HotkeyPreset: String, CaseIterable {
         // Undo: Vim uses U=0x20, Standard uses Delete=0x33
         let undoKey = UInt32(isVim ? 0x20 : 0x33)
 
-        /// 방향 키코드[left,right,up,down]를 캡처해 호출부를 짧게 유지하는 로컬 래퍼.
         func directional(_ commands: [WindowCommand], _ modifiers: UInt32) -> [HotkeyBinding] {
+            // 방향 키코드[left,right,up,down]를 캡처해 호출부를 짧게 유지하는 로컬 래퍼.
             directionalBindings(commands, keyCodes: [left, right, up, down], modifiers: modifiers)
         }
 
