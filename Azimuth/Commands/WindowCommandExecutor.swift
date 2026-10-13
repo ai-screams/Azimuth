@@ -121,16 +121,12 @@ enum WindowCommandExecutor {
         ))
         // Undo·Snap 커밋 판단은 순수 계층에 위임한다 — 부분 적용·최종 read 실패 같은 조합을 AX 없이
         // 전수 테스트할 수 있게 하기 위해서다(감사 H-2/H-3). 여기서는 결정을 적용만 한다.
-        let decision = CommandOutcomePolicy.decide(CommandOutcome(
-            pre: preMoveFrame,
-            target: plan.target,
-            achieved: outcome.achieved,
-            failed: outcome.error != nil,
-            mayHaveMutated: outcome.mayHaveMutated,
-            snappedEdge: plan.snappedEdge
-        ))
+        // target은 writer가 실제로 노린 frame이다 — 크기 고정 창이면 plan과 다른 위치만 바뀐 frame(#167).
+        let decision = CommandOutcomePolicy.decide(
+            CommandOutcome(pre: preMoveFrame, applied: outcome, snappedEdge: plan.snappedEdge)
+        )
         commit(decision, pre: preMoveFrame, resolved: resolved, undoStore: undoStore, snapStore: snapStore)
-        return result(from: outcome, fallback: plan.target)
+        return result(from: outcome, fallback: outcome.target)
     }
 
     /// 결정을 상태 저장소에 적용한다. 판단은 `CommandOutcomePolicy`가 이미 끝냈고 여기서는 실행만 한다.

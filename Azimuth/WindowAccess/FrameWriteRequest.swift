@@ -30,4 +30,10 @@ struct FrameWriteRequest {
     var current: CGRect {
         resolved.frame.rect
     }
+
+    /// 목표만 바꾼 요청. 크기를 쓸 수 없는 창에 위치만 쓰기로 낮출 때 쓴다(#167) — 명령 시작 시각은 그대로라
+    /// 재시도 예산이 새로 시작되지 않는다.
+    func retargeted(to target: CGRect) -> FrameWriteRequest {
+        FrameWriteRequest(target: target, resolved: resolved, workArea: workArea, anchor: anchor, startedAt: startedAt)
+    }
 }

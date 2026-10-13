@@ -72,3 +72,23 @@ nonisolated enum FrameApply {
             && abs(lhs.height - rhs.height) <= sizeTolerance
     }
 }
+
+/// frame 적용 결과(writer → Executor). 순수 값이라 여기 둔다 — `CommandOutcome(pre:applied:snappedEdge:)`가
+/// 이 값을 받아 하네스에서 배선까지 검증된다(#167).
+///
+/// 무엇을 담나: achieved(마지막으로 읽은 실제 frame)를 성공·실패 양쪽에서 실어, Executor가
+/// "창이 실제로 변했는가"로 Undo를 판정하게 한다(부분 실패로 이동한 창의 복원 지점을 잃지 않고,
+/// 무시된 쓰기로 직전 Undo를 덮지 않게). error가 nil이면 UI 성공, 있으면 실패/transient.
+/// 읽기 자체가 실패하면 결과를 알 수 없으므로 achieved는 nil이다.
+///
+/// achieved가 nil일 때 상태 커밋의 유일한 근거가 `mayHaveMutated`다 — AX 쓰기가 하나라도 성공했다면
+/// 창은 움직였을 수 있으므로 복원점을 남겨야 한다(감사 H-2). 판정 자체는 `CommandOutcomePolicy`가 한다.
+nonisolated struct FrameApplyResult: Equatable {
+    /// 실제로 노린 frame. 보통 요청의 target이고, 크기를 쓸 수 없는 창에 위치만 쓰기로 낮췄으면 그 frame이다
+    /// (#167). Executor가 Undo·스냅 판정에 이 값을 써야 "이미 그 자리에 있던 창"을 무시된 쓰기로 오판하지 않는다.
+    let target: CGRect
+    let achieved: CGRect?
+    let error: WindowCommandError?
+    /// position/size 쓰기 중 하나라도 AX success를 반환했는가.
+    let mayHaveMutated: Bool
+}

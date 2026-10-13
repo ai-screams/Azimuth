@@ -33,6 +33,7 @@ Design principle: **predictability over clever inference.** Every command does e
 - **Move (keep size)** — nudge the window one step in any direction, clamped to the work area.
 - **Relative shrink** — shrink the window to **1/2** or **2/3** of its *current* size against a pinned edge (not the screen). Effects compose: 2/3 then 1/2 lands on 1/3.
 - **Move to next display** — send the window to an adjacent monitor, preserving its shape and relative position.
+- **Fixed-size windows too** — a window that can't be resized (e.g. some VPN clients) is placed at its own size: on the edge the target touches, or centered in the target area.
 - **Undo** — restore the previous frame, one step per window.
 - **Multi-monitor aware** — position-aware adjacent-display selection (the window goes to the monitor that lines up with where it currently is).
 - **Two presets** — Standard (arrow keys) and Vim (HJKL), each fully customizable with conflict warnings.
@@ -162,6 +163,7 @@ Example: `⌃⌥H` (left half) · `⌃⌥⌘K` (move up) · `⌃⌥⇧J` (shrink
 - **Center** — keeps size, centers in the work area.
 - **Relative shrink (½ / ⅔)** — based on the *current window*, not the screen: pins the chosen edge and shrinks toward it. Arrow keys shrink to ½; `M , . /` shrink to ⅔ (M=left, ,=down, .=up, /=right). Effects compose: ⅔ then ½ lands on ⅓.
 - **Move to next display** — preserves shape and relative position: a centered window stays centered even at a different resolution. It keeps its exact pixel size if it fits the target work area; if it doesn't, both axes shrink by the same factor, so the aspect ratio never changes. No adjacent display → stays put.
+- **Fixed-size windows** — a standard window or dialog that can be moved but not resized (its green zoom button is greyed out) keeps its size, and placement commands only move it: it hugs the work-area edge the target touches and is centered within the target on the other axis (Left ½ → left edge, vertically centered; Maximize → centered on the screen). Pressing the same direction again still throws it to the adjacent display. Relative shrink still fails with "This window can't be resized".
 - **Undo** — restores the previous frame (one step per window). Display reconfiguration discards undo history.
 - **Failure feedback** — a beep on failure (toggleable in Settings) plus a log entry, and the reason is recorded in the menu bar menu. You can also opt in to a notification on failure. Transient failures during Space switches or animations are skipped silently. Two cases differ: if the command failed for lack of Accessibility permission, Azimuth opens the Settings window for you (once per launch), and if the target app took too long to answer, the reason reads "The app is taking too long to respond" — how long Azimuth waits is the Advanced tab's setting.
 
@@ -183,12 +185,12 @@ If the menu bar icon is hidden, relaunching Azimuth reopens the Settings window 
 
 ## Roadmap
 
-| Version | Theme |
-|---------|-------|
-| v1 | Stabilization across representative apps — shipped / stable |
-| v1.5+ | Anchor placement: snap/size the window relative to another window (same display) |
-| v2 | Workspaces: per-app default positions, named scene save/restore |
-| v3 | Automation: URL scheme, Shortcuts action, per-app rules |
+| Stage | Theme |
+|-------|-------|
+| Stable | Stabilization across representative apps — shipped |
+| Next | Anchor placement: snap/size the window relative to another window (same display) |
+| Later | Workspaces: per-app default positions, named scene save/restore |
+| Future | Automation: URL scheme, Shortcuts action, per-app rules |
 
 ## Development
 
@@ -210,9 +212,11 @@ Common `make` targets, run from the project root:
 make run      # build a signed app and launch it (use this to actually run Azimuth)
 make build    # compile-only verification (ad-hoc signed; CI/compile checks only)
 make test     # run the pure-logic command-engine tests (swiftc)
+make coverage # the same tests plus a line-coverage gate on the pure-logic layer (what CI runs)
 make lint     # SwiftLint (strict)
 make format   # SwiftFormat
 make secrets  # gitleaks secret scan
+make sparkle-adapter-check  # confirm the update-window adapter still matches what Sparkle looks up
 ```
 
 Xcode also runs `SwiftLint` during builds when it is installed locally. If `SwiftLint` is missing, the build shows a warning instead of failing.
@@ -229,7 +233,7 @@ The `pre-commit` hook runs `SwiftFormat --lint` and `SwiftLint --strict`.
 
 ### CI
 
-GitHub Actions runs the same lint checks and a macOS `xcodebuild` build on pushes to `main` and on pull requests. It also runs `gitleaks` secret scanning and uploads a SARIF report to GitHub code scanning.
+GitHub Actions runs on pushes to `main` and on pull requests: the same lint checks, a macOS `xcodebuild` build, the pure-logic tests with their coverage gate, the Sparkle adapter check, and tests for the release scripts. It also runs `gitleaks` secret scanning and uploads a SARIF report to GitHub code scanning. CodeQL analysis runs in a separate workflow on pushes to `main` and weekly, not on pull requests.
 
 ## Support
 

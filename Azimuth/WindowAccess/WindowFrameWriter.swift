@@ -2,20 +2,6 @@ import ApplicationServices
 import Foundation
 import os
 
-/// frame 적용 결과. achieved(마지막으로 읽은 실제 frame)를 성공·실패 양쪽에서 실어, Executor가
-/// "창이 실제로 변했는가"로 Undo를 판정하게 한다(부분 실패로 이동한 창의 복원 지점을 잃지 않고,
-/// 무시된 쓰기로 직전 Undo를 덮지 않게). error가 nil이면 UI 성공, 있으면 실패/transient.
-/// 읽기 자체가 실패하면 결과를 알 수 없으므로 achieved는 nil이다.
-///
-/// achieved가 nil일 때 상태 커밋의 유일한 근거가 `mayHaveMutated`다 — AX 쓰기가 하나라도 성공했다면
-/// 창은 움직였을 수 있으므로 복원점을 남겨야 한다(감사 H-2). 판정 자체는 `CommandOutcomePolicy`가 한다.
-nonisolated struct FrameApplyResult: Equatable {
-    let achieved: CGRect?
-    let error: WindowCommandError?
-    /// position/size 쓰기 중 하나라도 AX success를 반환했는가.
-    let mayHaveMutated: Bool
-}
-
 /// AX 쓰기는 메인 스레드에서만 안전하며 권한 캐시(@MainActor)와 애니메이션 억제 상태를 다루므로 @MainActor.
 ///
 /// 쓰기 전략(메이저 윈도우 매니저 컨센서스):
@@ -36,28 +22,28 @@ enum WindowFrameWriter {
     private static let suppressor = AnimationSuppressor()
 
     /// 요청이 target/창/작업영역/anchor 와 **명령 시작 시각**을 함께 운반한다(`FrameWriteRequest`).
-    static func apply(_ request: FrameWriteRequest) -> FrameApplyResult {
+    static func apply(_ original: FrameWriteRequest) -> FrameApplyResult {
         // 권한 가드를 쓰기 경계에도 둔다(방어적 — 호출 순서에 의존하지 않게).
         guard AccessibilityPermissionService.currentStatus().isTrusted else {
-            return FrameApplyResult(achieved: nil, error: .resolution(.permissionDenied), mayHaveMutated: false)
+            return FrameApplyResult(
+                target: original.target, achieved: nil, error: .resolution(.permissionDenied), mayHaveMutated: false
+            )
         }
-        let element = request.resolved.element
+        let request: FrameWriteRequest
+        switch writableRequest(original) {
+        case let .success(effective):
+            request = effective
+        case let .failure(error):
+            return FrameApplyResult(target: original.target, achieved: nil, error: error, mayHaveMutated: false)
+        }
         let current = request.current
         let target = request.target
         // 여기서 한 번만 계산해 writeFrame 에 넘긴다 — 두 곳에서 따로 계산하면 한쪽만 고쳤을 때 조용히 갈라진다.
         let moves = FrameApply.movesOrigin(from: current, to: target)
         let resizes = FrameApply.resizesSize(from: current, to: target)
-        // 실제로 바뀌는 축의 권한만 요구한다 — 이동만 하는 고정크기 창의 Move를 허용하고, 불필요한
-        // size AX IPC와 부분 실패 면적을 줄인다(감사 M-3).
-        if moves, !isSettable(element, kAXPositionAttribute) {
-            return FrameApplyResult(achieved: nil, error: .notMovable, mayHaveMutated: false)
-        }
-        if resizes, !isSettable(element, kAXSizeAttribute) {
-            return FrameApplyResult(achieved: nil, error: .notResizable, mayHaveMutated: false)
-        }
         // 어느 축도 안 바뀌면 no-op — AX 쓰기 없이 현재 frame을 성공으로 반환(불필요한 쓰기·재정규화 방지).
         guard moves || resizes else {
-            return FrameApplyResult(achieved: current, error: nil, mayHaveMutated: false)
+            return FrameApplyResult(target: target, achieved: current, error: nil, mayHaveMutated: false)
         }
 
         // 상한 상향은 여기서부터다 — 위 isSettable 2회는 해석 단계의 짧은 상한 그대로 돌았다.
@@ -75,10 +61,35 @@ enum WindowFrameWriter {
         // 중단으로 "고치지" 말 것.
         raiseMessagingTimeout(on: request.resolved.appElement, label: "app")
         let didSuppress = suppressor.suppress(appElement: request.resolved.appElement, pid: request.resolved.pid)
-        raiseMessagingTimeout(on: element, label: "window")
+        raiseMessagingTimeout(on: request.resolved.element, label: "window")
         let result = writeFrame(request, moves: moves, resizes: resizes)
         if didSuppress { suppressor.scheduleRestore(pid: request.resolved.pid) }
         return result
+    }
+
+    /// 쓰기 전 권한 확인과 크기 고정 대체(#167). 실제로 바뀌는 축의 권한만 요구한다 — 이동만 하는 고정크기 창의
+    /// Move를 허용하고, 불필요한 AX IPC와 부분 실패 면적을 줄인다(감사 M-3). 무엇을 어떤 순서로 묻고 그 답으로
+    /// 무엇을 할지는 순수 정책(`FixedSizePlacementPolicy.resolve`)이 정한다. 여기서는 AX 조회를 클로저로 넘기기만 한다.
+    private static func writableRequest(
+        _ request: FrameWriteRequest
+    ) -> Result<FrameWriteRequest, WindowCommandError> {
+        let element = request.resolved.element
+        let queries = SettableQueries(
+            positionSettable: { isSettable(element, kAXPositionAttribute) },
+            sizeSettable: { settableAnswer(element, kAXSizeAttribute) }
+        )
+        let decision = FixedSizePlacementPolicy.resolve(
+            anchor: request.anchor, current: request.current, requested: request.target,
+            workArea: request.workArea, queries: queries
+        )
+        switch decision {
+        case .proceed:
+            return .success(request)
+        case let .fail(error):
+            return .failure(error)
+        case let .retarget(fixed):
+            return .success(request.retargeted(to: fixed))
+        }
     }
 
     // MARK: - 프레임 쓰기
@@ -165,9 +176,10 @@ enum WindowFrameWriter {
 
         // 읽기 실패면 결과를 알 수 없어 achieved=nil(Executor가 mayHaveMutated로 복원점을 판단한다).
         guard let achieved else {
-            return FrameApplyResult(achieved: nil, error: .applyFailed, mayHaveMutated: mutated)
+            return FrameApplyResult(target: target, achieved: nil, error: .applyFailed, mayHaveMutated: mutated)
         }
         return FrameApplyResult(
+            target: target,
             achieved: achieved,
             error: applyError(position: positionError, size: sizeError),
             mayHaveMutated: mutated
@@ -257,9 +269,14 @@ enum WindowFrameWriter {
         )
     }
 
-    private static func isSettable(_ element: AXUIElement, _ attribute: String) -> Bool {
+    /// 조회 실패를 "쓸 수 없다"와 섞지 않는다(#167) — 크기 고정 대체는 `.notSettable`에서만 걸린다.
+    private static func settableAnswer(_ element: AXUIElement, _ attribute: String) -> SettableAnswer {
         var settable = DarwinBoolean(false)
         let error = AXUIElementIsAttributeSettable(element, attribute as CFString, &settable)
-        return error == .success && settable.boolValue
+        return SettableAnswer(querySucceeded: error == .success, settable: settable.boolValue)
+    }
+
+    private static func isSettable(_ element: AXUIElement, _ attribute: String) -> Bool {
+        settableAnswer(element, attribute) == .settable
     }
 }
