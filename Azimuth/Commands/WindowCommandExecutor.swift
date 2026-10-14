@@ -82,10 +82,10 @@ enum WindowCommandExecutor {
                 anchor: WindowCommand.undo.frameAnchor,
                 startedAt: startedAt
             ))
-            // 복원이 실제로 직전 frame에 도달했을 때만 소비한 entry를 제거한다(부분 복원·미도달이면
+            // 복원이 실제로 직전 frame에 도달했을 때만 그 frame을 pop한다(부분 복원·미도달이면
             // 재시도 여지를 남긴다 — 명목상 성공이 아니라 achieved 기준. 감사 H-1).
             if let achieved = outcome.achieved, FrameApply.reached(target: previous, achieved: achieved) {
-                undoStore.clear(for: resolved.element, pid: resolved.pid)
+                undoStore.popLatest(for: resolved.element, pid: resolved.pid)
             }
             return result(from: outcome, fallback: previous)
         }

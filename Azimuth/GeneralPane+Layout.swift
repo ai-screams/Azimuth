@@ -82,6 +82,39 @@ extension GeneralPaneViewController {
         )
     }
 
+    /// 정수 설정의 숫자 칸. Return뿐 아니라 포커스를 잃을 때도 action을 보내, 입력하고 다른 곳을 눌러도 저장된다.
+    func makeNumberField(action: Selector, label: String) -> NSTextField {
+        let field = NSTextField(string: "")
+        field.alignment = .right
+        field.font = .monospacedDigitSystemFont(ofSize: NSFont.systemFontSize, weight: .regular)
+        field.cell?.sendsActionOnEndEditing = true
+        field.target = self
+        field.action = action
+        field.setAccessibilityLabel(label)
+        field.widthAnchor.constraint(equalToConstant: 48).isActive = true
+        return field
+    }
+
+    func makeNumberStepper(_ setting: BoundedIntSetting, action: Selector, label: String) -> NSStepper {
+        let stepper = NSStepper()
+        stepper.minValue = Double(setting.range.lowerBound)
+        stepper.maxValue = Double(setting.range.upperBound)
+        stepper.increment = 1
+        stepper.valueWraps = false
+        stepper.target = self
+        stepper.action = action
+        stepper.setAccessibilityLabel(label)
+        return stepper
+    }
+
+    func makeNumberRow(_ title: String, field: NSTextField, stepper: NSStepper) -> NSStackView {
+        let row = NSStackView(views: [NSTextField(labelWithString: title), field, stepper])
+        row.orientation = .horizontal
+        row.alignment = .centerY
+        row.spacing = 6
+        return row
+    }
+
     func makeMenuBarIconButton() -> NSButton {
         NSButton(
             checkboxWithTitle: "Hide menu bar icon",

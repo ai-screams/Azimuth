@@ -891,7 +891,7 @@
               </tr>
               <tr>
                 <td data-en="Command" data-ko="명령">Command</td>
-                <td data-en="Undo (1 step per window)" data-ko="1단계 되돌리기">Undo (1 step per window)</td>
+                <td data-en="Undo (up to 20 steps per window)" data-ko="되돌리기 (창당 최대 20단계)">Undo (up to 20 steps per window)</td>
                 <td>✅</td>
               </tr>
               <tr>
@@ -906,7 +906,7 @@
               </tr>
               <tr>
                 <td data-en="Settings" data-ko="설정">Settings</td>
-                <td data-en="Preset selection / failure beep + notification toggles / launch at login" data-ko="프리셋 선택 / 실패 비프·알림 토글 / 로그인 자동 실행">Preset selection / failure beep + notification toggles / launch at login</td>
+                <td data-en="Preset selection / failure beep + notification toggles / undo steps and windows / launch at login" data-ko="프리셋 선택 / 실패 비프·알림 토글 / Undo 단계·창 수 / 로그인 자동 실행">Preset selection / failure beep + notification toggles / undo steps and windows / launch at login</td>
                 <td>✅</td>
               </tr>
               <tr>
@@ -1141,9 +1141,9 @@
         <!-- 3.3 No-shortcut execution note -->
         <div class="shortcuts-meta" role="note">
           <strong data-en="Running commands without shortcuts:" data-ko="단축키 없이 실행:">Running commands without shortcuts:</strong>
-          <span data-en=" In DEBUG builds, use the menu-bar icon → Window Commands (Debug) submenu to trigger any command directly. Settings (⌘,) has three tabs: General (permission status, failure beep and notification, launch at login, hiding the menu-bar icon, updates), Shortcuts (preset, per-command recording and Reset, group and per-command on/off) and Advanced (how long to wait for an unresponsive app). In the Shortcuts tab every group starts collapsed — open one with its disclosure triangle, or type in the filter and matching groups expand on their own."
-                data-ko=" DEBUG 빌드에서는 메뉴바 아이콘 → Window Commands (Debug) 서브메뉴로 각 명령을 직접 실행할 수 있습니다. 설정창(⌘,)은 탭 세 개입니다: General(권한 상태, 실패 비프·알림, 로그인 자동 실행, 메뉴바 아이콘 숨김, 업데이트), Shortcuts(프리셋, 명령별 녹화·Reset, 그룹·명령 on/off), Advanced(응답 없는 앱을 얼마나 기다릴지). Shortcuts 탭의 그룹은 모두 접힌 채로 시작합니다 — 삼각형으로 펼치거나, 필터에 입력하면 해당 그룹이 저절로 펼쳐집니다.">
-            In DEBUG builds, use the menu-bar icon → Window Commands (Debug) submenu to trigger any command directly. Settings (⌘,) has three tabs: General (permission status, failure beep and notification, launch at login, hiding the menu-bar icon, updates), Shortcuts (preset, per-command recording and Reset, group and per-command on/off) and Advanced (how long to wait for an unresponsive app). In the Shortcuts tab every group starts collapsed — open one with its disclosure triangle, or type in the filter and matching groups expand on their own.
+          <span data-en=" In DEBUG builds, use the menu-bar icon → Window Commands (Debug) submenu to trigger any command directly. Settings (⌘,) has three tabs: General (permission status, failure beep and notification, undo steps per window and how many windows to remember, launch at login, hiding the menu-bar icon, updates), Shortcuts (preset, per-command recording and Reset, group and per-command on/off) and Advanced (how long to wait for an unresponsive app). In the Shortcuts tab every group starts collapsed — open one with its disclosure triangle, or type in the filter and matching groups expand on their own."
+                data-ko=" DEBUG 빌드에서는 메뉴바 아이콘 → Window Commands (Debug) 서브메뉴로 각 명령을 직접 실행할 수 있습니다. 설정창(⌘,)은 탭 세 개입니다: General(권한 상태, 실패 비프·알림, 창당 Undo 단계와 기억할 창 수, 로그인 자동 실행, 메뉴바 아이콘 숨김, 업데이트), Shortcuts(프리셋, 명령별 녹화·Reset, 그룹·명령 on/off), Advanced(응답 없는 앱을 얼마나 기다릴지). Shortcuts 탭의 그룹은 모두 접힌 채로 시작합니다 — 삼각형으로 펼치거나, 필터에 입력하면 해당 그룹이 저절로 펼쳐집니다.">
+            In DEBUG builds, use the menu-bar icon → Window Commands (Debug) submenu to trigger any command directly. Settings (⌘,) has three tabs: General (permission status, failure beep and notification, undo steps per window and how many windows to remember, launch at login, hiding the menu-bar icon, updates), Shortcuts (preset, per-command recording and Reset, group and per-command on/off) and Advanced (how long to wait for an unresponsive app). In the Shortcuts tab every group starts collapsed — open one with its disclosure triangle, or type in the filter and matching groups expand on their own.
           </span>
           <br /><br />
           <span data-en="All 34 key combinations are registered at launch. If a registration fails — because another app or macOS already holds that combination, or because the hotkey system could not start — Settings marks the row "
@@ -1320,9 +1320,9 @@
               <div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">⌫</span></div>
             </div>
             <p class="cmd-card-body"
-               data-en="Restores the window's previous frame — one step per window. History is discarded if the display configuration changes (e.g., a monitor is connected or disconnected), since absolute coordinates become invalid."
-               data-ko="창의 이전 프레임을 복원합니다 — 창당 1단계. 디스플레이 구성이 변경되면(모니터 연결·분리 등) 절대 좌표가 무효화되므로 이력은 폐기됩니다.">
-              Restores the window's previous frame — one step per window. History is discarded if the display configuration changes (e.g., a monitor is connected or disconnected), since absolute coordinates become invalid.
+               data-en="Restores the window's previous frame; press again to keep stepping back. Each window remembers its own recent frames — 5 by default, adjustable from 1 to 20 under Settings → General → Behavior, where you can also set how many recently used windows keep a history (64 by default, 1–256). Lowering either limit trims the oldest history on the next window command or Undo; a value that isn't a number reverts, and one out of range snaps to the nearest limit. Undo itself is not recorded, so there is no redo. History is discarded if the display configuration changes (e.g., a monitor is connected or disconnected), since absolute coordinates become invalid."
+               data-ko="창의 이전 프레임을 복원하고, 다시 누르면 한 단계씩 더 되돌아갑니다. 창마다 최근 프레임을 따로 기억합니다 — 기본 5단계, Settings → General → Behavior에서 1–20으로 조정하며, 같은 곳에서 기록을 남길 최근 창 수도 정합니다(기본 64, 1–256). 둘 중 하나를 줄이면 다음 창 명령이나 Undo 때 가장 오래된 기록부터 잘립니다. 숫자가 아닌 입력은 원래 값으로 돌아가고, 범위를 벗어난 값은 가까운 끝값으로 맞춰집니다. Undo 자체는 기록하지 않으므로 Redo는 없습니다. 디스플레이 구성이 변경되면(모니터 연결·분리 등) 절대 좌표가 무효화되므로 이력은 폐기됩니다.">
+              Restores the window's previous frame; press again to keep stepping back. Each window remembers its own recent frames — 5 by default, adjustable from 1 to 20 under Settings → General → Behavior, where you can also set how many recently used windows keep a history (64 by default, 1–256). Lowering either limit trims the oldest history on the next window command or Undo; a value that isn't a number reverts, and one out of range snaps to the nearest limit. Undo itself is not recorded, so there is no redo. History is discarded if the display configuration changes (e.g., a monitor is connected or disconnected), since absolute coordinates become invalid.
             </p>
           </div>
 

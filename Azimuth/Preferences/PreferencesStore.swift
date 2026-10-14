@@ -19,6 +19,8 @@ final class PreferencesStore {
     private let didCompleteFirstRunKey = "didCompleteFirstRun"
     private let didAttemptAccessibilityPromptKey = "didAttemptAccessibilityPrompt"
     private let resolveTimeoutKey = "resolveTimeout"
+    private let undoDepthKey = "undoDepth"
+    private let undoWindowCapacityKey = "undoWindowCapacity"
     private let migratedAbsoluteHalfRemovedKey = "migration.absoluteHalfRemoved.v1"
 
     /// feat/snap-throw-display: absolute half 명령 4개가 menuCommands에서 제거됨.
@@ -39,6 +41,24 @@ final class PreferencesStore {
             return AXMessagingTimeout.clampedResolve(defaults.float(forKey: resolveTimeoutKey))
         }
         set { defaults.set(AXMessagingTimeout.clampedResolve(newValue), forKey: resolveTimeoutKey) }
+    }
+
+    /// 창마다 기억할 Undo 단계 수(#170).
+    var undoDepth: Int {
+        get { boundedInt(forKey: undoDepthKey, UndoHistory.depth) }
+        set { defaults.set(UndoHistory.depth.clamped(newValue), forKey: undoDepthKey) }
+    }
+
+    /// Undo 기록을 들고 있을 창 수(#170).
+    var undoWindowCapacity: Int {
+        get { boundedInt(forKey: undoWindowCapacityKey, UndoHistory.windowCapacity) }
+        set { defaults.set(UndoHistory.windowCapacity.clamped(newValue), forKey: undoWindowCapacityKey) }
+    }
+
+    /// 저장 값은 손으로 편집될 수 있으므로 읽을 때도 쓸 때도 클램프한다. 없으면 기본값.
+    private func boundedInt(forKey key: String, _ setting: BoundedIntSetting) -> Int {
+        guard defaults.object(forKey: key) != nil else { return setting.defaultValue }
+        return setting.clamped(defaults.integer(forKey: key))
     }
 
     init(defaults: UserDefaults = .standard) {

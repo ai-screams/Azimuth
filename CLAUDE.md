@@ -48,7 +48,7 @@ block a commit over a file you never touched. Fetch the pinned release zip and l
   built `Azimuth.app`, rebuild): (a) the app is already running — `scripts/run.sh` pkills *after* the
   build, so it does not save you; (b) `Assets.car … permission to access "Resources"`
   (NSCocoaErrorDomain 513) from a stale bundle, with nothing running. `pkill -x Azimuth` also quits
-  the `/Applications` release copy.
+  the `/Applications` release copy; `pkill -f 'Debug/Azimuth.app'` quits only the `make run` build.
 - **Never `make build` while a `make run` app is running** — same shared DerivedData: it swaps the
   bundle under the live process, invalidating its signature, and macOS silently drops the app's
   Accessibility grant. Every command then dies while System Settings still shows it enabled.
@@ -71,6 +71,9 @@ block a commit over a file you never touched. Fetch the pinned release zip and l
   admins and can never be moved or deleted (ruleset "release tags: immutable", no bypass). Check the commit
   before pushing a tag; undoing one means disabling that ruleset for a moment in Settings → Rules. The
   `release` environment (signing secrets) deploys only from those tag patterns.
+- A release run failing at `stapler validate` with a network error (`NSURLErrorDomain -1005`) is
+  transient — signing and notarization already passed and no Release exists yet. `gh run rerun <id>
+  --failed`, then approve the `release` environment again; never re-tag.
 - Squash-merge **deletes the head branch**, so a PR stacked on it auto-closes on merge and GitHub
   won't let you reopen or re-target it — recreate it against `main`. And when one PR moves code
   another edits (e.g. splitting a test file that a second PR patches), merge the **content change
@@ -134,8 +137,13 @@ block a commit over a file you never touched. Fetch the pinned release zip and l
   extract the decision into a pure function (values in → decision out) and test that; a protocol seam
   carrying `AXUIElement` cannot compile in the swiftc harness. `Commands/*Policy.swift` is that family:
   outcome, plan, feedback, write-retry, edge-reanchor, fixed-size-placement, shortcut-list, shortcut-row.
+  Per-window stores keyed by `AXUIElement` get the same treatment: the per-window value (`UndoHistory`)
+  and the LRU order (`Shared/RecentKeys<Key>`, tested with `Int` keys) are pure; the store only holds them.
   When the **order or count** of AX calls matters, pass the queries in as closures (`SettableQueries`) so a
   test can record them.
+- Integer settings (stepper + typed field, or hand-edited defaults) are a `Shared/BoundedIntSetting`:
+  clamp in **both** the `PreferencesStore` getter and setter, read field text with `parse` (nil → revert
+  the field), never `integerValue` (it reads "abc" as 0).
 
 ## Docs (`docs/` is the GitHub Pages source)
 

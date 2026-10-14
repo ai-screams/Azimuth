@@ -23,7 +23,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// 업데이트 창의 버전을 "v1.7.2"로 표시한다. Sparkle은 delegate를 약하게 잡으므로 여기서 보유한다.
     private let updateVersionDisplayer = UpdateVersionDisplayer()
     private let frontmostAppTracker = FrontmostAppTracker()
-    private let windowUndoStore = WindowUndoStore()
+    /// 깊이와 창 수는 설정에서 읽어 온다(#170) — 설정 화면이 이 저장소를 몰라도 되고, 바꾸면 다음 명령부터 반영된다.
+    private lazy var windowUndoStore = WindowUndoStore(
+        depth: { [preferencesStore] in preferencesStore.undoDepth },
+        windowCapacity: { [preferencesStore] in preferencesStore.undoWindowCapacity }
+    )
     private let windowSnapStore = SnapStateStore()
     private let hotkeyService = HotkeyService()
     private let preferencesStore = PreferencesStore()
