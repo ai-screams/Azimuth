@@ -1,5 +1,5 @@
 <!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-06-19 | Updated: 2026-09-22 -->
+<!-- Generated: 2026-06-19 | Updated: 2026-10-14 -->
 
 # Tests
 
@@ -14,7 +14,8 @@ Regression tests for the command engine's **pure logic**. Instead of an Xcode te
 | `CommandEngineTests+Displays.swift` | Snap detection, displayMove, current-screen selection (`bestMatchIndex`: area, the 50:50 center rule, displayID ties, the deadband, the non-transitive three-screen case, and the original index) and adjacent-display selection |
 | `CommandEngineTests+Plan.swift` | `CommandPlanPolicy`. The snapThrow state machine (not snapped → snap; already snapped → throw; no adjacent display → stay put), the moveToDisplay destination, the delegation boundary and `WindowCommand.adjacentEdge`, each across all four directions. Assertions go only through `expectPlan` (whole-struct equality) |
 | `CommandEngineTests+Apply.swift` | anchor, FrameApply, CommandOutcomePolicy and WriteRetryPolicy (the retry decision and its budget boundary). Verifies the state commit for partial AX application, ignored successful writes and a failed final read, all from values |
-| `CommandEngineTests+Model.swift` | Command groups, primitive strings, the command model, identifiers and helpText exhaustively, plus the failure-feedback decision and the row-display truth table (`ShortcutRowPolicy`: the checkbox's two axes and badge priority) |
+| `CommandEngineTests+Undo.swift` | #170 undo history: `UndoHistory` (push order, depth limit, pop, trimming a lowered depth, depth clamp), `BoundedIntSetting` (clamp, `parse` trims, clamps, rejects non-numbers and overflow), `RecentKeys` (LRU touch, evicting the least recent, several at once when lowered, negative capacity), and the `undoDepth` / `undoWindowCapacity` preferences (defaults, persistence, clamp on both read and write). Main-only — kept out of `+Permissions.swift`, which must stay byte-identical to `legacy/10.13` |
+| `CommandEngineTests+Model.swift` | Command groups, primitive strings, the command model, identifiers and helpText exhaustively (including the multi-step Undo text), plus the failure-feedback decision and the row-display truth table (`ShortcutRowPolicy`: the checkbox's two axes and badge priority) |
 | `CommandEngineTests+Hotkeys.swift` | The shortcut binding layer. Per-preset key assignment, overrides, the enabled filter, conflict detection, display strings, Codable round-trips and Carbon modifiers |
 | `CommandEngineTests+Updates.swift` | Sparkle update-window version text (`UpdateVersionText`): `v` prefix (no double v, empty short), legacy `209.N` only, update/bundle pairs incl. Legacy 1→2 and legacy→main migration, `(build)` only for identical labels with distinct non-empty builds. Shared verbatim with `legacy/10.13` |
 | `CommandEngineTests+Permissions.swift` | Accessibility request path: prompt only on the first untrusted request, Settings afterwards; the migration default for upgrades; `PreferencesStore` migration timing (a new install still prompts after onboarding sets `didCompleteFirstRun`) and its defaults, persistence, shortcut and enable-state storage, timeout clamping. Same file as `legacy/10.13` |
@@ -37,7 +38,7 @@ Regression tests for the command engine's **pure logic**. Instead of an Xcode te
 ## Dependencies
 
 ### Internal
-- `HARNESS_SRC` in `scripts/harness-sources.sh` is the single source for what gets compiled (the pure files under `Commands/`, plus `Shared/AXMessagingTimeout` and the binding layer in `Hotkeys/`).
+- `HARNESS_SRC` in `scripts/harness-sources.sh` is the single source for what gets compiled (the pure files under `Commands/`, the pure value types in `Shared/` such as `AXMessagingTimeout`, `BoundedIntSetting` and `RecentKeys`, and the binding layer in `Hotkeys/`).
 
 ### External
 - CoreGraphics, Foundation.

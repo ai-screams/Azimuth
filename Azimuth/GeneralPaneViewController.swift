@@ -66,6 +66,22 @@ final class GeneralPaneViewController: NSViewController, SettingsPane {
     let launchApprovalLabel = NSTextField(wrappingLabelWithString: "")
     lazy var launchApprovalButton = makeLaunchApprovalButton()
     lazy var menuBarIconButton = makeMenuBarIconButton()
+    /// Undo 단계 수와 기억하는 창 수(#170). 숫자 칸에 직접 입력하거나 옆 stepper로 1씩 바꾼다 — 둘 다 같은 action으로 간다.
+    lazy var undoDepthField = makeNumberField(action: #selector(undoDepthChanged(_:)), label: "Undo steps per window")
+    lazy var undoDepthStepper = makeNumberStepper(
+        UndoHistory.depth, action: #selector(undoDepthChanged(_:)), label: "Undo steps per window"
+    )
+    lazy var undoDepthRow = makeNumberRow("Undo steps per window:", field: undoDepthField, stepper: undoDepthStepper)
+    lazy var undoWindowCapacityField = makeNumberField(
+        action: #selector(undoWindowCapacityChanged(_:)), label: "Windows to remember for undo"
+    )
+    lazy var undoWindowCapacityStepper = makeNumberStepper(
+        UndoHistory.windowCapacity, action: #selector(undoWindowCapacityChanged(_:)),
+        label: "Windows to remember for undo"
+    )
+    lazy var undoWindowCapacityRow = makeNumberRow(
+        "Windows to remember:", field: undoWindowCapacityField, stepper: undoWindowCapacityStepper
+    )
     let menuBarIconHintLabel = NSTextField(
         wrappingLabelWithString: "When hidden, open Azimuth again from Finder or Spotlight to reopen this window."
     )
@@ -84,6 +100,8 @@ final class GeneralPaneViewController: NSViewController, SettingsPane {
         bodyViews: [
             soundFeedbackButton,
             notifyOnFailureButton,
+            undoDepthRow,
+            undoWindowCapacityRow,
             notifyApprovalLabel,
             launchAtLoginButton,
             launchApprovalLabel,
@@ -167,6 +185,7 @@ final class GeneralPaneViewController: NSViewController, SettingsPane {
         // (사용자가 그새 System Settings에서 켜고 왔을 수 있어 stale 안내가 남지 않게 한다).
         notifyApprovalLabel.isHidden = true
         menuBarIconButton.state = preferencesStore.menuBarIconHidden ? .on : .off
+        showUndoSettings()
         launchAtLoginButton.state = launchService.isEnabled ? .on : .off
 
         let needsApproval = launchService.requiresApproval

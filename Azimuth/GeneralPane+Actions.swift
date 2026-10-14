@@ -26,6 +26,33 @@ extension GeneralPaneViewController {
         preferencesStore.soundFeedbackEnabled = sender.state == .on
     }
 
+    /// 숫자 칸과 stepper가 같은 action으로 온다. 저장은 `PreferencesStore`가 클램프해서 한다. 실행 중인 Undo 저장소는
+    /// 설정을 직접 읽으므로 따로 알릴 필요가 없다 — 다음 명령·Undo부터 반영되고, 줄였다면 그때 오래된 기록이 잘린다.
+    @objc func undoDepthChanged(_ sender: NSControl) {
+        preferencesStore.undoDepth = enteredValue(sender, UndoHistory.depth) ?? preferencesStore.undoDepth
+        showUndoSettings()
+    }
+
+    @objc func undoWindowCapacityChanged(_ sender: NSControl) {
+        let entered = enteredValue(sender, UndoHistory.windowCapacity)
+        preferencesStore.undoWindowCapacity = entered ?? preferencesStore.undoWindowCapacity
+        showUndoSettings()
+    }
+
+    /// 숫자가 아닌 입력은 nil — 호출부가 저장된 값을 그대로 두고 `showUndoSettings`가 칸을 되돌린다.
+    private func enteredValue(_ sender: NSControl, _ setting: BoundedIntSetting) -> Int? {
+        sender is NSStepper ? sender.integerValue : setting.parse(sender.stringValue)
+    }
+
+    func showUndoSettings() {
+        let depth = preferencesStore.undoDepth
+        undoDepthField.stringValue = "\(depth)"
+        undoDepthStepper.integerValue = depth
+        let capacity = preferencesStore.undoWindowCapacity
+        undoWindowCapacityField.stringValue = "\(capacity)"
+        undoWindowCapacityStepper.integerValue = capacity
+    }
+
     /// 알림 권한은 토글을 켜는 순간에만 요청한다(opt-in). 켜지 못하면 토글을 되돌려
     /// "켜져 보이는데 알림이 안 오는" 상태를 막고, 거부/실패는 (beep 없이) System Settings
     /// 안내 라벨로 연결한다 — 사용자가 의도적으로 누른 체크박스에 beep은 잘못된 신호다.

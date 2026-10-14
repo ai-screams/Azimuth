@@ -91,7 +91,8 @@ extension CommandEngineTests {
                    WindowCommand.maximizeGaps.helpText, "Fill the work area, leaving a uniform gap on all sides.")
         expectName("move center helpText",
                    WindowCommand.move(.center).helpText, "Center the window at its current size.")
-        expectName("undo helpText", WindowCommand.undo.helpText, "Restore the window's previous frame.")
+        expectName("undo helpText", WindowCommand.undo.helpText,
+                   "Restore the window's previous frame. Press again to step further back.")
     }
 
     static func testCommandIdentifiers() {

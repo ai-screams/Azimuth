@@ -143,7 +143,7 @@ nonisolated enum WindowCommand: Equatable {
         case let .relativeTwoThird(anchor):
             "Shrink to two-thirds the current size, pinned to the \(anchor.displayName.lowercased()) edge."
         case .undo:
-            "Restore the window's previous frame."
+            "Restore the window's previous frame. Press again to step further back."
         }
     }
 
