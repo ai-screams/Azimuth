@@ -20,6 +20,7 @@ Regression tests for the command engine's **pure logic**. Instead of an Xcode te
 | `CommandEngineTests+Updates.swift` | Sparkle update-window version text (`UpdateVersionText`): `v` prefix (no double v, empty short), legacy `209.N` only, update/bundle pairs incl. Legacy 1→2 and legacy→main migration, `(build)` only for identical labels with distinct non-empty builds. Shared verbatim with `legacy/10.13` |
 | `CommandEngineTests+Permissions.swift` | Accessibility request path: prompt only on the first untrusted request, Settings afterwards; the migration default for upgrades; `PreferencesStore` migration timing (a new install still prompts after onboarding sets `didCompleteFirstRun`) and its defaults, persistence, shortcut and enable-state storage, timeout clamping. Same file as `legacy/10.13` |
 | `CommandEngineTests+Glyphs.swift` | #181 command glyphs and keycap labels: every menu command has a mark, stays inside the 28×20 box, and no two commands share a glyph; pinned regions (halves, thirds, two-thirds, shrink ghost), arrow direction, display target on the matching side; `keycapLabels` keeps multi-character keys as one label; `WindowCommand.menuCommands(in:)` covers every command once in menu order; `HotkeyBinding.shortcut` |
+| `CommandEngineTests+Settings.swift` | Settings decisions: the notify-on-failure toggle outcome (`NotifyToggleDecision`) for each authorization result and for "switched off while waiting" |
 
 ## For AI Agents
 

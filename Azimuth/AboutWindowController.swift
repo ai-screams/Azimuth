@@ -14,29 +14,6 @@ import AppKit
 final class AboutWindowController: NSWindowController {
     static let shared = AboutWindowController()
 
-    private static let appName = "Azimuth"
-    private static let tagline =
-        "A keyboard-driven window manager for macOS. Snap, throw, and arrange windows "
-            + "across your displays with predictable shortcuts — no mouse, no guesswork."
-
-    private struct Link {
-        let title: String
-        let symbol: String
-        let url: String
-        let tint: NSColor?
-    }
-
-    private static let links: [Link] = [
-        Link(title: "Homepage", symbol: "globe",
-             url: "https://ai-scream.ai/Azimuth/", tint: nil),
-        Link(title: "Report an Issue", symbol: "ladybug",
-             url: "https://github.com/ai-screams/Azimuth/issues/new", tint: nil),
-        Link(title: "Sponsor", symbol: "heart.fill",
-             url: "https://github.com/sponsors/ai-screams", tint: .systemPink),
-        Link(title: "Support on Ko-fi", symbol: "cup.and.saucer.fill",
-             url: "https://ko-fi.com/pignuante", tint: .systemOrange)
-    ]
-
     private static let contentWidth: CGFloat = 460
 
     init() {
@@ -48,7 +25,7 @@ final class AboutWindowController: NSWindowController {
         window.titlebarAppearsTransparent = true
         window.titleVisibility = .hidden
         window.isMovableByWindowBackground = true
-        window.title = "About \(Self.appName)"
+        window.title = "About \(AboutContent.appName)"
         window.isReleasedWhenClosed = false
         super.init(window: window)
         let content = makeContentView()
@@ -81,16 +58,16 @@ final class AboutWindowController: NSWindowController {
 
         stack.addArrangedSubview(iconView())
         stack.setCustomSpacing(16, after: stack.arrangedSubviews[0])
-        stack.addArrangedSubview(label(Self.appName, font: .systemFont(ofSize: 24, weight: .bold)))
+        stack.addArrangedSubview(label(AboutContent.appName, font: .systemFont(ofSize: 24, weight: .bold)))
         stack.addArrangedSubview(label(versionString(), font: .systemFont(ofSize: 11),
                                        color: .secondaryLabelColor))
         stack.setCustomSpacing(16, after: stack.arrangedSubviews[2])
         stack.addArrangedSubview(taglineLabel())
         stack.setCustomSpacing(20, after: stack.arrangedSubviews[3])
-        stack.addArrangedSubview(buttonRow([Self.links[0], Self.links[1]]))
-        stack.addArrangedSubview(buttonRow([Self.links[2], Self.links[3]]))
+        stack.addArrangedSubview(buttonRow(Array(AboutContent.links.prefix(2))))
+        stack.addArrangedSubview(buttonRow(Array(AboutContent.links.dropFirst(2))))
         stack.setCustomSpacing(20, after: stack.arrangedSubviews[5])
-        stack.addArrangedSubview(label(copyrightString(), font: .systemFont(ofSize: 10),
+        stack.addArrangedSubview(label(AboutContent.copyright(), font: .systemFont(ofSize: 10),
                                        color: .tertiaryLabelColor))
 
         let container = NSView()
@@ -117,7 +94,7 @@ final class AboutWindowController: NSWindowController {
     }
 
     private func taglineLabel() -> NSTextField {
-        let field = label(Self.tagline, font: .systemFont(ofSize: 12), color: .secondaryLabelColor)
+        let field = label(AboutContent.tagline, font: .systemFont(ofSize: 12), color: .secondaryLabelColor)
         field.alignment = .center
         field.maximumNumberOfLines = 0
         field.lineBreakMode = .byWordWrapping
@@ -127,7 +104,7 @@ final class AboutWindowController: NSWindowController {
         return field
     }
 
-    private func buttonRow(_ links: [Link]) -> NSStackView {
+    private func buttonRow(_ links: [AboutContent.Link]) -> NSStackView {
         let row = NSStackView(views: links.map(makeButton))
         row.orientation = .horizontal
         row.distribution = .fillEqually
@@ -137,12 +114,19 @@ final class AboutWindowController: NSWindowController {
         return row
     }
 
-    private func makeButton(_ link: Link) -> NSButton {
+    private func makeButton(_ link: AboutContent.Link) -> NSButton {
         let button = NSButton.rounded(title: "  \(link.title)", target: self, action: #selector(openLink(_:)))
         button.image = NSImage(systemSymbolName: link.symbol, accessibilityDescription: nil)
         button.imagePosition = .imageLeading
-        button.identifier = NSUserInterfaceItemIdentifier(link.url)
-        if let tint = link.tint { button.contentTintColor = tint }
+        button.identifier = NSUserInterfaceItemIdentifier(link.url.absoluteString)
+        switch link.tint {
+        case .none:
+            break
+        case .pink:
+            button.contentTintColor = .systemPink
+        case .orange:
+            button.contentTintColor = .systemOrange
+        }
         return button
     }
 
@@ -158,10 +142,6 @@ final class AboutWindowController: NSWindowController {
 
     private func versionString() -> String {
         Bundle.main.displayVersion(prefix: "Version")
-    }
-
-    private func copyrightString() -> String {
-        Bundle.main.infoDictionary?["NSHumanReadableCopyright"] as? String ?? "© 2026 ai-screams"
     }
 
     @objc private func openLink(_ sender: NSButton) {

@@ -1,5 +1,5 @@
 <!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-06-19 | Updated: 2026-10-14 -->
+<!-- Generated: 2026-06-19 | Updated: 2026-10-22 -->
 
 # Preferences
 
@@ -26,7 +26,7 @@ Persistence for user settings. A thin wrapper over UserDefaults.
 ## Dependencies
 
 ### Internal
-- `Hotkeys/HotkeyPreset` (the active preset type). Consumers: `AppDelegate` (hotkey reload, beep gating), `GeneralPaneViewController` and `Settings/ShortcutsSectionView` (UI).
+- `Hotkeys/HotkeyPreset` (the active preset type). Consumers: `AppDelegate` (hotkey reload, beep gating), `Settings/SettingsModel` and `Settings/ShortcutsSectionView` (UI).
 
 ### External
 - Foundation (UserDefaults).

@@ -1,46 +1,42 @@
 <!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-06-19 | Updated: 2026-09-26 -->
+<!-- Generated: 2026-06-19 | Updated: 2026-10-22 -->
 
 # Settings
 
 ## Purpose
-The settings window, split into three toolbar tabs (**General / Shortcuts / Advanced**). Stacking every card in one vertical scroll made the window open taller than 1,100pt because of the 34 shortcuts (#113); the tabs fixed that. The window controller only creates, shows and places the window; the tab container owns the panes and negotiates window height; each pane owns its own cards. The General pane itself lives at `Azimuth/GeneralPaneViewController.swift` (a historical location).
+The settings window. Since #175 it is a SwiftUI `NavigationSplitView` with a sidebar (**General / Shortcuts / Advanced / About**) and a grouped `Form` per pane, laid out like System Settings. The window itself is still created, placed and shown by `SettingsWindowController` (AppKit). The Shortcuts pane is still the AppKit `ShortcutsPaneViewController`, hosted through `NSViewControllerRepresentable`; moving it to SwiftUI is the second step of #175.
 
 ## Key Files
 | File | Description |
 |------|-------------|
-| `SettingsWindowController.swift` | `@MainActor`. Takes its dependencies through the initializer, builds the three panes and installs `SettingsTabController` as the window's `contentViewController`. `show()` centers the window on the screen holding the mouse, then displays it. The controller is cached (one settings window). The first `setContentSize` inside `applyResizeLimits` is a **required** call that fixes the pane width (see the comment there) |
-| `SettingsTabController.swift` | `NSTabViewController(tabStyle: .toolbar)`. Defines the `SettingsPane` protocol (`naturalContentHeight()`, `paneTitle`, `paneSymbolName`). On tab switch, `resizeWindowToSelectedPane()` matches the window height to the selected pane's natural height (never below `minWindowHeight`, 400) and updates `contentMaxSize` with it. The single source for the window width constant `windowWidth` (560). Panes are looked up through `tabViewItems`, with no separate array |
-| `SettingsPaneScaffold.swift` | The shared pane skeleton: a vertical scroll view + a `FlippedView` document view + a content stack + an inset of 24. All three panes use it (this is what removed the triple duplication). The returned document view's height is the natural height |
-| `ShortcutsPaneViewController.swift` | The Shortcuts tab. Hosts `ShortcutsSectionView` inside a card. `viewWillAppear` collapses every group (`collapseAllGroups`) and re-fits the window. On a disclosure-triangle toggle (`onExpansionChanged`) it re-fits again through `parent as? SettingsTabController` — otherwise the maximum height stays pinned to the collapsed height |
-| `AdvancedPaneViewController.swift` | The Advanced tab. The "Wait for unresponsive apps" resolve-timeout popup (`ResolveTimeoutChoice`) plus its explanation. Changes are handed to the app through the `setResolveTimeout` closure, so this pane never touches `WindowAccess` directly |
-| `ShortcutsSectionView.swift` / `+Layout.swift` | The preset segmented control + search + 34 command rows (recorder, Reset, the modified dot, conflict/occupied badges). A group header carries two controls with different meanings — **a disclosure triangle (collapse; display only)** and **a checkbox (hotkey registration on/off for that group)** — distinguished by their accessibility labels. Collapse state is not persisted. Row, header and separator visibility is decided by `Commands/ShortcutListPolicy` (pure, tested) and the view only applies it; while searching, matching groups expand automatically. Row appearance (recorder string, the checkbox's two axes, Reset, dimming, the modified dot, the badge) is decided by `Commands/ShortcutRowPolicy` (pure) and again the view only pushes it into widgets. The four per-group views (checkbox, triangle, header, separator) are bundled as `GroupViews` and held in a single `[CommandGroup: GroupViews]` — the token is used only when talking to the store |
-| `ShortcutsSectionView+Pruning.swift` | **Keeps hidden slots out of the view hierarchy (#137).** `applyFilter` ends with `pruneHiddenSlots()`: slots (separator, header, row) that became hidden are detached, newly visible ones are reinserted in their original order (`allSlots`), with their original width-to-`rowsStack` constraint re-activated (`slotWidthConstraints`) and the separator's custom spacing restored. A collapsed Shortcuts pane drops from ~690 to ~110 views, and switching to the tab went from ~180 to ~46 ms (M1-class). Before detaching, keyboard focus inside a leaving slot moves to the search field (else to the window); a recording `ShortcutRecorderButton` cancels in `resignFirstResponder`, and if both moves are refused it is cancelled explicitly (`cancelRecordingIfNeeded`) — global hotkeys never stay suspended. Debug builds assert the invariants after every prune (canonical order, visible ⇒ attached, one width constraint per slot). Setting the tab's `initialFirstResponder` was measured and dropped: no gain on main, and at tab-creation time it moved ~117 ms into opening the window |
-| `SettingsCard.swift` / `BadgeLabel.swift` / `ShortcutRecorderButton.swift` | The card container (symbol + title + body), the status badge, and the shortcut recorder button (which calls back to suspend global hotkeys while recording) |
+| `SettingsWindowController.swift` | `@MainActor`. Takes a `SettingsDependencies` bundle, owns the `SettingsModel`, and hosts `SettingsRootView` in an `NSHostingController` (`sizingOptions = []`, so the window does not jump to the content's preferred size; initial 760×600, tall enough for About without scrolling, minimum 640×420). `show(pane:)` refreshes the model, centers the window on the screen holding the mouse and brings the app forward. Observes `didBecomeActive` to refresh after the user changes things in System Settings. `setCanCheckForUpdates` is how `AppDelegate` passes Sparkle's state |
+| `SettingsModel.swift` | `@Observable`. `SettingsDependencies` (store, login-item service, and closures for hotkeys, menu-bar icon, resolve timeout, Sparkle and notification authorization) plus the values the panes show. `refresh()` re-reads everything (permission, login item — `SMAppService` has no change notification — store values) and clears the notify hint. Actions keep the old behavior: notify-on-failure goes through `Notifications/NotifyToggleDecision`; launch-at-login beeps on failure only when sound feedback is on and refreshes after `disable` completes; undo text goes through `BoundedIntSetting.parse` (non-numbers revert), the store clamps |
+| `SettingsRootView.swift` | Sidebar + detail. An orange dot next to General when Accessibility is not granted. The sidebar toggle is removed |
+| `GeneralSettingsView.swift` | Permissions, Startup (launch at login + approval row, hide menu bar icon + reopen hint), Feedback (sound, notify + System Settings hint). Toggles are switches |
+| `AdvancedSettingsView.swift` | Undo (steps per window, windows to remember: a text field committed on Return or focus loss, plus a stepper) and "Wait for unresponsive apps" (`ResolveTimeoutChoice`) |
+| `AboutSettingsView.swift` | Icon, name, version, tagline, Updates ("Check for Updates…" disabled while Sparkle cannot check), links and copyright from `Shared/AboutContent` |
+| `ShortcutsSettingsHost.swift` | Hosts `ShortcutsPaneViewController` until the Shortcuts pane moves to SwiftUI |
+| `ShortcutsPaneViewController.swift` | The AppKit Shortcuts pane: a card holding `ShortcutsSectionView` in a scroll view. Collapses every group each time it appears |
+| `ShortcutsSectionView.swift` / `+Layout.swift` / `+Pruning.swift` | Preset control, search and 34 command rows (recorder, Reset, modified dot, conflict/occupied badges). Visibility comes from `Commands/ShortcutListPolicy`, row appearance from `Commands/ShortcutRowPolicy`. Pruning keeps hidden slots out of the view hierarchy (#137) and cancels a recording before its row leaves, so global hotkeys never stay suspended |
+| `SettingsCard.swift` / `SettingsPaneScaffold.swift` / `BadgeLabel.swift` / `ShortcutRecorderButton.swift` | AppKit parts used only by the Shortcuts pane now. Removed when that pane moves to SwiftUI |
 
 ## For AI Agents
 
 ### Working In This Directory
-- For a new setting, **pick the tab first**: General for everyday users, Shortcuts for anything about key bindings, Advanced for things nobody should need to change (the structure itself says "you don't have to come here"). A pane takes only the dependencies it needs through its initializer, so the signature shows what it depends on.
-- A pane's `loadView` width must come from `SettingsTabController.windowWidth`. If the width is wrong, the natural height is computed against the wrong width — and the harness cannot catch that.
-- Window height is **clamped to the screen's visibleFrame by AppKit itself** (`NSWindow.constrainFrameRect`). Do not add a manual clamp; overflowing content is handled by the pane's scroll view.
-- To change how search and collapsing interact, edit `Commands/ShortcutListPolicy` and its tests, not the view.
-- Window placement follows the screen containing `NSEvent.mouseLocation`. Preserve that behavior (multi-monitor regression).
+- A new setting goes into `SettingsModel` (value + action) and one pane view. Pick the pane by audience: General for everyday users, Shortcuts for key bindings, Advanced for things nobody should need to change.
+- Keep decisions out of the views. A decision with branches (like the notify toggle) becomes a pure type in the harness.
+- UI files never import Sparkle or UserNotifications; they get closures through `SettingsDependencies`.
+- Window placement follows the screen containing `NSEvent.mouseLocation`. Keep it (multi-monitor regression).
 
 ### Testing Requirements
-- `make lint` + `make test` (`ShortcutListPolicy`, `ShortcutRowPolicy`) + compile. Human check (`make run`): does the window height follow when switching the three tabs; does the Shortcuts tab open short with groups collapsed; does expanding a triangle grow the window while the checkbox still disables that group's hotkeys; does a search auto-expand matching groups; does each tab scroll when shrunk to the minimum height (400); do the menu, `⌘,` and re-opening from the Dock all reach the same window.
-
-### Common Patterns
-- Dependency injection: constructor injection instead of singletons. Notifications back to the app go through closures (`onHotkeysChanged`, `setHotkeysSuspended`, `setResolveTimeout`, `checkForUpdates`), with `[weak self]` to avoid retain cycles.
-- A pane's `naturalContentHeight()` **delegates in one line to `SettingsPaneScaffold.naturalContentHeight(of:in:)`.** The three panes had copied the same nine lines, so they were merged — a new pane should delegate, not copy. On measurement failure (a nil `documentView`) the scaffold calls `assertionFailure` and returns `minWindowHeight`, because letting 0 through would make a 400pt window look like a success.
-- The window controller's `applyResizeLimits` does not compute the maximum height or the actual size itself; it calls `tabController.resizeWindowToSelectedPane()` — the **same path** a tab switch takes, so the two cannot drift apart.
+- `make lint` + `make test` (`NotifyToggleDecision`, `ShortcutListPolicy`, `ShortcutRowPolicy`) + Debug and Release compile. Human check with `make run`: every control saves, reads back after reopening and takes effect; notify denied shows the hint; login item needing approval shows its row; undo fields reject `abc` and clamp `0` / `999`; hide the icon and reopen from Finder; the General dot when permission is missing; Shortcuts still records, resolves conflicts and resets; the window opens on the screen with the mouse.
 
 ## Dependencies
 
 ### Internal
-- `Azimuth/GeneralPaneViewController` (the General pane), `Commands/ShortcutListPolicy`, `Commands/ShortcutRowPolicy`, `Preferences/PreferencesStore`, `Launch/LaunchAtLoginService`, `Hotkeys/BindingResolver` · `HotkeyPreset`, `Shared/AXMessagingTimeout` (`ResolveTimeoutChoice`), `FlippedView`.
+- `Preferences/PreferencesStore`, `Launch/LaunchAtLoginService`, `Permissions/AccessibilityPermissionService`, `Notifications/NotifyToggleDecision`, `Commands/ShortcutListPolicy` · `ShortcutRowPolicy`, `Hotkeys/*`, `Shared/AXMessagingTimeout` (`ResolveTimeoutChoice`), `Shared/AboutContent`, `Shared/BundleVersion`, `UI/*` (next step).
 
 ### External
-- Cocoa (NSWindowController / NSWindow / NSScreen / NSTabViewController / NSStackView).
+- SwiftUI, Observation, Cocoa.
 
 <!-- MANUAL: -->
