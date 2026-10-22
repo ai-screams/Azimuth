@@ -1,5 +1,5 @@
 <!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-06-19 | Updated: 2026-10-14 -->
+<!-- Generated: 2026-06-19 | Updated: 2026-10-22 -->
 
 # Azimuth (app source)
 
@@ -32,6 +32,7 @@ The app source root. From the programmatic AppKit entry (`main.swift`), `AppDele
 | `StatusBar/` | Menu-bar status item and menu (see `StatusBar/AGENTS.md`) |
 | `Launch/` | Launch at login via SMAppService (see `Launch/AGENTS.md`) |
 | `Notifications/` | Command-failure notifications (opt-in, UserNotifications) (see `Notifications/AGENTS.md`) |
+| `DesignGallery/` | DEBUG-only design gallery for the 2.0 redesign (see `DesignGallery/AGENTS.md`) |
 | `Assets.xcassets` | App icon and accent color. The menu-bar icon is an SF Symbol, so it needs no asset |
 
 ## For AI Agents
