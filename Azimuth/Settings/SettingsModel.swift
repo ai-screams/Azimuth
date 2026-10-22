@@ -64,6 +64,8 @@ final class SettingsModel {
     }
 
     @ObservationIgnored let dependencies: SettingsDependencies
+    /// Shortcuts 화면의 모델. 녹화·검색·펼침 상태가 많아 따로 둔다.
+    @ObservationIgnored let shortcuts: ShortcutsSettingsModel
     var selection: Pane? = .general
 
     private(set) var permission = AccessibilityPermissionStatus.required
@@ -85,6 +87,7 @@ final class SettingsModel {
 
     init(dependencies: SettingsDependencies) {
         self.dependencies = dependencies
+        shortcuts = ShortcutsSettingsModel(dependencies: dependencies)
         refresh()
     }
 
@@ -101,6 +104,7 @@ final class SettingsModel {
         undoDepth = store.undoDepth
         undoWindowCapacity = store.undoWindowCapacity
         resolveTimeout = ResolveTimeoutChoice.nearest(toSeconds: store.resolveTimeout)
+        shortcuts.refresh() // 등록 실패(시스템 사용)는 다른 앱이 단축키를 잡거나 놓으면 바뀐다
     }
 
     /// 앱 활성화 시. 권한 캐시는 AppDelegate도 비우지만 관찰자 순서가 보장되지 않아 여기서도 비운다.

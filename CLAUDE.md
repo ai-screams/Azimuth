@@ -137,7 +137,7 @@ block a commit over a file you never touched. Fetch the pinned release zip and l
   files still passes `make test` — run `xcodebuild` after touching them. To cover an AX failure mode,
   extract the decision into a pure function (values in → decision out) and test that; a protocol seam
   carrying `AXUIElement` cannot compile in the swiftc harness. `Commands/*Policy.swift` is that family:
-  outcome, plan, feedback, write-retry, edge-reanchor, fixed-size-placement, shortcut-list, shortcut-row.
+  outcome, plan, feedback, write-retry, edge-reanchor, fixed-size-placement, shortcut-list, shortcut-row, shortcut-capture, shortcut-recording.
   Per-window stores keyed by `AXUIElement` get the same treatment: the per-window value (`UndoHistory`)
   and the LRU order (`Shared/RecentKeys<Key>`, tested with `Int` keys) are pure; the store only holds them.
   When the **order or count** of AX calls matters, pass the queries in as closures (`SettableQueries`) so a

@@ -149,7 +149,7 @@ extension CommandEngineTests {
         expectName("표시 순서는 ⌃⌥⇧⌘", CarbonModifier.glyphs(for: UInt32(cmdKey | controlKey | shiftKey | optionKey)), "⌃⌥⇧⌘")
         expectName("단일 수정자", CarbonModifier.glyphs(for: UInt32(optionKey)), "⌥")
 
-        // 녹화 경로(ShortcutRecorderButton)가 쓰는 방향. glyphs 만 테스트하면 여기가 0% 로 남는다.
+        // 녹화 경로(Settings/ShortcutKeyCatcher)가 쓰는 방향. glyphs 만 테스트하면 여기가 0% 로 남는다.
         expectName("플래그 → 마스크(빈 값)", "\(CarbonModifier.mask(from: []))", "0")
         expectName("플래그 → 마스크(control)", "\(CarbonModifier.mask(from: .control))", "\(UInt32(controlKey))")
         let combo: NSEvent.ModifierFlags = [.control, .option, .shift, .command]

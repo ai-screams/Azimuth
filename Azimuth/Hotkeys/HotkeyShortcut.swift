@@ -3,7 +3,7 @@
 //  Azimuth
 //
 //  커스텀 단축키 한 개(Carbon 키코드 + Carbon 수정자 마스크)의 값/표시.
-//  NSEvent → 이 값으로의 변환은 UI 계층(ShortcutRecorderButton)에 둔다(AppKit 비의존 유지).
+//  NSEvent → 이 값으로의 변환은 UI 계층(Settings/ShortcutKeyCatcher)에 둔다(AppKit 비의존 유지).
 //
 
 import Foundation

@@ -12,6 +12,7 @@ final class SettingsWindowController {
     private let model: SettingsModel
     private var windowController: NSWindowController?
     private var activationObserver: NSObjectProtocol?
+    private var closeObserver: NSObjectProtocol?
 
     init(dependencies: SettingsDependencies) {
         model = SettingsModel(dependencies: dependencies)
@@ -68,6 +69,13 @@ final class SettingsWindowController {
         window.setContentSize(Self.initialSize)
         window.contentMinSize = Self.minimumSize
         window.center()
+        // 창을 닫을 때 SwiftUI가 화면을 내리는 알림(onDisappear)을 늘 보내지는 않는다. 녹화 중이면 여기서 끝내
+        // 전역 단축키가 멈춘 채 남지 않게 한다.
+        closeObserver = NotificationCenter.default.addObserver(
+            forName: NSWindow.willCloseNotification, object: window, queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated { self?.model.shortcuts.cancelRecording() }
+        }
         return NSWindowController(window: window)
     }
 }

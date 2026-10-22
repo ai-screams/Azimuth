@@ -26,7 +26,7 @@ Persistence for user settings. A thin wrapper over UserDefaults.
 ## Dependencies
 
 ### Internal
-- `Hotkeys/HotkeyPreset` (the active preset type). Consumers: `AppDelegate` (hotkey reload, beep gating), `Settings/SettingsModel` and `Settings/ShortcutsSectionView` (UI).
+- `Hotkeys/HotkeyPreset` (the active preset type). Consumers: `AppDelegate` (hotkey reload, beep gating), `Settings/SettingsModel` and `Settings/ShortcutsSettingsModel` (UI).
 
 ### External
 - Foundation (UserDefaults).

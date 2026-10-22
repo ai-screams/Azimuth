@@ -33,6 +33,8 @@ HARNESS_SRC=(
     "Azimuth/Shared/Log.swift"
     "Azimuth/Commands/ShortcutListPolicy.swift"
     "Azimuth/Commands/ShortcutRowPolicy.swift"
+    "Azimuth/Commands/ShortcutCapturePolicy.swift"
+    "Azimuth/Commands/ShortcutRecordingPolicy.swift"
     "Azimuth/Commands/CommandFeedbackPolicy.swift"
     "Azimuth/Shared/AXMessagingTimeout.swift"
     "Azimuth/Shared/WindowFrame.swift"
