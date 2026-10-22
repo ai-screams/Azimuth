@@ -16,7 +16,6 @@
                 VStack(alignment: .leading, spacing: 28) {
                     GallerySection(title: "Command glyphs (#181)") { GlyphCatalog() }
                     GallerySection(title: "Keycaps (#181)") { KeycapStates() }
-                    GallerySection(title: "Shortcuts rows in a grouped Form (#175, #181)") { ShortcutRowsSample() }
                     GallerySection(title: "Menu bar popover, grid P1 (#178)") { PopoverGridSample() }
                 }
                 .padding(24)
