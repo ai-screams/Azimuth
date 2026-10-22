@@ -166,9 +166,11 @@ final class SettingsModel {
 
     // MARK: - Advanced
 
-    /// 입력 칸의 글자. 숫자가 아니면 저장하지 않고 화면이 저장된 값으로 되돌린다(`BoundedIntSetting.parse`).
-    func commitUndoDepth(_ text: String) {
-        if let value = UndoHistory.depth.parse(text) { setUndoDepth(value) } else { undoDepth = store.undoDepth }
+    /// 입력 칸의 글자. 숫자가 아니면 저장하지 않는다(`BoundedIntSetting.parse`). 돌려준 값(저장된 값)을 칸이 다시
+    /// 보인다. 저장값이 그대로면(`abc`, 이미 20인데 25) 화면에 바뀜 신호가 없어 칸이 스스로 되돌릴 수 없다.
+    func commitUndoDepth(_ text: String) -> Int {
+        if let value = UndoHistory.depth.parse(text) { setUndoDepth(value) }
+        return undoDepth
     }
 
     func setUndoDepth(_ value: Int) {
@@ -176,12 +178,9 @@ final class SettingsModel {
         undoDepth = store.undoDepth
     }
 
-    func commitUndoWindowCapacity(_ text: String) {
-        if let value = UndoHistory.windowCapacity.parse(text) {
-            setUndoWindowCapacity(value)
-        } else {
-            undoWindowCapacity = store.undoWindowCapacity
-        }
+    func commitUndoWindowCapacity(_ text: String) -> Int {
+        if let value = UndoHistory.windowCapacity.parse(text) { setUndoWindowCapacity(value) }
+        return undoWindowCapacity
     }
 
     func setUndoWindowCapacity(_ value: Int) {

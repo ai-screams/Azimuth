@@ -51,13 +51,13 @@ struct AdvancedSettingsView: View {
     }
 }
 
-/// 숫자 칸 + stepper. 칸의 글자는 엔터나 포커스를 잃을 때 `commit`으로 보낸다. 숫자가 아니면 모델이 저장된 값으로
-/// 되돌리고(`BoundedIntSetting.parse`), 칸은 그 값을 다시 보인다. `TextField(value:format:)`는 해석 규칙이 달라 쓰지 않는다.
+/// 숫자 칸 + stepper. 칸의 글자는 엔터나 포커스를 잃을 때 `commit`으로 보내고, 돌려받은 저장값을 칸에 다시 쓴다.
+/// 숫자가 아니면 저장하지 않으므로(`BoundedIntSetting.parse`) 칸은 원래 값으로 돌아간다. `TextField(value:format:)`는 해석 규칙이 달라 쓰지 않는다.
 private struct BoundedIntRow: View {
     let title: String
     let setting: BoundedIntSetting
     let value: Int
-    let commit: (String) -> Void
+    let commit: (String) -> Int
     let step: (Int) -> Void
     @State private var text = ""
     @FocusState private var focused: Bool
@@ -67,11 +67,12 @@ private struct BoundedIntRow: View {
             HStack(spacing: 4) {
                 TextField(title, text: $text)
                     .labelsHidden()
+                    .textFieldStyle(.roundedBorder) // grouped Form은 테두리를 지워 입력 칸인지 보이지 않는다
                     .multilineTextAlignment(.trailing)
                     .monospacedDigit()
                     .frame(width: 56)
                     .focused($focused)
-                    .onSubmit { commit(text) }
+                    .onSubmit { text = "\(commit(text))" }
                 Stepper(title, value: Binding(get: { value }, set: step), in: setting.range)
                     .labelsHidden()
             }
@@ -80,7 +81,7 @@ private struct BoundedIntRow: View {
         .onAppear { text = "\(value)" }
         .onChange(of: value) { _, newValue in text = "\(newValue)" }
         .onChange(of: focused) { _, isFocused in
-            if !isFocused { commit(text) }
+            if !isFocused { text = "\(commit(text))" }
         }
     }
 }

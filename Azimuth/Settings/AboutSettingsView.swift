@@ -31,7 +31,6 @@ struct AboutSettingsView: View {
                 .padding(.vertical, 8)
             }
             Section("Updates") {
-                LabeledContent("Version", value: model.versionText)
                 LabeledContent {
                     Button("Check for Updates…", action: model.checkForUpdates)
                         .disabled(!model.canCheckForUpdates)

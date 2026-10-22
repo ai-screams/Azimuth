@@ -5,7 +5,8 @@ import SwiftUI
 @MainActor
 final class SettingsWindowController {
     /// 처음 열 때의 콘텐츠 크기와 최소 크기. 사이드바(약 200pt) + grouped Form이 줄바꿈 없이 들어가는 값이다.
-    private static let initialSize = NSSize(width: 760, height: 560)
+    /// 높이는 가장 긴 About 화면이 스크롤 없이 들어가는 값(560에서 약 32pt 넘쳤다).
+    private static let initialSize = NSSize(width: 760, height: 600)
     private static let minimumSize = NSSize(width: 640, height: 420)
 
     private let model: SettingsModel
@@ -59,7 +60,8 @@ final class SettingsWindowController {
         hosting.sizingOptions = []
         let window = NSWindow(contentViewController: hosting)
         window.styleMask = [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView]
-        window.title = "Azimuth Settings"
+        // 처음 연 화면의 제목. 이후 바뀌는 제목은 각 화면의 navigationTitle이 정한다(처음에는 덮어쓰지 않는다).
+        window.title = (model.selection ?? .general).title
         window.toolbarStyle = .unified
         // 컨트롤러가 창을 재사용하므로 닫을 때(⌘W·빨간버튼) 해제하지 않는다(ARC 과해제/재오픈 크래시 방지).
         window.isReleasedWhenClosed = false
