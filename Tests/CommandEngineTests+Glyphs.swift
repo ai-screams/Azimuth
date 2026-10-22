@@ -14,7 +14,7 @@ extension CommandEngineTests {
             let marked = glyph.region != nil || !glyph.strokes.isEmpty || !glyph.arcs.isEmpty
             expectName("\(name) has a mark", "\(marked)", "true")
             let shapes = [glyph.screen, glyph.secondScreen, glyph.region, glyph.ghost].compactMap { $0 }
-                + glyph.arcs.map(\.bounds)
+                + glyph.arcs.map(circleBounds)
             let points = glyph.strokes.flatMap { $0 }
             let inside = shapes.allSatisfy { box.contains($0) } && points.allSatisfy { box.contains($0) }
             expectName("\(name) inside the box", "\(inside)", "true")
@@ -109,5 +109,11 @@ extension CommandEngineTests {
         expectName("bare Space caps", space.keycapLabels.joined(separator: "|"), "Space")
         let all = HotkeyShortcut(keyCode: 0x00, modifiers: UInt32(0x1000 | 0x0800 | 0x0200 | 0x0100))
         expectName("⌃⌥⇧⌘A caps in order", all.keycapLabels.joined(separator: "|"), "⌃|⌥|⇧|⌘|A")
+    }
+
+    /// 원호의 원 전체를 감싸는 사각형. 호보다 넓게 잡으므로 상자 안 검사에는 안전한 쪽이다.
+    static func circleBounds(_ arc: CommandGlyph.Arc) -> CGRect {
+        let diameter = arc.radius * 2
+        return CGRect(x: arc.center.x - arc.radius, y: arc.center.y - arc.radius, width: diameter, height: diameter)
     }
 }

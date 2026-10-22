@@ -17,11 +17,6 @@ nonisolated struct CommandGlyph: Equatable {
         let radius: CGFloat
         let startDegrees: CGFloat
         let endDegrees: CGFloat
-
-        /// 원 전체를 감싸는 사각형. 상자 안에 있는지 검사할 때 쓴다(호보다 넓게 잡아 안전하다).
-        var bounds: CGRect {
-            CGRect(x: center.x - radius, y: center.y - radius, width: radius * 2, height: radius * 2)
-        }
     }
 
     static let box = CGSize(width: 28, height: 20)
