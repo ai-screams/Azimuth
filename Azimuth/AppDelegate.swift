@@ -65,9 +65,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     )
     private let firstRunGuidePresenter = FirstRunGuidePresenter()
     /// 연습 창 안내(#176). 연습 창이 앞에 있을 때의 단축키는 명령 실행기 대신 여기로 간다(`runHotkeyCommand`).
-    private lazy var practiceWindowController = PracticeWindowController { [weak self] command in
-        self?.boundShortcut(for: command)
-    }
+    private lazy var practiceWindowController = PracticeWindowController(
+        shortcut: { [weak self] command in self?.boundShortcut(for: command) },
+        soundEnabled: { [weak self] in self?.preferencesStore.soundFeedbackEnabled ?? false }
+    )
 
     /// 기동 순서. 각 단계가 무엇인지 이름으로 읽히도록 블록별로 나눠 두었다 —
     /// **순서가 의미를 갖는다**: 메뉴·상태바가 있어야 온보딩 팝오버가 앵커할 곳이 생기고,
@@ -154,16 +155,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func reloadHotkeys() {
-        let resolved = BindingResolver.resolve(
-            preset: preferencesStore.activePreset,
-            overrides: preferencesStore.customShortcuts
-        )
-        let bindings = BindingResolver.enabled(
-            resolved,
-            disabledCommands: preferencesStore.disabledCommandIdentifiers,
-            disabledGroups: preferencesStore.disabledGroupTokens
-        )
-        let failed = hotkeyService.reload(bindings) { [weak self] command in
+        let failed = hotkeyService.reload(enabledBindings()) { [weak self] command in
             self?.runHotkeyCommand(command)
         }
         registrationFailureIdentifiers = Set(failed.map(\.command.identifier))
@@ -347,18 +339,23 @@ extension AppDelegate {
         statusBarController.setVisible(!preferencesStore.menuBarIconHidden)
     }
 
-    /// 연습 창이 보일 단축키: 지금 등록되는 바인딩(프리셋 + 사용자 지정, 꺼진 명령 제외)에서 찾는다.
-    private func boundShortcut(for command: WindowCommand) -> HotkeyShortcut? {
+    /// 등록할 바인딩: 프리셋 + 사용자 지정에서 꺼진 명령과 그룹을 뺀 것. 등록(`reloadHotkeys`)과 연습 창이 같이 쓴다.
+    private func enabledBindings() -> [HotkeyBinding] {
         let resolved = BindingResolver.resolve(
             preset: preferencesStore.activePreset,
             overrides: preferencesStore.customShortcuts
         )
-        let enabled = BindingResolver.enabled(
+        return BindingResolver.enabled(
             resolved,
             disabledCommands: preferencesStore.disabledCommandIdentifiers,
             disabledGroups: preferencesStore.disabledGroupTokens
         )
-        return enabled.first { $0.command == command }?.shortcut
+    }
+
+    /// 연습 창이 보일 단축키. 등록에 실패한 것(다른 앱이 쓰는 조합)은 눌러도 오지 않으므로 없는 것으로 본다.
+    private func boundShortcut(for command: WindowCommand) -> HotkeyShortcut? {
+        guard !registrationFailureIdentifiers.contains(command.identifier) else { return nil }
+        return enabledBindings().first { $0.command == command }?.shortcut
     }
 
     /// 권한 없이 끝난 첫 실행 뒤, 권한을 받고 앱으로 돌아왔을 때 연습 창을 한 번 연다.

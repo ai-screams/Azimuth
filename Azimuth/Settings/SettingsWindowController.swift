@@ -35,24 +35,11 @@ final class SettingsWindowController {
         if let pane { model.selection = pane }
         model.refresh()
         if let window = controller.window {
-            centerOnActiveScreen(window)
+            window.centerOnMouseScreen()
         }
         NSApp.bringToFront()
         controller.showWindow(nil)
         controller.window?.makeKeyAndOrderFront(nil)
-    }
-
-    /// 멀티모니터에서 창이 다른 디스플레이에 묻히지 않게, 마우스가 있는 화면 중앙에 배치한다.
-    private func centerOnActiveScreen(_ window: NSWindow) {
-        let mouse = NSEvent.mouseLocation
-        let screen = NSScreen.screens.first { $0.frame.contains(mouse) } ?? NSScreen.main
-        guard let screen else { return }
-        let visible = screen.visibleFrame
-        let size = window.frame.size
-        window.setFrameOrigin(NSPoint(
-            x: visible.midX - size.width / 2,
-            y: visible.midY - size.height / 2
-        ))
     }
 
     private func makeWindowController() -> NSWindowController {

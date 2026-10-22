@@ -63,10 +63,6 @@ nonisolated struct PracticeSession: Equatable {
         return true
     }
 
-    mutating func skip() {
-        step = .done
-    }
-
     static func isReached(actual: CGRect, target: CGRect) -> Bool {
         let edges = [
             (actual.minX, target.minX), (actual.minY, target.minY),

@@ -15,11 +15,14 @@ final class PracticeWindowController {
     private static let size = NSSize(width: 520, height: 360)
 
     private let model: PracticeModel
+    private let soundEnabled: () -> Bool
     private var window: NSWindow?
 
-    /// `shortcut`: 명령에 지금 묶인 단축키(프리셋과 사용자 지정, 꺼진 명령이면 nil).
-    init(shortcut: @escaping (WindowCommand) -> HotkeyShortcut?) {
+    /// `shortcut`: 명령에 지금 실제로 등록된 단축키(꺼졌거나 등록에 실패했으면 nil).
+    /// `soundEnabled`: 소리 피드백 설정. 일반 명령 경로처럼 꺼져 있으면 경고음을 내지 않는다.
+    init(shortcut: @escaping (WindowCommand) -> HotkeyShortcut?, soundEnabled: @escaping () -> Bool) {
         model = PracticeModel(shortcut: shortcut)
+        self.soundEnabled = soundEnabled
     }
 
     /// 처음부터 다시 연다(다시 보기도 같은 길).
@@ -28,7 +31,7 @@ final class PracticeWindowController {
         let window = window ?? makeWindow()
         self.window = window
         window.setContentSize(Self.size)
-        centerOnActiveScreen(window)
+        window.centerOnMouseScreen()
         NSApp.bringToFront()
         window.makeKeyAndOrderFront(nil)
     }
@@ -41,7 +44,7 @@ final class PracticeWindowController {
         else { return true }
         let current = CoordinateSpace.cocoaToAX(window.frame)
         guard let target = model.session.target(for: command, current: current, workArea: workArea) else {
-            NSSound.beep() // 되돌릴 기록이 없거나 연습 창에서 하지 않는 명령
+            if soundEnabled() { NSSound.beep() } // 되돌릴 기록이 없거나 연습 창에서 하지 않는 명령
             return true
         }
         window.setFrame(CoordinateSpace.axToCocoa(target), display: true, animate: true)
@@ -56,20 +59,15 @@ final class PracticeWindowController {
 
     private func makeWindow() -> NSWindow {
         let view = PracticeView(model: model, onClose: { [weak self] in self?.close() })
-        let window = NSWindow(contentViewController: NSHostingController(rootView: view))
+        let hosting = NSHostingController(rootView: view)
+        // 연습 창의 frame이 곧 연습 대상이다. 내용이 바뀔 때 창이 내용 크기로 돌아가면 방금 옮긴 자리가 어긋난다.
+        hosting.sizingOptions = []
+        let window = NSWindow(contentViewController: hosting)
         window.styleMask = [.titled, .closable, .resizable]
         window.title = "Practice Shortcuts"
         window.isReleasedWhenClosed = false // 다시 보기에서 같은 창을 쓴다
         window.contentMinSize = NSSize(width: 360, height: 300)
         return window
-    }
-
-    private func centerOnActiveScreen(_ window: NSWindow) {
-        let mouse = NSEvent.mouseLocation
-        guard let screen = NSScreen.screens.first(where: { $0.frame.contains(mouse) }) ?? NSScreen.main else { return }
-        let visible = screen.visibleFrame
-        let size = window.frame.size
-        window.setFrameOrigin(NSPoint(x: visible.midX - size.width / 2, y: visible.midY - size.height / 2))
     }
 }
 

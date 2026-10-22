@@ -49,8 +49,6 @@ extension CommandEngineTests {
         expectName("undo without history stays", "\(noUndo == nil)", "true")
         let display = empty.target(for: .moveToDisplay(.right), current: start, workArea: workArea)
         expectName("display move stays", "\(display == nil)", "true")
-        empty.skip()
-        expectName("skip ends", "\(empty.step)", "done")
         expectName("step count", "\(PracticeStep.tryCount)", "3")
         let nudged = CGRect(x: 1, y: 27, width: 719, height: 873)
         expectName("within tolerance", "\(PracticeSession.isReached(actual: nudged, target: left))", "true")
