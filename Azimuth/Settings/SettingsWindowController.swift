@@ -13,6 +13,8 @@ final class SettingsWindowController {
     private var windowController: NSWindowController?
     private var activationObserver: NSObjectProtocol?
     private var closeObserver: NSObjectProtocol?
+    /// 권한이 없는 동안만 도는 주기 확인(`PermissionWatchPolicy`). 권한이 생기거나 창이 닫히면 멈춘다.
+    private var permissionTimer: Timer?
 
     init(dependencies: SettingsDependencies) {
         model = SettingsModel(dependencies: dependencies)
@@ -20,7 +22,10 @@ final class SettingsWindowController {
         activationObserver = NotificationCenter.default.addObserver(
             forName: NSApplication.didBecomeActiveNotification, object: nil, queue: .main
         ) { [weak self] _ in
-            MainActor.assumeIsolated { self?.model.appDidBecomeActive() }
+            MainActor.assumeIsolated {
+                self?.checkPermission() // 다음 확인을 기다리지 않고, 권한 줄이 먼저 갱신되기 전에 잡는다
+                self?.model.appDidBecomeActive()
+            }
         }
     }
 
@@ -33,6 +38,7 @@ final class SettingsWindowController {
         let controller = windowController ?? makeWindowController()
         windowController = controller
         if let pane { model.selection = pane }
+        model.clearPermissionJustGranted()
         model.refresh()
         if let window = controller.window {
             window.centerOnMouseScreen()
@@ -40,6 +46,7 @@ final class SettingsWindowController {
         NSApp.bringToFront()
         controller.showWindow(nil)
         controller.window?.makeKeyAndOrderFront(nil)
+        checkPermission()
     }
 
     private func makeWindowController() -> NSWindowController {
@@ -61,8 +68,37 @@ final class SettingsWindowController {
         closeObserver = NotificationCenter.default.addObserver(
             forName: NSWindow.willCloseNotification, object: window, queue: .main
         ) { [weak self] _ in
-            MainActor.assumeIsolated { self?.model.shortcuts.cancelRecording() }
+            MainActor.assumeIsolated {
+                self?.model.shortcuts.cancelRecording()
+                self?.stopPermissionWatch()
+            }
         }
         return NSWindowController(window: window)
+    }
+
+    /// 권한을 다시 읽고 `PermissionWatchPolicy`대로 주기 확인을 켜거나 끈다. macOS는 권한 변경을 알리는
+    /// 문서화된 알림을 주지 않는다. 권한을 찾았다고 알리는 것은 권한 없이 시작한 확인이 돌고 있을 때뿐이다.
+    private func checkPermission() {
+        AccessibilityPermissionService.invalidateCache()
+        let trusted = AccessibilityPermissionService.currentStatus().isTrusted
+        let visible = windowController?.window?.isVisible ?? false
+        switch PermissionWatchPolicy.step(windowVisible: visible, isTrusted: trusted) {
+        case .keepWatching:
+            guard permissionTimer == nil else { return }
+            let interval = PermissionWatchPolicy.interval
+            permissionTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
+                MainActor.assumeIsolated { self?.checkPermission() }
+            }
+        case .granted:
+            if permissionTimer != nil { model.permissionDidBecomeGranted() }
+            stopPermissionWatch()
+        case .stop:
+            stopPermissionWatch()
+        }
+    }
+
+    private func stopPermissionWatch() {
+        permissionTimer?.invalidate()
+        permissionTimer = nil
     }
 }

@@ -83,7 +83,7 @@ struct FirstRunGuideView: View {
         }
     }
 
-    /// 권한이 없으면 설정(권한 줄)로 보낸다. 연습 창은 권한을 받고 돌아오면 앱이 연다.
+    /// 권한이 없으면 설정(권한 줄)로 보낸다. 권한이 생기면 그 줄에 연습 창 버튼이 나온다(`SettingsWindowController`).
     /// 권한이 있으면 바로 연습 창으로 갈 수 있다(#176).
     @ViewBuilder private var buttons: some View {
         if needsPermission {

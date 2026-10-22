@@ -62,4 +62,17 @@ extension CommandEngineTests {
         }
         expectName("history is capped", "\(capped.history.count)", "\(PracticeSession.historyLimit)")
     }
+
+    // 설정 창이 열려 있는 동안 권한이 생기는 순간을 잡는 판단.
+    // 이것을 실패시키는 것: 창이 닫힌 뒤에도 계속 읽는 것, 권한이 생겨도 계속 읽는 것,
+    // 창이 닫히는 순간 생긴 권한을 놓치는 것(권한보다 창을 먼저 보는 순서).
+    static func testPermissionWatchPolicy() {
+        func step(_ visible: Bool, _ trusted: Bool) -> String {
+            "\(PermissionWatchPolicy.step(windowVisible: visible, isTrusted: trusted))"
+        }
+        expectName("open, not trusted", step(true, false), "keepWatching")
+        expectName("open, trusted", step(true, true), "granted")
+        expectName("closed, not trusted", step(false, false), "stop")
+        expectName("closed, trusted", step(false, true), "granted")
+    }
 }

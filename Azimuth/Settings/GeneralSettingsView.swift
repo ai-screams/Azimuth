@@ -75,6 +75,11 @@ private struct PermissionRow: View {
             Spacer(minLength: 0)
             if !status.isTrusted {
                 Button("Open Accessibility Settings…", action: model.requestAccessibility)
+            } else if model.permissionJustGranted {
+                // 권한을 막 준 순간이 연습하기 가장 좋은 때다. 자동으로 열지 않고 사용자가 누르게 해야
+                // 연습 창이 확실히 앞에 와 단축키를 받는다(#176).
+                Button("Try the Shortcuts…", action: model.showPracticeGuide)
+                    .keyboardShortcut(.defaultAction)
             }
         }
     }

@@ -51,6 +51,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         setResolveTimeout: { seconds in FocusedWindowResolver.setResolveTimeout(seconds) },
         checkForUpdates: { [weak self] in self?.updaterController.checkForUpdates(nil) },
         showPracticeGuide: { [weak self] in self?.practiceWindowController.show() },
+        onPermissionGranted: { [weak self] in self?.statusBarController.refreshPermissionState() },
         requestNotificationAuthorization: { [weak self] in
             await self?.failureNotifier.requestAuthorization() ?? .failed
         }
@@ -239,7 +240,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // 사용자가 System Settings에서 권한을 바꿨을 수 있으므로 캐시를 비우고 다시 조회한다.
         AccessibilityPermissionService.invalidateCache()
         statusBarController.refreshPermissionState()
-        openPendingPracticeGuide()
     }
 
     @objc private func handleScreenParametersChanged(_ notification: Notification) {
@@ -264,8 +264,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard !preferencesStore.didCompleteFirstRun else { return }
         preferencesStore.didCompleteFirstRun = true
         let needsPermission = !AccessibilityPermissionService.currentStatus().isTrusted
-        // 권한이 없으면 연습 창은 권한을 받고 돌아왔을 때 연다(`openPendingPracticeGuide`).
-        preferencesStore.practiceGuidePending = needsPermission
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
             guard let self else { return }
             guard let button = statusBarController.statusButton, !preferencesStore.menuBarIconHidden else {
@@ -356,15 +354,6 @@ extension AppDelegate {
     private func boundShortcut(for command: WindowCommand) -> HotkeyShortcut? {
         guard !registrationFailureIdentifiers.contains(command.identifier) else { return nil }
         return enabledBindings().first { $0.command == command }?.shortcut
-    }
-
-    /// 권한 없이 끝난 첫 실행 뒤, 권한을 받고 앱으로 돌아왔을 때 연습 창을 한 번 연다.
-    private func openPendingPracticeGuide() {
-        guard preferencesStore.practiceGuidePending, AccessibilityPermissionService.currentStatus().isTrusted else {
-            return
-        }
-        preferencesStore.practiceGuidePending = false
-        practiceWindowController.show()
     }
 
     /// Sparkle이 확인을 받을 수 있는지를 설정 창에 계속 알린다. 업데이터가 시작된 뒤(`installMainMenu`) 부른다.
