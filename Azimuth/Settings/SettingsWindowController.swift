@@ -1,43 +1,37 @@
 import Cocoa
+import SwiftUI
 
+/// 설정 창 하나를 만들고 보이는 일만 맡는다. 화면은 SwiftUI(`SettingsRootView`)이고, 값과 동작은 `SettingsModel`이 가진다.
 @MainActor
 final class SettingsWindowController {
-    private var windowController: NSWindowController?
-    private let preferencesStore: PreferencesStore
-    private let launchService: LaunchAtLoginService
-    private let onHotkeysChanged: () -> Void
-    private let registrationFailures: () -> Set<String>
-    private let setHotkeysSuspended: (Bool) -> Void
-    private let setMenuBarIconHidden: (Bool) -> Void
-    private let setResolveTimeout: (Float) -> Void
-    private let checkForUpdates: () -> Void
-    private let requestNotificationAuthorization: () async -> NotificationAuthorizationResult
+    /// 처음 열 때의 콘텐츠 크기와 최소 크기. 사이드바(약 200pt) + grouped Form이 줄바꿈 없이 들어가는 값이다.
+    private static let initialSize = NSSize(width: 760, height: 560)
+    private static let minimumSize = NSSize(width: 640, height: 420)
 
-    init(
-        preferencesStore: PreferencesStore,
-        launchService: LaunchAtLoginService,
-        onHotkeysChanged: @escaping () -> Void,
-        registrationFailures: @escaping () -> Set<String>,
-        setHotkeysSuspended: @escaping (Bool) -> Void,
-        setMenuBarIconHidden: @escaping (Bool) -> Void,
-        setResolveTimeout: @escaping (Float) -> Void,
-        checkForUpdates: @escaping () -> Void,
-        requestNotificationAuthorization: @escaping () async -> NotificationAuthorizationResult
-    ) {
-        self.preferencesStore = preferencesStore
-        self.launchService = launchService
-        self.onHotkeysChanged = onHotkeysChanged
-        self.registrationFailures = registrationFailures
-        self.setHotkeysSuspended = setHotkeysSuspended
-        self.setMenuBarIconHidden = setMenuBarIconHidden
-        self.setResolveTimeout = setResolveTimeout
-        self.checkForUpdates = checkForUpdates
-        self.requestNotificationAuthorization = requestNotificationAuthorization
+    private let model: SettingsModel
+    private var windowController: NSWindowController?
+    private var activationObserver: NSObjectProtocol?
+
+    init(dependencies: SettingsDependencies) {
+        model = SettingsModel(dependencies: dependencies)
+        // 사용자가 System Settings에서 권한·로그인 항목·알림을 바꾸고 돌아오면 다시 읽는다.
+        activationObserver = NotificationCenter.default.addObserver(
+            forName: NSApplication.didBecomeActiveNotification, object: nil, queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated { self?.model.appDidBecomeActive() }
+        }
     }
 
-    func show() {
+    /// Sparkle이 확인을 받을 수 있는지(AppDelegate가 업데이터를 관찰해 알려 준다).
+    func setCanCheckForUpdates(_ canCheck: Bool) {
+        model.canCheckForUpdates = canCheck
+    }
+
+    func show(pane: SettingsModel.Pane? = nil) {
         let controller = windowController ?? makeWindowController()
         windowController = controller
+        if let pane { model.selection = pane }
+        model.refresh()
         if let window = controller.window {
             centerOnActiveScreen(window)
         }
@@ -60,52 +54,18 @@ final class SettingsWindowController {
     }
 
     private func makeWindowController() -> NSWindowController {
-        let generalPane = GeneralPaneViewController(
-            preferencesStore: preferencesStore,
-            launchService: launchService,
-            setMenuBarIconHidden: setMenuBarIconHidden,
-            checkForUpdates: checkForUpdates,
-            requestNotificationAuthorization: requestNotificationAuthorization
-        )
-        let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: SettingsTabController.windowWidth, height: 640),
-            styleMask: [.titled, .closable, .miniaturizable, .resizable],
-            backing: .buffered,
-            defer: false
-        )
+        let hosting = NSHostingController(rootView: SettingsRootView(model: model))
+        // 창 크기는 이 컨트롤러가 정한다. 콘텐츠의 선호 크기를 따라가면 화면을 바꿀 때마다 창이 튄다.
+        hosting.sizingOptions = []
+        let window = NSWindow(contentViewController: hosting)
+        window.styleMask = [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView]
         window.title = "Azimuth Settings"
+        window.toolbarStyle = .unified
         // 컨트롤러가 창을 재사용하므로 닫을 때(⌘W·빨간버튼) 해제하지 않는다(ARC 과해제/재오픈 크래시 방지).
         window.isReleasedWhenClosed = false
-        let shortcutsPane = ShortcutsPaneViewController(
-            preferencesStore: preferencesStore,
-            onHotkeysChanged: onHotkeysChanged,
-            registrationFailures: registrationFailures,
-            setHotkeysSuspended: setHotkeysSuspended
-        )
-        let advancedPane = AdvancedPaneViewController(
-            preferencesStore: preferencesStore,
-            setResolveTimeout: setResolveTimeout
-        )
-        let tabController = SettingsTabController(panes: [generalPane, shortcutsPane, advancedPane])
-        window.contentViewController = tabController
-        window.autorecalculatesKeyViewLoop = true // Shortcuts 행을 떼고 붙여도 Tab 순서가 보이는 컨트롤을 따른다(#137)
-        applyResizeLimits(to: window, tabController: tabController)
+        window.setContentSize(Self.initialSize)
+        window.contentMinSize = Self.minimumSize
         window.center()
         return NSWindowController(window: window)
-    }
-
-    /// 폭은 디자인 값(`SettingsTabController.windowWidth`)으로 고정하고, 세로만 리사이즈를 허용한다.
-    /// 최소 높이 아래로 줄여도 페인 내부 스크롤뷰가 콘텐츠를 스크롤하므로 어떤 섹션도 잘리지 않는다.
-    /// 최대 높이는 선택된 페인의 자연 높이로 두어, 그 이상 늘려 빈 공간이 생기지 않게 한다.
-    private func applyResizeLimits(to window: NSWindow, tabController: SettingsTabController) {
-        // 폭을 확정한 뒤 자연 높이를 잰다. 탭 컨트롤러 도입 후로 이 호출은 방어가 아니라 **필수**다 —
-        // 탭뷰에 막 추가된 페인 뷰의 기본 프레임은 560x640이 아니라 500x500이고, 이 setContentSize가
-        // 탭뷰를 통해 페인을 창 폭에 맞추는 유일한 트리거다. 지우면 자연 높이가 틀린 폭 기준으로
-        // 계산되어 라벨 줄바꿈이 달라지는데, 이 값을 테스트하는 하네스가 없어 아무 것도 못 잡는다.
-        let width = SettingsTabController.windowWidth
-        window.setContentSize(NSSize(width: width, height: 640))
-        window.contentMinSize = NSSize(width: width, height: SettingsTabController.minWindowHeight)
-        // 최대 높이와 실제 크기는 탭 전환과 **같은 경로**로 정한다. 따로 계산하면 두 곳이 어긋날 수 있다.
-        tabController.resizeWindowToSelectedPane()
     }
 }

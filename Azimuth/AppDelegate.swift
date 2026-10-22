@@ -41,7 +41,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// 가장 최근 단축키 명령이 실패했을 때의 (명령 이름, 사유). 상태바 메뉴에 노출해
     /// "beep만 나는" 실패의 이유를 설명한다. 다음 명령이 성공하면 지운다(세션 한정, 저장 안 함).
     private var lastCommandFailure: (commandName: String, message: String)?
-    private lazy var settingsWindowController = SettingsWindowController(
+    private lazy var settingsWindowController = SettingsWindowController(dependencies: SettingsDependencies(
         preferencesStore: preferencesStore,
         launchService: launchAtLoginService,
         onHotkeysChanged: { [weak self] in self?.reloadHotkeys() },
@@ -53,7 +53,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         requestNotificationAuthorization: { [weak self] in
             await self?.failureNotifier.requestAuthorization() ?? .failed
         }
-    )
+    ))
+    /// 설정 창 "Check for Updates…" 버튼의 활성 상태. SwiftUI 버튼은 메뉴 항목처럼 자동 검증되지 않아,
+    /// Sparkle의 `canCheckForUpdates`(KVO 지원)를 관찰해 넣는다(`observeUpdateAvailability`).
+    private var canCheckForUpdatesObservation: NSKeyValueObservation?
     private lazy var statusBarController = StatusBarController(
         frontmostAppTracker: frontmostAppTracker,
         windowUndoStore: windowUndoStore,
@@ -67,6 +70,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         configureActivationPolicy()
         installMainMenu()
+        canCheckForUpdatesObservation = observeUpdateAvailability()
         installStatusBar()
         // 고급 설정의 해석 상한을 기동 시 한 번 반영한다(setter 가 다시 클램프하므로 이중 안전).
         FocusedWindowResolver.setResolveTimeout(preferencesStore.resolveTimeout)
@@ -325,5 +329,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let policy: NSApplication.ActivationPolicy = hasWindow ? .regular : .accessory
         guard NSApp.activationPolicy() != policy else { return }
         NSApp.setActivationPolicy(policy)
+    }
+}
+
+extension AppDelegate {
+    /// Sparkle이 확인을 받을 수 있는지를 설정 창에 계속 알린다. 업데이터가 시작된 뒤(`installMainMenu`) 부른다.
+    private func observeUpdateAvailability() -> NSKeyValueObservation {
+        updaterController.updater.observe(\.canCheckForUpdates, options: [.initial, .new]) { [weak self] updater, _ in
+            let canCheck = updater.canCheckForUpdates
+            DispatchQueue.main.async { self?.settingsWindowController.setCanCheckForUpdates(canCheck) }
+        }
     }
 }

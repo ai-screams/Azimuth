@@ -4,22 +4,11 @@
 //
 //  명령 실패 알림용 UNUserNotificationCenter 어댑터. 알림 권한은 절대 선요청하지 않는다 —
 //  Settings의 "Notify when a command fails" 토글을 켜는 순간에만 requestAuthorization이
-//  불린다(opt-in). 거부되면 호출부(GeneralPaneViewController)가 토글을 되돌린다.
+//  불린다(opt-in). 결과에 따른 토글·저장·안내는 `NotifyToggleDecision`이 정한다.
 //
 
 import os
 import UserNotifications
-
-/// 알림 권한 요청 결과. UI가 셋을 다르게 처리하도록 세분화한다(값 타입 — UI 파일이
-/// UserNotifications를 import하지 않아도 된다).
-nonisolated enum NotificationAuthorizationResult {
-    case granted
-    /// 시스템 설정에서 꺼져 있거나 이미 거부됨 → 재요청해도 프롬프트가 뜨지 않으므로
-    /// System Settings로 안내한다.
-    case denied
-    /// 요청 자체가 에러(예: DerivedData 실행 개발 빌드는 알림 미등록으로 UNErrorDomain 1).
-    case failed
-}
 
 @MainActor
 final class CommandFailureNotifier: NSObject, UNUserNotificationCenterDelegate {
