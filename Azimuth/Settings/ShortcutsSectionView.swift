@@ -152,7 +152,7 @@ final class ShortcutsSectionView: NSView {
         assert(effective == (groupEnabled && commandOn))
 
         let display = ShortcutRowPolicy.decide(ShortcutRowInput(
-            shortcutDisplay: binding.map { HotkeyShortcut(keyCode: $0.keyCode, modifiers: $0.modifiers).displayString },
+            shortcutDisplay: binding?.shortcut.displayString,
             hasOverride: hasOverride,
             groupEnabled: groupEnabled,
             commandOn: commandOn,

@@ -82,6 +82,21 @@ extension CommandEngineTests {
         }
     }
 
+    // 그룹별 메뉴 명령: 그룹을 이어 붙이면 menuCommands의 명령이 빠짐없이 한 번씩 나온다.
+    static func testMenuCommandsByGroup() {
+        let joined = CommandGroup.allCases.flatMap { WindowCommand.menuCommands(in: $0) }.map(\.identifier)
+        let all = WindowCommand.menuCommands.map(\.identifier)
+        expectName("groups cover every menu command once", "\(joined.sorted() == all.sorted())", "true")
+        let halves = WindowCommand.menuCommands(in: .halves).map(\.identifier).joined(separator: ",")
+        expectName("halves keep menu order", halves, all.filter { $0.contains("snapThrow") }.joined(separator: ","))
+    }
+
+    // 바인딩 → 단축키 값: 키코드와 수정자를 그대로 옮긴다.
+    static func testBindingShortcut() {
+        let binding = HotkeyPreset.standard.bindings.first { $0.command == .maximize }
+        expectName("maximize binding shortcut", binding?.shortcut.displayString ?? "nil", "⌃⌥↩")
+    }
+
     // 키캡 라벨: 수정자 하나씩 + 키 하나. 여러 글자 키도 캡 하나.
     static func testKeycapLabels() {
         let mods = UInt32(0x1000 | 0x0800) // controlKey | optionKey

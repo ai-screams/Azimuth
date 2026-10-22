@@ -53,6 +53,20 @@ nonisolated struct CommandGlyph: Equatable {
         )
     }
 
+    /// 실제 창 배치(`FrameCalculator.targetFrame`)를 그림 상자로 줄인 영역. 그림과 실제 동작이 어긋나지 않게
+    /// 배치 수식을 다시 쓰지 않는다. 기준 영역을 크게 잡는 이유: 상대 축소의 한 변 하한(100pt)이
+    /// 28×20 크기에서 계산하면 결과를 바꾼다. 현재 창은 작업영역 전체(축소는 그 창의 1/2·2/3).
+    fileprivate static func projected(_ command: WindowCommand) -> CGRect {
+        let area = CGRect(x: 0, y: 0, width: 2200, height: 1400)
+        let frame = FrameCalculator.targetFrame(for: command, current: area, workArea: area)
+        return unit(
+            frame.minX / area.width,
+            frame.minY / area.height,
+            frame.width / area.width,
+            frame.height / area.height
+        )
+    }
+
     /// 되돌리기: 위 가로선 → 오른쪽 반원 → 아래 가로선, 왼쪽 위 화살촉.
     fileprivate static let undo = Self(
         strokes: [
@@ -62,51 +76,6 @@ nonisolated struct CommandGlyph: Equatable {
         ],
         arcs: [Arc(center: CGPoint(x: 16, y: 11.5), radius: 3.5, startDegrees: -90, endDegrees: 90)]
     )
-
-    fileprivate static func absolute(_ placement: AbsolutePlacement) -> Self {
-        let size = placement.fraction.value
-        let start: CGFloat = switch placement.slot {
-        case .first:
-            0
-        case .center:
-            (1 - size) / 2
-        case .last:
-            1 - size
-        }
-        return switch placement.axis {
-        case .horizontal:
-            Self(region: unit(start, 0, size, 1))
-        case .vertical:
-            Self(region: unit(0, start, 1, size))
-        }
-    }
-
-    fileprivate static func half(_ edge: SnapEdge) -> CGRect {
-        switch edge {
-        case .left:
-            unit(0, 0, 0.5, 1)
-        case .right:
-            unit(0.5, 0, 0.5, 1)
-        case .top:
-            unit(0, 0, 1, 0.5)
-        case .bottom:
-            unit(0, 0.5, 1, 0.5)
-        }
-    }
-
-    fileprivate static func shrink(_ anchor: RelativeAnchor, fraction: CGFloat) -> Self {
-        let region = switch anchor {
-        case .left:
-            unit(0, 0, fraction, 1)
-        case .right:
-            unit(1 - fraction, 0, fraction, 1)
-        case .top:
-            unit(0, 0, 1, fraction)
-        case .bottom:
-            unit(0, 1 - fraction, 1, fraction)
-        }
-        return Self(region: region, ghost: unit(0, 0, 1, 1))
-    }
 
     fileprivate static func move(_ direction: MoveDirection) -> Self {
         switch direction {
@@ -173,22 +142,17 @@ extension WindowCommand {
     /// 이 명령의 그림. 새 명령이 생기면 default 없이 여기서 컴파일이 멈춘다.
     var glyph: CommandGlyph {
         switch self {
-        case .maximize:
-            CommandGlyph(region: CommandGlyph.unit(0, 0, 1, 1))
+        case .maximize, .absolute, .snapThrow:
+            CommandGlyph(region: CommandGlyph.projected(self))
+        case .relativeHalf, .relativeTwoThird:
+            CommandGlyph(region: CommandGlyph.projected(self), ghost: CommandGlyph.unit(0, 0, 1, 1))
         case .maximizeGaps:
+            // 실제 여백(12pt)은 그림 크기에서 보이지 않아 과장한다.
             CommandGlyph(region: CommandGlyph.unit(0.14, 0.17, 0.72, 0.66))
-        case let .absolute(placement):
-            CommandGlyph.absolute(placement)
-        case let .snapThrow(edge):
-            CommandGlyph(region: CommandGlyph.half(edge))
         case let .moveToDisplay(edge):
             CommandGlyph.display(edge)
         case let .move(direction):
             CommandGlyph.move(direction)
-        case let .relativeHalf(anchor):
-            CommandGlyph.shrink(anchor, fraction: 1.0 / 2.0)
-        case let .relativeTwoThird(anchor):
-            CommandGlyph.shrink(anchor, fraction: 2.0 / 3.0)
         case .undo:
             CommandGlyph.undo
         }

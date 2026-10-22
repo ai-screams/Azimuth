@@ -77,6 +77,8 @@ enum CommandEngineTests {
         testCommandGlyphArrows()
         testCommandGlyphDisplays()
         testKeycapLabels()
+        testMenuCommandsByGroup()
+        testBindingShortcut()
 
         if failures == 0 {
             print("PASS — all \(checks) checks")

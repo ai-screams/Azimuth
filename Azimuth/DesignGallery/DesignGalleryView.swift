@@ -62,7 +62,7 @@
         }
 
         private func commands(in group: CommandGroup) -> [WindowCommand] {
-            WindowCommand.menuCommands.filter { $0.group == group }
+            WindowCommand.menuCommands(in: group)
         }
     }
 

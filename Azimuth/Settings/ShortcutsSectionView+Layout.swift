@@ -81,7 +81,7 @@ extension ShortcutsSectionView {
         // 그룹 사이엔 구분선 + 넓은 간격, 그룹 안 행은 들여쓰기로 위계를 만든다(menuCommands 순서 유지).
         var isFirstGroup = true
         for group in CommandGroup.allCases {
-            let commands = WindowCommand.menuCommands.filter { $0.group == group }
+            let commands = WindowCommand.menuCommands(in: group)
             guard !commands.isEmpty else { continue }
             let separator = addGroupSeparator(isFirst: isFirstGroup)
             isFirstGroup = false

@@ -15,16 +15,14 @@
         @State private var sound = true
         @State private var notify = false
 
-        private static let grantedDetail =
-            "Accessibility access is enabled. Shortcuts and menu commands can move and resize other app windows."
-
         var body: some View {
             Form {
                 Section("Permissions") {
                     Label {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Azimuth can control other app windows.")
-                            Text(Self.grantedDetail).font(.caption).foregroundStyle(.secondary)
+                            Text(AccessibilityPermissionStatus.granted.settingsStatusText)
+                            Text(AccessibilityPermissionStatus.granted.settingsDetailText)
+                                .font(.caption).foregroundStyle(.secondary)
                         }
                     } icon: {
                         Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)

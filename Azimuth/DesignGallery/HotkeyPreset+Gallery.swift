@@ -9,8 +9,7 @@
     extension HotkeyPreset {
         /// 갤러리 표본용: 이 프리셋에서 `command`의 기본 단축키.
         func galleryShortcut(for command: WindowCommand) -> HotkeyShortcut? {
-            guard let binding = bindings.first(where: { $0.command == command }) else { return nil }
-            return HotkeyShortcut(keyCode: binding.keyCode, modifiers: binding.modifiers)
+            bindings.first { $0.command == command }?.shortcut
         }
     }
 #endif

@@ -38,13 +38,13 @@
                     Spacer()
                     HStack(spacing: 5) {
                         Circle().fill(.green).frame(width: 7, height: 7)
-                        Text("Accessibility Access: Granted").font(.caption).foregroundStyle(.secondary)
+                        Text(AccessibilityPermissionStatus.granted.menuTitle).font(.caption).foregroundStyle(.secondary)
                     }
                 }
                 ForEach(CommandGroup.allCases, id: \.self) { group in
                     Text(group.displayName).font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
                     LazyVGrid(columns: Self.columns, spacing: 4) {
-                        ForEach(WindowCommand.menuCommands.filter { $0.group == group }, id: \.identifier) { command in
+                        ForEach(WindowCommand.menuCommands(in: group), id: \.identifier) { command in
                             tile(for: command)
                         }
                     }
