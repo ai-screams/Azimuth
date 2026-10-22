@@ -12,26 +12,24 @@ struct KeycapsView: View {
         case normal
         /// 녹화 중: "Type shortcut…"과 강조색 테두리.
         case recording
-        /// 단축키 없음: "—".
-        case empty
         /// 꺼진 명령: 흐리게.
         case disabled
     }
 
+    /// nil이면 "—"(단축키 없음). 빈 상자와 낭독("No shortcut")이 어긋나지 않게 모드가 아니라 값에서 정한다.
     let shortcut: HotkeyShortcut?
     var mode: Mode = .normal
 
     var body: some View {
         HStack(spacing: 3) {
-            switch mode {
-            case .recording:
+            if mode == .recording {
                 Text("Type shortcut…").font(.system(size: 12)).padding(.horizontal, 6)
-            case .empty:
-                Text("—").foregroundStyle(.secondary).padding(.horizontal, 6)
-            case .normal, .disabled:
-                ForEach(Array((shortcut?.keycapLabels ?? []).enumerated()), id: \.offset) { _, label in
+            } else if let shortcut {
+                ForEach(Array(shortcut.keycapLabels.enumerated()), id: \.offset) { _, label in
                     Keycap(label: label)
                 }
+            } else {
+                Text("—").foregroundStyle(.secondary).padding(.horizontal, 6)
             }
         }
         .padding(3)
@@ -46,14 +44,8 @@ struct KeycapsView: View {
     }
 
     private var accessibilityText: String {
-        switch mode {
-        case .recording:
-            "Recording shortcut"
-        case .empty:
-            "No shortcut"
-        case .normal, .disabled:
-            shortcut?.displayString ?? "No shortcut"
-        }
+        if mode == .recording { return "Recording shortcut" }
+        return shortcut?.displayString ?? "No shortcut"
     }
 }
 

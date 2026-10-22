@@ -148,7 +148,7 @@
         let useGlass: Bool
 
         private var selectedCommand: WindowCommand? {
-            WindowCommand.menuCommands.first { $0.displayName == selected }
+            WindowCommand.menuCommands.first { $0.identifier == selected }
         }
 
         var body: some View {
@@ -164,7 +164,7 @@
                 ForEach(CommandGroup.allCases, id: \.self) { group in
                     Text(group.displayName).font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
                     LazyVGrid(columns: Self.columns, spacing: 4) {
-                        ForEach(WindowCommand.menuCommands.filter { $0.group == group }, id: \.displayName) { command in
+                        ForEach(WindowCommand.menuCommands.filter { $0.group == group }, id: \.identifier) { command in
                             tile(for: command)
                         }
                     }
@@ -180,9 +180,9 @@
         private static let columns = Array(repeating: GridItem(.fixed(34), spacing: 4), count: 8)
 
         private func tile(for command: WindowCommand) -> some View {
-            let name = command.displayName
-            return PopoverTile(command: command, isSelected: selected == name, useGlass: useGlass) {
-                selected = selected == name ? nil : name
+            let id = command.identifier
+            return PopoverTile(command: command, isSelected: selected == id, useGlass: useGlass) {
+                selected = selected == id ? nil : id
             }
         }
 

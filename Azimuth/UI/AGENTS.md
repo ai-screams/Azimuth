@@ -9,8 +9,8 @@ Shared SwiftUI parts for the 2.0 screens (#181). The Settings window, the menu b
 ## Key Files
 | File | Description |
 |------|-------------|
-| `CommandGlyphView.swift` | Draws `WindowCommand.glyph` (`Commands/CommandGlyph`) with `Canvas`. Color rule: text color in lists, the system accent only when `emphasized` (a selected or active row). `scale` enlarges the shape but keeps the 1× line width |
-| `KeycapsView.swift` | One keycap per modifier and key from `HotkeyShortcut.keycapLabels`. Modes: normal, recording ("Type shortcut…" with an accent border), empty ("—"), disabled (dimmed) |
+| `CommandGlyphView.swift` | Draws `WindowCommand.glyph` (`Commands/CommandGlyph`) with `Canvas`; it holds no coordinates of its own. Color rule: text color in lists, the system accent only when `emphasized` (a selected or active row). `scale` enlarges the shape but keeps the 1× line width and dash |
+| `KeycapsView.swift` | One keycap per modifier and key from `HotkeyShortcut.keycapLabels`. A nil shortcut shows "—" (decided by the value, not a mode). Modes: normal, recording ("Type shortcut…" with an accent border), disabled (dimmed) |
 
 ## For AI Agents
 - Geometry and labels are pure values tested in the harness; these views only draw them. Change a shape in `Commands/CommandGlyph.swift`, not here.

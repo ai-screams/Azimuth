@@ -11,9 +11,10 @@ extension CommandEngineTests {
         let box = CGRect(origin: .zero, size: CommandGlyph.box)
         let glyphs = WindowCommand.menuCommands.map { ($0.displayName, $0.glyph) }
         for (name, glyph) in glyphs {
-            let marked = glyph.region != nil || !glyph.strokes.isEmpty || glyph.isUndo
+            let marked = glyph.region != nil || !glyph.strokes.isEmpty || !glyph.arcs.isEmpty
             expectName("\(name) has a mark", "\(marked)", "true")
             let shapes = [glyph.screen, glyph.secondScreen, glyph.region, glyph.ghost].compactMap { $0 }
+                + glyph.arcs.map(\.bounds)
             let points = glyph.strokes.flatMap { $0 }
             let inside = shapes.allSatisfy { box.contains($0) } && points.allSatisfy { box.contains($0) }
             expectName("\(name) inside the box", "\(inside)", "true")
@@ -53,7 +54,12 @@ extension CommandEngineTests {
         expectName("move down points down", "\((downBody.last?.y ?? 0) > (downBody.first?.y ?? 0))", "true")
         for (edge, label) in [(SnapEdge.left, "left"), (.right, "right"), (.top, "top"), (.bottom, "bottom")] {
             let glyph = WindowCommand.moveToDisplay(edge).glyph
-            let second = glyph.secondScreen ?? .null
+            // nil을 CGRect.null로 바꿔 비교하면 null의 좌표가 무한대라 right·bottom 비교와 contains가 늘 참이 된다.
+            // 이것을 실패시키는 것: 디스플레이 그림에서 secondScreen 또는 region을 지우는 것.
+            guard let second = glyph.secondScreen, let region = glyph.region else {
+                expectName("display \(label): has target screen and region", "missing", "present")
+                continue
+            }
             let towardEdge = switch edge {
             case .left:
                 second.maxX <= glyph.screen.minX
@@ -65,10 +71,11 @@ extension CommandEngineTests {
                 second.minY >= glyph.screen.maxY
             }
             expectName("display \(label): target screen on that side, apart", "\(towardEdge)", "true")
-            let onTarget = second.contains(glyph.region ?? .null)
-            expectName("display \(label): region on the target screen", "\(onTarget)", "true")
+            expectName("display \(label): region on the target screen", "\(second.contains(region))", "true")
         }
-        expectName("undo is the undo mark", "\(WindowCommand.undo.glyph.isUndo)", "true")
+        let undo = WindowCommand.undo.glyph
+        expectName("undo: one arc and three line strokes", "\(undo.arcs.count)/\(undo.strokes.count)", "1/3")
+        expectName("undo: no region", "\(undo.region == nil)", "true")
     }
 
     // 키캡 라벨: 수정자 하나씩 + 키 하나. 여러 글자 키도 캡 하나.

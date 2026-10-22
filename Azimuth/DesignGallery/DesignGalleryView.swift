@@ -52,7 +52,7 @@
                     VStack(alignment: .leading, spacing: 6) {
                         Text(group.displayName).font(.caption.weight(.semibold)).foregroundStyle(.secondary)
                         LazyVGrid(columns: [GridItem(.adaptive(minimum: 104), spacing: 8)], alignment: .leading) {
-                            ForEach(commands(in: group), id: \.displayName) { command in
+                            ForEach(commands(in: group), id: \.identifier) { command in
                                 GlyphCell(command: command, emphasized: emphasizeAll)
                             }
                         }
@@ -94,7 +94,7 @@
                 labeled("Normal") { KeycapsView(shortcut: sample) }
                 labeled("Long key label") { KeycapsView(shortcut: longKey) }
                 labeled("Recording") { KeycapsView(shortcut: sample, mode: .recording) }
-                labeled("Empty") { KeycapsView(shortcut: nil, mode: .empty) }
+                labeled("No shortcut") { KeycapsView(shortcut: nil) }
                 labeled("Disabled") { KeycapsView(shortcut: sample, mode: .disabled) }
             }
         }

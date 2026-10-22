@@ -17,7 +17,7 @@ nonisolated struct HotkeyShortcut: Codable, Equatable {
 
     /// 메뉴/표시용 사람이 읽는 조합 문자열 (예: "⌃⌥←", "⌃⌥⇧K").
     var displayString: String {
-        CarbonModifier.glyphs(for: modifiers) + Self.keyLabel(for: keyCode)
+        keycapLabels.joined()
     }
 
     /// 키캡 하나에 들어갈 라벨들: 수정자 글리프 하나씩(⌃⌥⇧⌘ 순) + 키 라벨 하나.

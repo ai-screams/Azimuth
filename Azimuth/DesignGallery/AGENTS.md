@@ -9,9 +9,9 @@ DEBUG-only window for checking the 2.0 redesign on a real macOS before each scre
 ## Key Files
 | File | Description |
 |------|-------------|
-| `GalleryComponents.swift` | `HotkeyPreset.galleryShortcut(for:)` for sample keycaps. Glyphs and keycaps come from the real parts in `UI/`. No `ConcentricRectangle` yet: without a container shape it draws square corners (seen in round 1) |
+| `HotkeyPreset+Gallery.swift` | `HotkeyPreset.galleryShortcut(for:)` for sample keycaps. Glyphs and keycaps come from the real parts in `UI/` |
 | `DesignGalleryView.swift` | The gallery page: glyph catalog at 1× and 2×, keycap states |
-| `DesignGallerySamples.swift` | Screen samples in grouped `Form`s: Shortcuts rows, General pane (layout A), popover grid P1 with optional Liquid Glass on 26+. All state is local `@State`; nothing writes preferences |
+| `DesignGallerySamples.swift` | Screen samples in grouped `Form`s: Shortcuts rows, General pane (layout A), popover grid P1 with optional Liquid Glass on 26+. All state is local `@State`; nothing writes preferences. Popover tiles use a fixed 6pt radius: `ConcentricRectangle` without a container shape draws square corners (seen in round 1) |
 | `DesignGalleryWindowController.swift` | Hosts the page in an `NSWindow` |
 
 ## For AI Agents

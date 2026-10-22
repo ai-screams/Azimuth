@@ -11,7 +11,7 @@ import SwiftUI
 struct CommandGlyphView: View {
     let command: WindowCommand
     var emphasized = false
-    /// 확대 배율. 도형만 커지고 선 굵기는 1배 그대로다(2배에서 윤곽이 무거워 보였다).
+    /// 확대 배율. 도형만 커지고 선 굵기·점선 간격은 1배 그대로다(2배에서 윤곽이 무거워 보였다).
     var scale: CGFloat = 1
 
     var body: some View {
@@ -26,7 +26,8 @@ struct CommandGlyphView: View {
         .accessibilityLabel(command.displayName)
     }
 
-    private static func draw(
+    /// 그리기만 한다(상태 없음). Canvas 렌더 클로저에서 부르므로 액터에 묶지 않는다.
+    private nonisolated static func draw(
         _ glyph: CommandGlyph,
         fill: Color,
         lineScale: CGFloat,
@@ -41,38 +42,29 @@ struct CommandGlyphView: View {
             context.fill(Path(roundedRect: region, cornerRadius: 1.2), with: .color(fill.opacity(0.9)))
         }
         // 원래 크기(점선)는 채운 부분 위에 그린다. 아래에 두면 실제 크기에서 가려져 반쪽 그림과 구분되지 않았다.
+        // 점선 간격도 선 굵기처럼 1배로 둔다(배율에 따라 커지지 않게).
         if let ghost = glyph.ghost {
-            let dashed = StrokeStyle(lineWidth: 1 * lineScale, dash: [2, 1.5])
+            let dashed = StrokeStyle(lineWidth: 1 * lineScale, dash: [2 * lineScale, 1.5 * lineScale])
             let ghostPath = Path(roundedRect: ghost, cornerRadius: 1.2)
             context.stroke(ghostPath, with: .color(.primary.opacity(0.75)), style: dashed)
         }
-        let arrowStyle = StrokeStyle(lineWidth: 1.5 * lineScale, lineCap: .round, lineJoin: .round)
+        let markStyle = StrokeStyle(lineWidth: 1.5 * lineScale, lineCap: .round, lineJoin: .round)
         for stroke in glyph.strokes {
             var path = Path()
             path.addLines(stroke)
-            context.stroke(path, with: .color(fill), style: arrowStyle)
+            context.stroke(path, with: .color(fill), style: markStyle)
         }
-        if glyph.isUndo {
-            context.stroke(undoPath, with: .color(fill), style: arrowStyle)
+        for arc in glyph.arcs {
+            var path = Path()
+            // y가 아래로 커지는 좌표에서 clockwise: false는 각도가 커지는 쪽(화면상 시계 방향)으로 그린다.
+            path.addArc(
+                center: arc.center,
+                radius: arc.radius,
+                startAngle: .degrees(arc.startDegrees),
+                endAngle: .degrees(arc.endDegrees),
+                clockwise: false
+            )
+            context.stroke(path, with: .color(fill), style: markStyle)
         }
     }
-
-    /// 위쪽 가로선 → 오른쪽 반원 → 아래 가로선, 왼쪽 위에 화살촉.
-    private static let undoPath: Path = {
-        var path = Path()
-        path.move(to: CGPoint(x: 10, y: 8))
-        path.addLine(to: CGPoint(x: 16, y: 8))
-        path.addArc(
-            center: CGPoint(x: 16, y: 11.5),
-            radius: 3.5,
-            startAngle: .degrees(-90),
-            endAngle: .degrees(90),
-            clockwise: false
-        )
-        path.addLine(to: CGPoint(x: 10.5, y: 15))
-        path.move(to: CGPoint(x: 12.6, y: 5.4))
-        path.addLine(to: CGPoint(x: 10, y: 8))
-        path.addLine(to: CGPoint(x: 12.6, y: 10.6))
-        return path
-    }()
 }

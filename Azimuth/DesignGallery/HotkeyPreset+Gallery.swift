@@ -1,5 +1,5 @@
 //
-//  GalleryComponents.swift
+//  HotkeyPreset+Gallery.swift
 //  Azimuth
 //
 //  DEBUG 디자인 갤러리 전용 보조. 그림·키캡은 실제 부품(UI/CommandGlyphView, UI/KeycapsView)을 그대로 쓴다.

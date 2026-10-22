@@ -11,8 +11,25 @@
 import CoreGraphics
 
 nonisolated struct CommandGlyph: Equatable {
+    /// 원호 한 획. 각도는 도(degree), y가 아래로 커지는 좌표라 각도가 커지는 쪽이 화면에서 시계 방향이다.
+    struct Arc: Equatable {
+        let center: CGPoint
+        let radius: CGFloat
+        let startDegrees: CGFloat
+        let endDegrees: CGFloat
+
+        /// 원 전체를 감싸는 사각형. 상자 안에 있는지 검사할 때 쓴다(호보다 넓게 잡아 안전하다).
+        var bounds: CGRect {
+            CGRect(x: center.x - radius, y: center.y - radius, width: radius * 2, height: radius * 2)
+        }
+    }
+
     static let box = CGSize(width: 28, height: 20)
     static let fullScreen = CGRect(x: 1, y: 1, width: 26, height: 18)
+    /// 채움 영역의 기준: 화면 윤곽에서 2pt 안쪽(22×14).
+    static let inner = fullScreen.insetBy(dx: 2, dy: 2)
+    /// 화살촉 날개 길이.
+    static let arrowWing: CGFloat = 2.5
 
     var screen = fullScreen
     /// 디스플레이 이동의 목적지 화면.
@@ -21,15 +38,30 @@ nonisolated struct CommandGlyph: Equatable {
     var region: CGRect?
     /// 상대 축소의 원래 크기(점선). 채운 영역 위에 그려야 실제 크기에서 보인다.
     var ghost: CGRect?
-    /// 화살표 획. 배열 하나가 점을 잇는 한 획이다.
+    /// 화살표·되돌리기 기호의 직선 획. 배열 하나가 점을 잇는 한 획이다.
     var strokes: [[CGPoint]] = []
-    /// 되돌리기 기호(반원 + 화살촉)는 곡선이라 뷰가 따로 그린다.
-    var isUndo = false
+    /// 곡선 획(되돌리기의 반원). 직선 획과 같은 굵기·색으로 그린다.
+    var arcs: [Arc] = []
 
-    /// 화면 안쪽(1pt 여백) 22×14 영역의 비율 좌표 → 상자 좌표.
+    /// `inner` 영역의 비율 좌표 → 상자 좌표.
     static func unit(_ x: CGFloat, _ y: CGFloat, _ width: CGFloat, _ height: CGFloat) -> CGRect {
-        CGRect(x: 3 + x * 22, y: 3 + y * 14, width: width * 22, height: height * 14)
+        CGRect(
+            x: inner.minX + x * inner.width,
+            y: inner.minY + y * inner.height,
+            width: width * inner.width,
+            height: height * inner.height
+        )
     }
+
+    /// 되돌리기: 위 가로선 → 오른쪽 반원 → 아래 가로선, 왼쪽 위 화살촉.
+    fileprivate static let undo = Self(
+        strokes: [
+            [CGPoint(x: 10, y: 8), CGPoint(x: 16, y: 8)],
+            [CGPoint(x: 16, y: 15), CGPoint(x: 10.5, y: 15)],
+            [CGPoint(x: 12.6, y: 5.4), CGPoint(x: 10, y: 8), CGPoint(x: 12.6, y: 10.6)]
+        ],
+        arcs: [Arc(center: CGPoint(x: 16, y: 11.5), radius: 3.5, startDegrees: -90, endDegrees: 90)]
+    )
 
     fileprivate static func absolute(_ placement: AbsolutePlacement) -> Self {
         let size = placement.fraction.value
@@ -124,14 +156,15 @@ nonisolated struct CommandGlyph: Equatable {
         }
     }
 
-    /// 몸통 한 획 + 화살촉 한 획. 화살촉 날개 길이는 2.5pt.
+    /// 몸통 한 획 + 화살촉 한 획.
     private static func arrow(from tail: (CGFloat, CGFloat), to head: (CGFloat, CGFloat)) -> [[CGPoint]] {
         let start = CGPoint(x: tail.0, y: tail.1), end = CGPoint(x: head.0, y: head.1)
         let length = max(hypot(end.x - start.x, end.y - start.y), 0.001)
         let dx = (end.x - start.x) / length, dy = (end.y - start.y) / length
-        let back = CGPoint(x: end.x - dx * 2.5, y: end.y - dy * 2.5)
-        let wingA = CGPoint(x: back.x - dy * 2.5, y: back.y + dx * 2.5)
-        let wingB = CGPoint(x: back.x + dy * 2.5, y: back.y - dx * 2.5)
+        let wing = arrowWing
+        let back = CGPoint(x: end.x - dx * wing, y: end.y - dy * wing)
+        let wingA = CGPoint(x: back.x - dy * wing, y: back.y + dx * wing)
+        let wingB = CGPoint(x: back.x + dy * wing, y: back.y - dx * wing)
         return [[start, end], [wingA, end, wingB]]
     }
 }
@@ -157,7 +190,7 @@ extension WindowCommand {
         case let .relativeTwoThird(anchor):
             CommandGlyph.shrink(anchor, fraction: 2.0 / 3.0)
         case .undo:
-            CommandGlyph(isUndo: true)
+            CommandGlyph.undo
         }
     }
 }
