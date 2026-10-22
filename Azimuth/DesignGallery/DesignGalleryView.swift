@@ -73,8 +73,8 @@
         var body: some View {
             VStack(spacing: 4) {
                 HStack(alignment: .bottom, spacing: 8) {
-                    GalleryCommandGlyph(command: command, emphasized: emphasized)
-                    GalleryCommandGlyph(command: command, emphasized: emphasized, scale: 2)
+                    CommandGlyphView(command: command, emphasized: emphasized)
+                    CommandGlyphView(command: command, emphasized: emphasized, scale: 2)
                 }
                 Text(command.displayName).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
             }
@@ -91,11 +91,11 @@
 
         var body: some View {
             HStack(spacing: 18) {
-                labeled("Normal") { GalleryKeycaps(shortcut: sample) }
-                labeled("Long key label") { GalleryKeycaps(shortcut: longKey) }
-                labeled("Recording") { GalleryKeycaps(shortcut: sample, mode: .recording) }
-                labeled("Empty") { GalleryKeycaps(shortcut: nil, mode: .empty) }
-                labeled("Disabled") { GalleryKeycaps(shortcut: sample, mode: .disabled) }
+                labeled("Normal") { KeycapsView(shortcut: sample) }
+                labeled("Long key label") { KeycapsView(shortcut: longKey) }
+                labeled("Recording") { KeycapsView(shortcut: sample, mode: .recording) }
+                labeled("Empty") { KeycapsView(shortcut: nil, mode: .empty) }
+                labeled("Disabled") { KeycapsView(shortcut: sample, mode: .disabled) }
             }
         }
 

@@ -23,6 +23,7 @@ HARNESS_SRC=(
     "Azimuth/Commands/EdgeReanchorPolicy.swift"
     "Azimuth/Commands/FixedSizePlacementPolicy.swift"
     "Azimuth/Commands/UndoHistory.swift"
+    "Azimuth/Commands/CommandGlyph.swift"
     "Azimuth/Shared/BoundedIntSetting.swift"
     "Azimuth/Shared/RecentKeys.swift"
     "Azimuth/Shared/UpdateVersionText.swift"
@@ -53,4 +54,5 @@ HARNESS_TESTS=(
     "Tests/CommandEngineTests+Hotkeys.swift"
     "Tests/CommandEngineTests+Updates.swift"
     "Tests/CommandEngineTests+Permissions.swift"
+    "Tests/CommandEngineTests+Glyphs.swift"
 )

@@ -20,6 +20,12 @@ nonisolated struct HotkeyShortcut: Codable, Equatable {
         CarbonModifier.glyphs(for: modifiers) + Self.keyLabel(for: keyCode)
     }
 
+    /// 키캡 하나에 들어갈 라벨들: 수정자 글리프 하나씩(⌃⌥⇧⌘ 순) + 키 라벨 하나.
+    /// `displayString`을 글자 단위로 쪼개면 "F12"·"Space"가 여러 캡으로 갈라지므로 마스크와 키코드에서 만든다.
+    var keycapLabels: [String] {
+        CarbonModifier.glyphs(for: modifiers).map(String.init) + [Self.keyLabel(for: keyCode)]
+    }
+
     /// Carbon 가상 키코드(kVK_*) → 표시 라벨. 알 수 없으면 "key(코드)".
     static func keyLabel(for keyCode: UInt32) -> String {
         keyLabels[keyCode] ?? "key(\(keyCode))"

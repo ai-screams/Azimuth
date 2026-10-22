@@ -36,7 +36,7 @@
 
     private struct ShortcutRowSample: View {
         let command: WindowCommand
-        var mode: GalleryKeycaps.Mode = .normal
+        var mode: KeycapsView.Mode = .normal
         var customized = false
         var enabled = true
         var selected = false
@@ -44,7 +44,7 @@
 
         init(
             command: WindowCommand,
-            mode: GalleryKeycaps.Mode = .normal,
+            mode: KeycapsView.Mode = .normal,
             customized: Bool = false,
             enabled: Bool = true,
             selected: Bool = false
@@ -60,14 +60,14 @@
         var body: some View {
             HStack(spacing: 10) {
                 Toggle(command.displayName, isOn: $isOn).labelsHidden().toggleStyle(.checkbox)
-                GalleryCommandGlyph(command: command, emphasized: selected || mode == .recording)
+                CommandGlyphView(command: command, emphasized: selected || mode == .recording)
                 Text(command.displayName).foregroundStyle(enabled ? .primary : .secondary)
                 Spacer()
                 if customized {
                     Circle().fill(Color.accentColor).frame(width: 6, height: 6)
                         .help("Customized — differs from the preset default.")
                 }
-                GalleryKeycaps(
+                KeycapsView(
                     shortcut: HotkeyPreset.standard.galleryShortcut(for: command),
                     mode: enabled ? mode : .disabled
                 )
@@ -191,7 +191,7 @@
                 if let command = selectedCommand {
                     Text("\(command.displayName) — applied to the front window").font(.caption)
                     Spacer()
-                    GalleryKeycaps(shortcut: HotkeyPreset.standard.galleryShortcut(for: command))
+                    KeycapsView(shortcut: HotkeyPreset.standard.galleryShortcut(for: command))
                 } else {
                     Text("Click a command to apply it to the front window.").font(.caption).foregroundStyle(.secondary)
                 }
@@ -210,7 +210,7 @@
             // ConcentricRectangle은 바깥 모양을 알려 주는 컨테이너가 없으면 직각이 된다(갤러리 1차에서 확인). 타일은 고정 반경.
             let shape = AnyShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
             Button(action: action) {
-                GalleryCommandGlyph(command: command, emphasized: isSelected)
+                CommandGlyphView(command: command, emphasized: isSelected)
                     .frame(width: 34, height: 30)
                     .contentShape(shape)
             }
