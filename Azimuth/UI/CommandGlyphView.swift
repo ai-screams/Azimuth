@@ -33,6 +33,17 @@ struct CommandGlyphView: View {
         lineScale: CGFloat,
         in context: inout GraphicsContext
     ) {
+        drawScreensAndRegion(glyph, fill: fill, lineScale: lineScale, in: &context)
+        drawMarks(glyph, color: fill, lineScale: lineScale, in: &context)
+    }
+
+    /// 화면 윤곽(늘 글자색), 목표 영역(채움), 원래 크기 점선.
+    private nonisolated static func drawScreensAndRegion(
+        _ glyph: CommandGlyph,
+        fill: Color,
+        lineScale: CGFloat,
+        in context: inout GraphicsContext
+    ) {
         let line = StrokeStyle(lineWidth: 1.4 * lineScale, lineCap: .round, lineJoin: .round)
         context.stroke(Path(roundedRect: glyph.screen, cornerRadius: 2.5), with: .color(.primary), style: line)
         if let second = glyph.secondScreen {
@@ -48,11 +59,20 @@ struct CommandGlyphView: View {
             let ghostPath = Path(roundedRect: ghost, cornerRadius: 1.2)
             context.stroke(ghostPath, with: .color(.primary.opacity(0.75)), style: dashed)
         }
+    }
+
+    /// 화살표·되돌리기 기호: 직선 획과 원호를 같은 굵기·색으로.
+    private nonisolated static func drawMarks(
+        _ glyph: CommandGlyph,
+        color: Color,
+        lineScale: CGFloat,
+        in context: inout GraphicsContext
+    ) {
         let markStyle = StrokeStyle(lineWidth: 1.5 * lineScale, lineCap: .round, lineJoin: .round)
         for stroke in glyph.strokes {
             var path = Path()
             path.addLines(stroke)
-            context.stroke(path, with: .color(fill), style: markStyle)
+            context.stroke(path, with: .color(color), style: markStyle)
         }
         for arc in glyph.arcs {
             var path = Path()
@@ -64,7 +84,7 @@ struct CommandGlyphView: View {
                 endAngle: .degrees(arc.endDegrees),
                 clockwise: false
             )
-            context.stroke(path, with: .color(fill), style: markStyle)
+            context.stroke(path, with: .color(color), style: markStyle)
         }
     }
 }

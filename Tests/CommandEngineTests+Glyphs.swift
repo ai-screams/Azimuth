@@ -44,7 +44,7 @@ extension CommandEngineTests {
         expectName("plain halves have no ghost", "\(WindowCommand.snapThrow(.left).glyph.ghost == nil)", "true")
     }
 
-    // 화살표는 명령 방향을 가리키고, 디스플레이 이동은 목적지 화면을 그 방향에 둔다.
+    // 화살표는 명령 방향을 가리키고, Undo는 원호 하나와 직선 세 획이다.
     static func testCommandGlyphArrows() {
         let moveLeft = WindowCommand.move(.left).glyph.strokes
         expectPoint("move left arrow head", moveLeft.first?.last ?? .zero, CGPoint(x: 17, y: 10))
@@ -52,6 +52,13 @@ extension CommandEngineTests {
         let moveDown = WindowCommand.move(.down).glyph.strokes
         let downBody = moveDown.first ?? []
         expectName("move down points down", "\((downBody.last?.y ?? 0) > (downBody.first?.y ?? 0))", "true")
+        let undo = WindowCommand.undo.glyph
+        expectName("undo: one arc and three line strokes", "\(undo.arcs.count)/\(undo.strokes.count)", "1/3")
+        expectName("undo: no region", "\(undo.region == nil)", "true")
+    }
+
+    // 디스플레이 이동: 목적지 화면을 그 방향에 따로 두고, 목표 영역은 목적지 화면 안에 둔다.
+    static func testCommandGlyphDisplays() {
         for (edge, label) in [(SnapEdge.left, "left"), (.right, "right"), (.top, "top"), (.bottom, "bottom")] {
             let glyph = WindowCommand.moveToDisplay(edge).glyph
             // nil을 CGRect.null로 바꿔 비교하면 null의 좌표가 무한대라 right·bottom 비교와 contains가 늘 참이 된다.
@@ -73,9 +80,6 @@ extension CommandEngineTests {
             expectName("display \(label): target screen on that side, apart", "\(towardEdge)", "true")
             expectName("display \(label): region on the target screen", "\(second.contains(region))", "true")
         }
-        let undo = WindowCommand.undo.glyph
-        expectName("undo: one arc and three line strokes", "\(undo.arcs.count)/\(undo.strokes.count)", "1/3")
-        expectName("undo: no region", "\(undo.region == nil)", "true")
     }
 
     // 키캡 라벨: 수정자 하나씩 + 키 하나. 여러 글자 키도 캡 하나.

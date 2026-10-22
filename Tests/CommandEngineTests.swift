@@ -75,6 +75,7 @@ enum CommandEngineTests {
         testCommandGlyphCatalog()
         testCommandGlyphRegions()
         testCommandGlyphArrows()
+        testCommandGlyphDisplays()
         testKeycapLabels()
 
         if failures == 0 {
