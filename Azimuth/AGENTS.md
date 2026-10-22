@@ -15,7 +15,7 @@ The app source root. From the programmatic AppKit entry (`main.swift`), `AppDele
 | `Info.plist` | Custom Info.plist (`GENERATE_INFOPLIST_FILE=NO`). Holds the Sparkle keys (`SUFeedURL`, `SUPublicEDKey`) and the version variables (`MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` / `AZIMUTH_LSUIELEMENT`). This file is copied into the bundle instead of a generated plist |
 | `AboutWindowController.swift` | Custom About window (icon, name, version, tagline + Homepage / Report an Issue / Sponsor / Ko-fi link buttons; text and links from `Shared/AboutContent`, shared with the Settings About pane; #176 replaces this window with that pane). The version is read from the bundle via `Shared/BundleVersion`, so it always matches the release |
 | `UpdateVersionDisplayer.swift` | `nonisolated` Sparkle adapter (`SPUStandardUserDriverDelegate` + `SUVersionDisplay`) that routes the standard update window's version strings through `Shared/UpdateVersionText`. Separate from `AppDelegate` so a `@MainActor` type does not adopt Sparkle's unannotated ObjC protocols; `AppDelegate` retains it (Sparkle holds delegates weakly) and passes it as `userDriverDelegate`. The optional selectors are checked against real Sparkle by `scripts/sparkle-adapter-check.sh` (CI) — a misspelled Swift name only warns and silently falls back to "1.7.2". The no-relaunch "Update Installed" alert bypasses the formatter (unused by Azimuth) |
-| `FlippedView.swift` / `NSButton+Rounded.swift` | Shared helpers: a flipped scroll document view, and a `.rounded` button factory |
+| `NSButton+Rounded.swift` | Shared helper: a `.rounded` button factory (About window, first-run guide) |
 
 ## Subdirectories
 | Directory | Purpose |

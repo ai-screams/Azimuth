@@ -3,7 +3,7 @@
 //  Azimuth
 //
 //  Carbon 수정자 마스크 ↔ NSEvent 플래그 ↔ 표시 글리프의 단일 출처.
-//  이전엔 ShortcutRecorderButton(플래그→마스크)와 HotkeyShortcut(마스크→글리프)이
+//  이전엔 녹화 버튼(플래그→마스크)와 HotkeyShortcut(마스크→글리프)이
 //  같은 4개 수정자(⌃⌥⇧⌘)를 각자 나열했다.
 //
 

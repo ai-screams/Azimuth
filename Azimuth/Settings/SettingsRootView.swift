@@ -30,8 +30,7 @@ struct SettingsRootView: View {
         case .general:
             GeneralSettingsView(model: model)
         case .shortcuts:
-            ShortcutsSettingsHost(dependencies: model.dependencies)
-                .navigationTitle(pane.title)
+            ShortcutsSettingsView(model: model.shortcuts)
         case .advanced:
             AdvancedSettingsView(model: model)
         case .about:
