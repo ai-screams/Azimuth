@@ -14,7 +14,7 @@ Azimuth is a macOS menu-bar **window manager** (in the Magnet/Rectangle family).
 | `SECURITY.md` · `CONTRIBUTING.md` · `SUPPORT.md` · `CODE_OF_CONDUCT.md` | GitHub community health files (security reporting, contribution guide, support, code of conduct) |
 | `RELEASING.md` | Release procedure |
 | `LICENSE` · `NOTICE` | Apache-2.0 license + notices |
-| `Azimuth.xcodeproj` | Xcode project. Non-sandboxed, `DEVELOPMENT_TEAM=7K6MK3KP9K`, `SWIFT_DEFAULT_ACTOR_ISOLATION=MainActor`, deployment target macOS 13.0 |
+| `Azimuth.xcodeproj` | Xcode project. Non-sandboxed, `DEVELOPMENT_TEAM=7K6MK3KP9K`, `SWIFT_DEFAULT_ACTOR_ISOLATION=MainActor`, deployment target macOS 14.0 |
 | `.swiftlint.yml` | SwiftLint strict configuration |
 | `.swiftformat` | SwiftFormat configuration (`--lint` in pre-commit and CI) |
 | `.gitleaks.toml` | Secret-scan rules |
@@ -55,6 +55,6 @@ Azimuth is a macOS menu-bar **window manager** (in the Magnet/Rectangle family).
 
 ### External
 - AppKit / Cocoa, ApplicationServices (AX), CoreGraphics, Carbon.HIToolbox (global hotkeys), ServiceManagement (launch at login).
-- **Sparkle 2** (SPM, 2.10.0, revision `eef1a53`; requires macOS 12, which main's 13.0 target covers — legacy stays on 2.9.x): the auto-update framework. Initialized through `AppDelegate`'s `SPUStandardUpdaterController`, which is the target of every "Check for Updates…" item (App menu, status-bar menu, Settings Updates card).
+- **Sparkle 2** (SPM, 2.10.0, revision `eef1a53`; requires macOS 12, which main's 14.0 target covers — legacy stays on 2.9.x): the auto-update framework. Initialized through `AppDelegate`'s `SPUStandardUpdaterController`, which is the target of every "Check for Updates…" item (App menu, status-bar menu, Settings Updates card).
 
 <!-- MANUAL: Any manually added notes below this line are preserved on regeneration -->

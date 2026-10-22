@@ -10,9 +10,10 @@ import AppKit
 
 extension NSApplication {
     /// 앱을 활성화해 이어서 띄울 창·팝오버가 전면에 오게 한다.
-    /// 14+ 전용 `activate()` 대신 이 API를 쓰는 이유는 macOS 13 지원이다. SDK상 to-be-deprecated라
-    /// 경고는 없고, 실제로 폐기되면 이 한 곳에서만 `if #available` 분기로 바꾼다.
+    /// macOS 14의 협조적 활성화(`activate()`)를 쓴다. 사용자가 다른 앱을 조작 중이면 시스템이 거절할 수 있어,
+    /// 메뉴·버튼·재실행처럼 사용자가 방금 Azimuth를 고른 경로에서만 부른다. 전역 단축키(Carbon)에서 부르는
+    /// 경로가 생기면(#183 명령 팔레트) 그 경로로 실기 확인한다.
     func bringToFront() {
-        activate(ignoringOtherApps: true)
+        activate()
     }
 }

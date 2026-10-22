@@ -124,11 +124,12 @@ block a commit over a file you never touched. Fetch the pinned release zip and l
   Branch off `main`, keep PRs focused, **squash-merge**.
 - New source files under `Azimuth/` are auto-included via the Xcode **file-system synchronized
   group** — no `.pbxproj` edit needed. Adding a new target or SPM dependency still needs the
-  pbxproj / Xcode GUI. Deployment target: macOS **13.0**.
-- A macOS 14+ API is a compile error at that target — guard it with `if #available` and decide the
-  13 fallback. Bring the app forward only through `NSApp.bringToFront()` (`Shared/`), never
-  `NSApp.activate…` directly. String-keyed resources (SF Symbol names, `x-apple.systempreferences:`
-  URLs) are not availability-checked — confirm they exist on macOS 13.
+  pbxproj / Xcode GUI. Deployment target: macOS **14.0**.
+- An API newer than macOS 14 is a compile error at that target — guard it with `if #available` and decide
+  the 14 fallback. CI builds with Xcode 26.x (SDK 26), so a macOS 27-only API breaks CI even when it builds
+  locally. Bring the app forward only through `NSApp.bringToFront()` (`Shared/`), never `NSApp.activate…`
+  directly. String-keyed resources (SF Symbol names, `x-apple.systempreferences:` URLs) are not
+  availability-checked — confirm they exist on macOS 14.
 - That auto-include does **not** reach the test harness: a new pure-logic file must be added to
   `scripts/harness-sources.sh` (the single list both `make test` and `make coverage` read).
 - Those lists are the **only** automatically tested code — `WindowAccess/**`, `WindowCommandExecutor`,
