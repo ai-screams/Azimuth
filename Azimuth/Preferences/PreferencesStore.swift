@@ -17,6 +17,7 @@ final class PreferencesStore {
     private let disabledGroupsKey = "disabledGroupTokens"
     private let menuBarIconHiddenKey = "menuBarIconHidden"
     private let didCompleteFirstRunKey = "didCompleteFirstRun"
+    private let practiceGuidePendingKey = "practiceGuidePending"
     private let didAttemptAccessibilityPromptKey = "didAttemptAccessibilityPrompt"
     private let resolveTimeoutKey = "resolveTimeout"
     private let undoDepthKey = "undoDepth"
@@ -197,6 +198,13 @@ final class PreferencesStore {
     var didCompleteFirstRun: Bool {
         get { defaults.bool(forKey: didCompleteFirstRunKey) }
         set { defaults.set(newValue, forKey: didCompleteFirstRunKey) }
+    }
+
+    /// 권한 없이 끝난 첫 실행. 권한을 받고 앱으로 돌아오면 연습 창 안내를 한 번 자동으로 연다(#176).
+    /// 앱을 다시 실행한 뒤 권한을 받아도 이어지도록 저장한다.
+    var practiceGuidePending: Bool {
+        get { defaults.bool(forKey: practiceGuidePendingKey) }
+        set { defaults.set(newValue, forKey: practiceGuidePendingKey) }
     }
 
     /// 그룹이 켜져 있고 개별 비활성도 아니어야 명령이 활성이다.

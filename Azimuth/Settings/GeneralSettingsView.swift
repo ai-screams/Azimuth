@@ -41,6 +41,11 @@ struct GeneralSettingsView: View {
             } header: {
                 Text("Feedback")
             }
+            Section("Practice") {
+                LabeledContent("Try the main shortcuts on a sample window") {
+                    Button("Start…", action: model.showPracticeGuide)
+                }
+            }
         }
         .formStyle(.grouped)
         .toggleStyle(.switch)

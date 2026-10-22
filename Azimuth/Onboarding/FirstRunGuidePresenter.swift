@@ -18,7 +18,8 @@ final class FirstRunGuidePresenter: NSObject, NSPopoverDelegate {
         relativeTo button: NSStatusBarButton,
         launchService: LaunchAtLoginService,
         needsPermission: Bool,
-        onOpenSettings: @escaping () -> Void
+        onOpenSettings: @escaping () -> Void,
+        onTryShortcuts: @escaping () -> Void
     ) {
         let pop = NSPopover()
         pop.behavior = .transient
@@ -27,6 +28,7 @@ final class FirstRunGuidePresenter: NSObject, NSPopoverDelegate {
             launchService: launchService,
             needsPermission: needsPermission,
             onOpenSettings: onOpenSettings,
+            onTryShortcuts: onTryShortcuts,
             onDone: { [weak self] in self?.dismiss() }
         ))
         popover = pop

@@ -21,6 +21,7 @@ struct SettingsDependencies {
     let setMenuBarIconHidden: (Bool) -> Void
     let setResolveTimeout: (Float) -> Void
     let checkForUpdates: () -> Void
+    let showPracticeGuide: () -> Void
     let requestNotificationAuthorization: () async -> NotificationAuthorizationResult
 }
 
@@ -156,6 +157,10 @@ final class SettingsModel {
             dependencies.launchService.disable { [weak self] in self?.refresh() }
         }
         refresh()
+    }
+
+    func showPracticeGuide() {
+        dependencies.showPracticeGuide()
     }
 
     func openLoginItemsSettings() {
