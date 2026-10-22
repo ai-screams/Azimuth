@@ -29,10 +29,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
+      # Xcode를 고정한다(최신 안정판 지정은 러너 이미지 갱신에 따라 조용히 바뀐다). macOS 27 전용 API를 쓰지 않는다는
+      # 결정(#174)의 전제가 SDK 26이라, 실제로 그 버전인지 다음 스텝에서 확인한다.
       - name: Select Xcode
         uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1
         with:
-          xcode-version: latest-stable
+          xcode-version: "26.3"
+
+      - name: Check Xcode version
+        run: |
+          set -euo pipefail
+          # 출력 전체를 받아 첫 줄만 비교한다. `xcodebuild -version | head -1`은 head가 먼저 닫으면 SIGPIPE(141)로
+          # pipefail에 걸려, 버전이 맞아도 실패할 수 있다.
+          version="$(xcodebuild -version)"
+          echo "$version"
+          [ "${version%%$'\n'*}" = "Xcode 26.3" ] || { echo "::error::Expected Xcode 26.3"; exit 1; }
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4
