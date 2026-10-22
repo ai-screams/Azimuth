@@ -104,6 +104,16 @@ notarization (Gatekeeper) **and** Sparkle's own **EdDSA** signature (guards agai
   only in the maintainer's Keychain and as the `SPARKLE_ED_PRIVATE_KEY` CI secret.
 - The release workflow runs `generate_appcast` (from the Sparkle tools) against the freshly
   signed/notarized DMG, signs it with the EdDSA key, and uploads `appcast.xml` as a release asset.
+- **The feed keeps one item per minimum macOS.** The workflow seeds `generate_appcast` with the previous
+  release's appcast (the tag `scripts/previous-release-tag.sh` picks) and passes `--maximum-versions 1`.
+  From 2.0 (macOS 14+) the feed therefore holds the newest 2.x **and** the last macOS 13 build (1.7.x),
+  and Sparkle offers each Mac the newest build its OS can run. Without the seed, a 2.0 feed would hold
+  one item and macOS 13 users on an older 1.7.x could no longer reach the 1.7.x final.
+- `scripts/appcast-finalize.py` then adds the release-notes link to this release's item only and fails
+  the release unless the feed is sound: this item's version and signature, one item per minimum macOS, a
+  macOS 13 item still present, and builds rising with the minimum macOS. After publishing, the workflow
+  downloads the live feed (`latest` for a release, the tag URL for a pre-release) and compares it byte
+  for byte. Neither step sees the signing key.
 
 ### One-time key setup (maintainer)
 

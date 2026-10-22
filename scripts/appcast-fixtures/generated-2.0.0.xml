@@ -1,0 +1,23 @@
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>Azimuth</title>
+        <item>
+            <title>2.0.0</title>
+            <pubDate>Thu, 22 Oct 2026 06:33:26 +0000</pubDate>
+            <sparkle:version>300</sparkle:version>
+            <sparkle:shortVersionString>2.0.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/ai-screams/Azimuth/releases/download/v2.0.0/Azimuth-2.0.0.dmg" length="7500000" type="application/octet-stream" sparkle:edSignature="buI8f4xXtZE7YyG5MrENSGvkiNiAkuFp4qrL042dDh889iDRW2qDGSnD5dSw0fSqM1cQ+Ugto4UOc0K4CwyvAg=="/>
+        </item>
+        <item>
+            <title>1.7.7</title>
+            <pubDate>Wed, 14 Oct 2026 04:36:43 +0000</pubDate>
+            <sparkle:version>235</sparkle:version>
+            <sparkle:shortVersionString>1.7.7</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+            <sparkle:releaseNotesLink>https://github.com/ai-screams/Azimuth/releases/tag/v1.7.7</sparkle:releaseNotesLink>
+            <enclosure url="https://github.com/ai-screams/Azimuth/releases/download/v1.7.7/Azimuth-1.7.7.dmg" length="7428513" type="application/octet-stream" sparkle:edSignature="mp1uHjh2S3m9DkKIb9m9W9Cl2sfYCgG3T8jmBKhINd+daqJQC3Yi7tA7nQQoVxbN6ulRWxSWiwK0nERTuAqCDQ=="/>
+        </item>
+    </channel>
+</rss>
