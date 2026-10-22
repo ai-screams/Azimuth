@@ -9,12 +9,12 @@ DEBUG-only window for checking the 2.0 redesign on a real macOS before each scre
 ## Key Files
 | File | Description |
 |------|-------------|
-| `HotkeyPreset+Gallery.swift` | `HotkeyPreset.galleryShortcut(for:)` for sample keycaps. Glyphs and keycaps come from the real parts in `UI/` |
+| `DesignGalleryWindowController.swift` | Entry point: hosts the page in an `NSWindow`, opened from the status menu |
 | `DesignGalleryView.swift` | The gallery page: glyph catalog at 1× and 2×, keycap states, then the three samples. All sample state is local `@State`; nothing writes preferences |
 | `ShortcutRowsSample.swift` | Shortcuts rows in a grouped `Form`: customized, recording, disabled and selected rows |
 | `GeneralPaneSample.swift` | The General pane in layout A: permissions, startup, feedback; toggles as switches |
 | `PopoverGridSample.swift` | The menu bar popover grid P1, with optional Liquid Glass on the tiles on 26+. Tiles use a fixed 6pt radius: `ConcentricRectangle` without a container shape draws square corners (seen in round 1) |
-| `DesignGalleryWindowController.swift` | Hosts the page in an `NSWindow` |
+| `HotkeyPreset+Gallery.swift` | `HotkeyPreset.galleryShortcut(for:)` for sample keycaps. Glyphs and keycaps come from the real parts in `UI/` |
 
 ## For AI Agents
 - Use only APIs available in the CI SDK (Xcode 26.x). Never `#available(macOS 27`.

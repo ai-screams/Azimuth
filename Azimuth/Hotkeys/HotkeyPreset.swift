@@ -10,7 +10,7 @@ nonisolated struct HotkeyBinding {
     let keyCode: UInt32
     let modifiers: UInt32
 
-    /// 표시·비교용 단축키 값(키코드 + 수정자).
+    /// 표시용 단축키 값(키코드 + 수정자).
     var shortcut: HotkeyShortcut {
         HotkeyShortcut(keyCode: keyCode, modifiers: modifiers)
     }

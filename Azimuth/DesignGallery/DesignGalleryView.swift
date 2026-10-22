@@ -52,17 +52,13 @@
                     VStack(alignment: .leading, spacing: 6) {
                         Text(group.displayName).font(.caption.weight(.semibold)).foregroundStyle(.secondary)
                         LazyVGrid(columns: [GridItem(.adaptive(minimum: 104), spacing: 8)], alignment: .leading) {
-                            ForEach(commands(in: group), id: \.identifier) { command in
+                            ForEach(WindowCommand.menuCommands(in: group), id: \.identifier) { command in
                                 GlyphCell(command: command, emphasized: emphasizeAll)
                             }
                         }
                     }
                 }
             }
-        }
-
-        private func commands(in group: CommandGroup) -> [WindowCommand] {
-            WindowCommand.menuCommands(in: group)
         }
     }
 

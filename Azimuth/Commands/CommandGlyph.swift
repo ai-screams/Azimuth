@@ -2,7 +2,7 @@
 //  CommandGlyph.swift
 //  Azimuth
 //
-//  명령 그림(#181, Outline)의 도형: 28×20 상자 좌표의 화면 윤곽·목표 영역·점선·화살표.
+//  명령 그림(#181, Outline)의 도형: 28×20 상자 좌표의 화면 윤곽(목적지 화면 포함)·목표 영역·점선·직선 획·원호.
 //  그리는 일은 UI/CommandGlyphView가 하고, 여기는 값만 정한다(하네스에서 34개 전수 검사).
 //
 //  ⚠️ 순수 로직 파일이다. CoreGraphics 외에 import하지 말 것(scripts/test.sh가 swiftc로 직접 컴파일).
@@ -20,11 +20,11 @@ nonisolated struct CommandGlyph: Equatable {
     }
 
     static let box = CGSize(width: 28, height: 20)
-    static let fullScreen = CGRect(x: 1, y: 1, width: 26, height: 18)
-    /// 채움 영역의 기준: 화면 윤곽에서 2pt 안쪽(22×14).
+    private static let fullScreen = CGRect(x: 1, y: 1, width: 26, height: 18)
+    /// 채움 영역의 기준: 화면 윤곽에서 2pt 안쪽(22×14). 상대 축소의 원래 크기(점선)도 이 사각형이다.
     static let inner = fullScreen.insetBy(dx: 2, dy: 2)
     /// 화살촉 날개 길이.
-    static let arrowWing: CGFloat = 2.5
+    private static let arrowWing: CGFloat = 2.5
 
     var screen = fullScreen
     /// 디스플레이 이동의 목적지 화면.
@@ -38,8 +38,8 @@ nonisolated struct CommandGlyph: Equatable {
     /// 곡선 획(되돌리기의 반원). 직선 획과 같은 굵기·색으로 그린다.
     var arcs: [Arc] = []
 
-    /// `inner` 영역의 비율 좌표 → 상자 좌표.
-    static func unit(_ x: CGFloat, _ y: CGFloat, _ width: CGFloat, _ height: CGFloat) -> CGRect {
+    /// `inner` 영역 안의 비율(0–1) 좌표 → 상자 좌표.
+    static func fraction(x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat) -> CGRect {
         CGRect(
             x: inner.minX + x * inner.width,
             y: inner.minY + y * inner.height,
@@ -54,11 +54,11 @@ nonisolated struct CommandGlyph: Equatable {
     fileprivate static func projected(_ command: WindowCommand) -> CGRect {
         let area = CGRect(x: 0, y: 0, width: 2200, height: 1400)
         let frame = FrameCalculator.targetFrame(for: command, current: area, workArea: area)
-        return unit(
-            frame.minX / area.width,
-            frame.minY / area.height,
-            frame.width / area.width,
-            frame.height / area.height
+        return fraction(
+            x: frame.minX / area.width,
+            y: frame.minY / area.height,
+            width: frame.width / area.width,
+            height: frame.height / area.height
         )
     }
 
@@ -72,22 +72,34 @@ nonisolated struct CommandGlyph: Equatable {
         arcs: [Arc(center: CGPoint(x: 16, y: 11.5), radius: 3.5, startDegrees: -90, endDegrees: 90)]
     )
 
-    fileprivate static func move(_ direction: MoveDirection) -> Self {
+    fileprivate static func moveGlyph(_ direction: MoveDirection) -> Self {
         switch direction {
         case .left:
-            Self(region: unit(0, 0.25, 0.42, 0.5), strokes: arrow(from: (23, 10), to: (17, 10)))
+            Self(
+                region: fraction(x: 0, y: 0.25, width: 0.42, height: 0.5),
+                strokes: arrow(from: (23, 10), to: (17, 10))
+            )
         case .right:
-            Self(region: unit(0.58, 0.25, 0.42, 0.5), strokes: arrow(from: (5, 10), to: (11, 10)))
+            Self(
+                region: fraction(x: 0.58, y: 0.25, width: 0.42, height: 0.5),
+                strokes: arrow(from: (5, 10), to: (11, 10))
+            )
         case .up:
-            Self(region: unit(0.29, 0, 0.42, 0.36), strokes: arrow(from: (14, 16.6), to: (14, 11.6)))
+            Self(
+                region: fraction(x: 0.29, y: 0, width: 0.42, height: 0.36),
+                strokes: arrow(from: (14, 16.6), to: (14, 11.6))
+            )
         case .down:
-            Self(region: unit(0.29, 0.64, 0.42, 0.36), strokes: arrow(from: (14, 3.4), to: (14, 8.4)))
+            Self(
+                region: fraction(x: 0.29, y: 0.64, width: 0.42, height: 0.36),
+                strokes: arrow(from: (14, 3.4), to: (14, 8.4))
+            )
         case .center:
-            Self(region: unit(0.25, 0.2, 0.5, 0.6))
+            Self(region: fraction(x: 0.25, y: 0.2, width: 0.5, height: 0.6))
         }
     }
 
-    fileprivate static func display(_ edge: SnapEdge) -> Self {
+    fileprivate static func displayGlyph(_ edge: SnapEdge) -> Self {
         switch edge {
         case .left:
             Self(
@@ -122,9 +134,11 @@ nonisolated struct CommandGlyph: Equatable {
 
     /// 몸통 한 획 + 화살촉 한 획.
     private static func arrow(from tail: (CGFloat, CGFloat), to head: (CGFloat, CGFloat)) -> [[CGPoint]] {
-        let start = CGPoint(x: tail.0, y: tail.1), end = CGPoint(x: head.0, y: head.1)
+        let start = CGPoint(x: tail.0, y: tail.1)
+        let end = CGPoint(x: head.0, y: head.1)
         let length = max(hypot(end.x - start.x, end.y - start.y), 0.001)
-        let dx = (end.x - start.x) / length, dy = (end.y - start.y) / length
+        let dx = (end.x - start.x) / length
+        let dy = (end.y - start.y) / length
         let wing = arrowWing
         let back = CGPoint(x: end.x - dx * wing, y: end.y - dy * wing)
         let wingA = CGPoint(x: back.x - dy * wing, y: back.y + dx * wing)
@@ -140,14 +154,14 @@ extension WindowCommand {
         case .maximize, .absolute, .snapThrow:
             CommandGlyph(region: CommandGlyph.projected(self))
         case .relativeHalf, .relativeTwoThird:
-            CommandGlyph(region: CommandGlyph.projected(self), ghost: CommandGlyph.unit(0, 0, 1, 1))
+            CommandGlyph(region: CommandGlyph.projected(self), ghost: CommandGlyph.inner)
         case .maximizeGaps:
             // 실제 여백(12pt)은 그림 크기에서 보이지 않아 과장한다.
-            CommandGlyph(region: CommandGlyph.unit(0.14, 0.17, 0.72, 0.66))
+            CommandGlyph(region: CommandGlyph.fraction(x: 0.14, y: 0.17, width: 0.72, height: 0.66))
         case let .moveToDisplay(edge):
-            CommandGlyph.display(edge)
+            CommandGlyph.displayGlyph(edge)
         case let .move(direction):
-            CommandGlyph.move(direction)
+            CommandGlyph.moveGlyph(direction)
         case .undo:
             CommandGlyph.undo
         }

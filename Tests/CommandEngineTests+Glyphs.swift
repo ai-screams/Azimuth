@@ -1,14 +1,20 @@
 // Azimuth 명령 엔진(순수 로직) 회귀 테스트 — 명령 그림(#181)과 키캡 라벨.
 // 공유 상태와 expect* 헬퍼는 CommandEngineTests.swift에 있다(같은 모듈로 컴파일).
 
+import Carbon.HIToolbox
 import CoreGraphics
 import Foundation
 
 extension CommandEngineTests {
 
-    // 34개 메뉴 명령 전부: 그릴 것이 있고, 상자 안에 있고, 서로 겹치는 그림이 없다.
+    // 34개 메뉴 명령 전부: 그릴 것이 있고, 상자 안에 있고, 서로 같은 그림이 없다.
     static func testCommandGlyphCatalog() {
         let box = CGRect(origin: .zero, size: CommandGlyph.box)
+        // 원호의 원 전체를 감싸는 사각형. 호보다 넓게 잡으므로 상자 안 검사에는 안전한 쪽이다.
+        func circleBounds(_ arc: CommandGlyph.Arc) -> CGRect {
+            let diameter = arc.radius * 2
+            return CGRect(x: arc.center.x - arc.radius, y: arc.center.y - arc.radius, width: diameter, height: diameter)
+        }
         let glyphs = WindowCommand.menuCommands.map { ($0.displayName, $0.glyph) }
         for (name, glyph) in glyphs {
             let marked = glyph.region != nil || !glyph.strokes.isEmpty || !glyph.arcs.isEmpty
@@ -38,7 +44,7 @@ extension CommandEngineTests {
         let bottomTwoThirds = absolute(.vertical, .twoThird, .last).glyph.region ?? .null
         expect("bottom 2/3 region", bottomTwoThirds, CGRect(x: 3, y: 3 + 14.0 / 3, width: 22, height: 14 * 2.0 / 3))
         let shrink = WindowCommand.relativeTwoThird(.right).glyph
-        expect("shrink right 2/3 ghost is the full inner area", shrink.ghost ?? .null, CommandGlyph.unit(0, 0, 1, 1))
+        expect("shrink right 2/3 ghost is the full inner area", shrink.ghost ?? .null, CommandGlyph.inner)
         let shrinkRegion = shrink.region ?? .null
         expect("shrink right 2/3 region", shrinkRegion, CGRect(x: 3 + 22.0 / 3, y: 3, width: 22 * 2.0 / 3, height: 14))
         expectName("plain halves have no ghost", "\(WindowCommand.snapThrow(.left).glyph.ghost == nil)", "true")
@@ -99,7 +105,7 @@ extension CommandEngineTests {
 
     // 키캡 라벨: 수정자 하나씩 + 키 하나. 여러 글자 키도 캡 하나.
     static func testKeycapLabels() {
-        let mods = UInt32(0x1000 | 0x0800) // controlKey | optionKey
+        let mods = UInt32(controlKey | optionKey)
         let arrow = HotkeyShortcut(keyCode: 0x7B, modifiers: mods)
         expectName("⌃⌥← caps", arrow.keycapLabels.joined(separator: "|"), "⌃|⌥|←")
         // 이것을 실패시키는 것: displayString을 글자 단위로 쪼개는 구현("F","1","2").
@@ -107,13 +113,7 @@ extension CommandEngineTests {
         expectName("⌃⌥F12 caps", function.keycapLabels.joined(separator: "|"), "⌃|⌥|F12")
         let space = HotkeyShortcut(keyCode: 0x31, modifiers: 0)
         expectName("bare Space caps", space.keycapLabels.joined(separator: "|"), "Space")
-        let all = HotkeyShortcut(keyCode: 0x00, modifiers: UInt32(0x1000 | 0x0800 | 0x0200 | 0x0100))
+        let all = HotkeyShortcut(keyCode: 0x00, modifiers: UInt32(controlKey | optionKey | shiftKey | cmdKey))
         expectName("⌃⌥⇧⌘A caps in order", all.keycapLabels.joined(separator: "|"), "⌃|⌥|⇧|⌘|A")
-    }
-
-    /// 원호의 원 전체를 감싸는 사각형. 호보다 넓게 잡으므로 상자 안 검사에는 안전한 쪽이다.
-    static func circleBounds(_ arc: CommandGlyph.Arc) -> CGRect {
-        let diameter = arc.radius * 2
-        return CGRect(x: arc.center.x - arc.radius, y: arc.center.y - arc.radius, width: diameter, height: diameter)
     }
 }
