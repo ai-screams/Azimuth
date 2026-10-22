@@ -156,9 +156,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return true
     }
 
-    /// App 메뉴 "About Azimuth" 항목 액션. 아이콘·버전·설명·링크 버튼을 담은 커스텀 About 창을 띄운다.
+    /// App 메뉴 "About Azimuth" 항목 액션. 별도 About 창 없이 설정 창의 About 화면을 연다(#176).
     @objc private func showAboutPanel(_ sender: Any?) {
-        AboutWindowController.shared.show()
+        settingsWindowController.show(pane: .about)
     }
 
     /// App 메뉴 "Settings…"(⌘,) 항목 액션.
@@ -290,7 +290,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             guard let self else { return }
             guard let button = statusBarController.statusButton, !preferencesStore.menuBarIconHidden else {
                 if needsPermission {
-                    settingsWindowController.show()
+                    settingsWindowController.show(pane: .general)
                     Log.app.debug("First run without a status item — opened settings for onboarding.")
                 }
                 return
@@ -299,7 +299,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 relativeTo: button,
                 launchService: launchAtLoginService,
                 needsPermission: needsPermission,
-                onOpenSettings: { [weak self] in self?.settingsWindowController.show() }
+                onOpenSettings: { [weak self] in self?.settingsWindowController.show(pane: .general) }
             )
             Log.app.debug("First-run guide popover shown.")
         }

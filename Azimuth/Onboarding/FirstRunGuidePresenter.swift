@@ -8,6 +8,7 @@
 //
 
 import Cocoa
+import SwiftUI
 
 @MainActor
 final class FirstRunGuidePresenter: NSObject, NSPopoverDelegate {
@@ -22,12 +23,12 @@ final class FirstRunGuidePresenter: NSObject, NSPopoverDelegate {
         let pop = NSPopover()
         pop.behavior = .transient
         pop.delegate = self
-        pop.contentViewController = FirstRunGuideViewController(
+        pop.contentViewController = NSHostingController(rootView: FirstRunGuideView(
             launchService: launchService,
             needsPermission: needsPermission,
             onOpenSettings: onOpenSettings,
             onDone: { [weak self] in self?.dismiss() }
-        )
+        ))
         popover = pop
         NSApp.bringToFront()
         pop.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)

@@ -2,8 +2,7 @@
 //  AboutContent.swift
 //  Azimuth
 //
-//  About 문구와 링크의 한 곳. 별도 About 창(AboutWindowController)과 설정 창 About 화면이 같은 값을 쓴다
-//  (#176에서 About 창을 없애면 설정 화면만 남는다).
+//  About 문구와 링크. 설정 창 About 화면이 쓴다(앱 메뉴 "About Azimuth"도 그 화면을 연다, #176).
 //
 
 import Foundation
