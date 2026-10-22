@@ -121,6 +121,8 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Previous release tag selection
         run: ./scripts/previous-release-tag-test.sh
+      - name: Appcast finalize checks
+        run: python3 scripts/appcast-finalize-test.py
       # 양쪽에 똑같이 두기로 한 파일(scripts/shared-with-legacy.txt, LEGACY.md)이 legacy/10.13과 같은지 본다.
       # 한쪽만 고치면 다른 판이 옛 규칙으로 돈다. 없거나 다르면 실패한다.
       - name: Shared files match legacy/10.13
