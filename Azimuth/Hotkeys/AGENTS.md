@@ -1,5 +1,5 @@
 <!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-06-19 | Updated: 2026-09-22 -->
+<!-- Generated: 2026-06-19 | Updated: 2026-10-22 -->
 
 # Hotkeys
 
@@ -10,9 +10,9 @@ Global hotkeys. Registers system-wide hotkeys through Carbon's `RegisterEventHot
 | File | Description |
 |------|-------------|
 | `HotkeyService.swift` | `@MainActor` Carbon wrapper. `register` / `unregisterAll` / `reload(_:perform:)`. A single `InstallEventHandler` (`GetApplicationEventTarget`) plus the `nonisolated` C callback `hotkeyEventHandler`, which dispatches via `MainActor.assumeIsolated`. Signature `'AZMT'` |
-| `HotkeyPreset.swift` | `nonisolated`. `HotkeyBinding` (command/keyCode/modifiers) + `HotkeyPreset` (`.standard` / `.vim`). A layered keymap: ⌃⌥ for halves, maximize, undo, center and the numeric splits (1/3, 2/3); ⌃⌥⌘ for moves; ⌃⌥⇧ for relative halves and two-thirds; ⌃⌥⌘⇧ for display moves. Vim replaces the arrow keys with H/J/K/L and undo with U |
+| `HotkeyPreset.swift` | `nonisolated`. `HotkeyBinding` (command/keyCode/modifiers, with `shortcut` as a `HotkeyShortcut`) + `HotkeyPreset` (`.standard` / `.vim`). A layered keymap: ⌃⌥ for halves, maximize, undo, center and the numeric splits (1/3, 2/3); ⌃⌥⌘ for moves; ⌃⌥⇧ for relative halves and two-thirds; ⌃⌥⌘⇧ for display moves. Vim replaces the arrow keys with H/J/K/L and undo with U |
 | `BindingResolver.swift` | `nonisolated`. Merges user overrides (custom shortcuts) into the preset's default bindings, drops disabled commands and groups, and returns the final `[HotkeyBinding]`. Called by `AppDelegate.reloadHotkeys` |
-| `HotkeyShortcut.swift` | The custom-shortcut value type. Stores, compares and serializes keyCode and modifiers. The value type behind `PreferencesStore.customShortcuts` |
+| `HotkeyShortcut.swift` | The custom-shortcut value type. Stores, compares and serializes keyCode and modifiers. The value type behind `PreferencesStore.customShortcuts`. `keycapLabels` gives one label per modifier plus one for the key (never split from `displayString`, so `F12` and `Space` stay one keycap) for `UI/KeycapsView` |
 | `CarbonModifier.swift` | Utility converting Carbon modifier constants to NSEvent modifier flags |
 
 ## For AI Agents

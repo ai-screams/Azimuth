@@ -72,6 +72,13 @@ enum CommandEngineTests {
         testShortcutDisplay()
         testShortcutCodableRoundTrip()
         testCarbonModifier()
+        testCommandGlyphCatalog()
+        testCommandGlyphRegions()
+        testCommandGlyphArrows()
+        testCommandGlyphDisplays()
+        testMenuCommandsByGroup()
+        testBindingShortcut()
+        testKeycapLabels()
 
         if failures == 0 {
             print("PASS — all \(checks) checks")
@@ -145,5 +152,10 @@ enum CommandEngineTests {
     //   +Plan      목표 frame 계획(snapThrow 상태기계·moveToDisplay 목적지)
     //   +Apply     앵커·적용 판정·결과 커밋 정책
     //   +Model     명령 모델·그룹·식별자
+    //   +Hotkeys   단축키 바인딩·표시·충돌
+    //   +Undo      실행 취소 기록·설정
+    //   +Updates   업데이트 창 버전 문구
+    //   +Permissions 접근성 요청·설정 저장
+    //   +Glyphs    명령 그림·키캡 라벨·그룹별 명령
 
 }

@@ -38,6 +38,7 @@ final class StatusBarController: NSObject, NSMenuDelegate {
     private let windowSnapStore: SnapStateStore
     #if DEBUG
         private let debugResolutionMenuItem = NSMenuItem()
+        private let designGallery = DesignGalleryWindowController()
     #endif
 
     init(
@@ -157,6 +158,14 @@ final class StatusBarController: NSObject, NSMenuDelegate {
             menu.addItem(identifyItem)
 
             menu.addItem(makeDebugCommandsItem())
+
+            let galleryItem = NSMenuItem(
+                title: "Design Gallery (Debug)",
+                action: #selector(openDesignGalleryDebug(_:)),
+                keyEquivalent: ""
+            )
+            galleryItem.target = self
+            menu.addItem(galleryItem)
             menu.addItem(.separator())
         #endif
     }
@@ -231,6 +240,10 @@ final class StatusBarController: NSObject, NSMenuDelegate {
 
 #if DEBUG
     extension StatusBarController {
+        @objc private func openDesignGalleryDebug(_ sender: Any?) {
+            designGallery.show()
+        }
+
         @objc private func identifyFocusedWindowDebug(_ sender: Any?) {
             let text = currentResolutionText()
             Log.windows.debug("[P3] menu -> \(text, privacy: .public)")

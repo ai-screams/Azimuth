@@ -241,4 +241,9 @@ nonisolated enum WindowCommand: Equatable {
         .moveToDisplay(.bottom),
         .undo
     ]
+
+    /// 그룹 하나의 메뉴 명령(`menuCommands` 순서 유지). 설정 단축키 목록과 그룹별 화면이 함께 쓴다.
+    static func menuCommands(in group: CommandGroup) -> [WindowCommand] {
+        menuCommands.filter { $0.group == group }
+    }
 }
