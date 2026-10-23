@@ -84,6 +84,9 @@ enum CommandEngineTests {
         testShortcutRecordingPolicy()
         testPracticeSession()
         testPermissionWatchPolicy()
+        testStatusClickPolicy()
+        testPopoverActivationPolicy()
+        testPopoverGridLayout()
 
         if failures == 0 {
             print("PASS — all \(checks) checks")

@@ -16,7 +16,7 @@ Sends an opt-in user notification (a banner) carrying the reason when a command 
 ## For AI Agents
 - The authorization request must have exactly one path: the toggle action (`Settings/SettingsModel.setNotifyOnFailure`). Never request it at app start or when posting a notification.
 - The Settings UI does not import UserNotifications — `AppDelegate` injects the `requestNotificationAuthorization` closure (the same decoupling pattern used for Sparkle).
-- Posting is gated in `AppDelegate.runHotkeyCommand`'s failure branch by `preferencesStore.notifyOnCommandFailure`. Transient failures are excluded.
+- Posting is gated in `AppDelegate.runCommand`'s failure branch by `preferencesStore.notifyOnCommandFailure`. Transient failures are excluded.
 - **Do not beep** for a toggle the user pressed deliberately — revert it quietly and route a denial or failure to the `notifyApprovalLabel` guidance.
 - **Development-build limitation (important):** `make run` launches from DerivedData, and such a build is not registered with the notification system, so `requestAuthorization` fails with `UNErrorDomain 1` (notificationsNotAllowed) without ever showing a prompt (`authorizationStatus` is already `.denied` before any prompt). In other words **the banner itself cannot be verified with `make run`** — the prompt and banner appear only in a properly signed, notarized, installed build. `.info` / `.debug` logs do not land in `log show`, so diagnose with `/usr/bin/log stream --process Azimuth` (the absolute path is needed because the shell aliases `log`).
 

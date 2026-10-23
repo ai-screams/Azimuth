@@ -29,14 +29,15 @@ final class FirstRunGuidePresenter: NSObject, NSPopoverDelegate {
             needsPermission: needsPermission,
             onOpenSettings: onOpenSettings,
             onTryShortcuts: onTryShortcuts,
-            onDone: { [weak self] in self?.dismiss() }
+            onDone: { [weak self] in self?.close() }
         ))
         popover = pop
         NSApp.bringToFront()
         pop.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
     }
 
-    private func dismiss() {
+    /// 메뉴바 팝오버(#178)를 열 때도 부른다. 같은 버튼에 팝오버 둘이 겹치지 않게.
+    func close() {
         popover?.performClose(nil) // 해제는 popoverDidClose가 담당(바깥 클릭 닫힘과 경로 통일)
     }
 

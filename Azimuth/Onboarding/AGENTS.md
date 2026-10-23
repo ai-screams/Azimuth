@@ -18,7 +18,7 @@ On first launch, a popover anchored to the status-bar icon introduces the menu-b
 ## For AI Agents
 - The "shown" flag is recorded **when the decision to show is made**, not when the popover closes (this prevents a re-display loop after a crash). Preserve that property if you change the flow.
 - If the status-bar button cannot be obtained (no room in the menu bar), fall back to opening the Settings window when permission is missing — see `AppDelegate.showFirstRunOnboardingIfNeeded()`.
-- The practice window is Azimuth's own window, so the AX path (`FrontmostAppTracker`) skips it. `AppDelegate.runHotkeyCommand` asks `practiceWindowController.handle` first; keep that order and keep `handle` returning false when the window is not in front.
+- The practice window is Azimuth's own window, so the AX path (`FrontmostAppTracker`) skips it. `AppDelegate.runCommand` asks `practiceWindowController.handle` first; keep that order and keep `handle` returning false when the window is not in front.
 - Entry points: the popover's "Try the Shortcuts", the status menu's "Practice Shortcuts…", Settings General → Practice → "Start…", and "Try the Shortcuts…" on the General permission row once permission is granted while Settings is open (`Settings/SettingsWindowController`, `Permissions/PermissionWatchPolicy`). It never opens by itself: macOS 14 may decline an activation the user did not ask for, and then the window would not be key and the hotkeys would move another app's window.
 - Testing: `PracticeSession` is in `make test` (`Tests/CommandEngineTests+Onboarding.swift`); the views and controllers are not. To look at it, run `defaults delete <bundle-id> didCompleteFirstRun` and then `make run`.
 
