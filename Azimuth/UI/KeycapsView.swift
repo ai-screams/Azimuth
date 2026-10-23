@@ -49,7 +49,8 @@ struct KeycapsView: View {
     }
 }
 
-private struct Keycap: View {
+/// 키캡 하나. 치트시트 머리의 수정키처럼 키 하나씩 따로 그릴 때도 쓴다.
+struct Keycap: View {
     let label: String
 
     var body: some View {

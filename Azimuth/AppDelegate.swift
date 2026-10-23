@@ -38,6 +38,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// 권한 미부여로 단축키가 실패했을 때 이번 세션에 이미 안내(Settings 유도)를 했는지.
     /// 매 실패마다 창을 띄우면 성가시므로 세션당 1회만.
     private var didNudgeForPermissionThisSession = false
+    /// 설정 창에서 단축키를 녹화하는 중. 치트시트도 함께 멈춘다(녹화 조합을 누르고 있을 때 뜨지 않게).
+    private var hotkeysSuspended = false
     /// 가장 최근 단축키 명령이 실패했을 때의 (명령 이름, 사유). 상태바 메뉴에 노출해
     /// "beep만 나는" 실패의 이유를 설명한다. 다음 명령이 성공하면 지운다(세션 한정, 저장 안 함).
     private var lastCommandFailure: (commandName: String, message: String)?
@@ -51,7 +53,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         setResolveTimeout: { seconds in FocusedWindowResolver.setResolveTimeout(seconds) },
         checkForUpdates: { [weak self] in self?.updaterController.checkForUpdates(nil) },
         showPracticeGuide: { [weak self] in self?.practiceWindowController.show() },
-        onPermissionGranted: { [weak self] in self?.statusBarController.refreshPermissionState() },
+        onPermissionGranted: { [weak self] in
+            self?.statusBarController.refreshPermissionState()
+            self?.updateCheatSheet()
+        },
+        onCheatSheetChanged: { [weak self] in self?.updateCheatSheet() },
         requestNotificationAuthorization: { [weak self] in
             await self?.failureNotifier.requestAuthorization() ?? .failed
         }
@@ -70,6 +76,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         shortcut: { [weak self] command in self?.boundShortcut(for: command) },
         soundEnabled: { [weak self] in self?.preferencesStore.soundFeedbackEnabled ?? false }
     )
+    /// 수정키를 누르고 있으면 뜨는 단축키 치트시트(#182). 실제로 등록된 바인딩만 그린다.
+    private lazy var cheatSheetController = CheatSheetController { [weak self] in self?.registeredBindings() ?? [] }
 
     /// 기동 순서. 각 단계가 무엇인지 이름으로 읽히도록 블록별로 나눠 두었다 —
     /// **순서가 의미를 갖는다**: 메뉴·상태바가 있어야 온보딩 팝오버가 앵커할 곳이 생기고,
@@ -82,6 +90,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // 고급 설정의 해석 상한을 기동 시 한 번 반영한다(setter 가 다시 클램프하므로 이중 안전).
         FocusedWindowResolver.setResolveTimeout(preferencesStore.resolveTimeout)
         reloadHotkeys()
+        updateCheatSheet()
         showFirstRunOnboardingIfNeeded()
         registerAppObservers()
         // DEBUG에서 설정창을 띄웠을 수 있으니 현재 창 상태에 맞춰 정책을 한 번 동기화한다.
@@ -164,6 +173,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     /// 단축키 녹화 중에는 전역 핫키를 모두 해제하고, 끝나면 다시 등록한다(녹화 조합의 오발화 방지).
     private func setHotkeysSuspended(_ suspended: Bool) {
+        hotkeysSuspended = suspended
+        updateCheatSheet()
         if suspended {
             hotkeyService.unregisterAll()
         } else {
@@ -173,6 +184,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     /// 단축키와 메뉴바 팝오버 타일이 같이 쓰는 실행 경로.
     private func runCommand(_ command: WindowCommand) {
+        cheatSheetController.commandRan()
         // 연습 창이 앞에 있으면 연습 창이 받는다(자기 창은 AX 명령 대상이 아니다).
         if practiceWindowController.handle(command) { return }
         let result = WindowCommandExecutor.run(
@@ -241,6 +253,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // 사용자가 System Settings에서 권한을 바꿨을 수 있으므로 캐시를 비우고 다시 조회한다.
         AccessibilityPermissionService.invalidateCache()
         statusBarController.refreshPermissionState()
+        updateCheatSheet()
+    }
+
+    /// 치트시트 감시를 켤지: 설정이 켜져 있고, 권한이 있고(없으면 전역 키 이벤트가 오지 않는다), 녹화 중이 아닐 때.
+    /// 권한이 생기면 이 함수로 감시를 새로 건다.
+    private func updateCheatSheet() {
+        let active = preferencesStore.cheatSheetEnabled
+            && AccessibilityPermissionService.currentStatus().isTrusted
+            && !hotkeysSuspended
+        cheatSheetController.setActive(active, delay: preferencesStore.cheatSheetDelay)
     }
 
     @objc private func handleScreenParametersChanged(_ notification: Notification) {
@@ -354,10 +376,14 @@ extension AppDelegate {
         )
     }
 
-    /// 연습 창이 보일 단축키. 등록에 실패한 것(다른 앱이 쓰는 조합)은 눌러도 오지 않으므로 없는 것으로 본다.
+    /// 실제로 눌러서 오는 바인딩: 켜진 것 중 등록에 실패하지 않은 것(다른 앱이 쓰는 조합은 눌러도 오지 않는다).
+    /// 연습 창·팝오버 키캡과 치트시트가 같이 쓴다.
+    private func registeredBindings() -> [HotkeyBinding] {
+        enabledBindings().filter { !registrationFailureIdentifiers.contains($0.command.identifier) }
+    }
+
     private func boundShortcut(for command: WindowCommand) -> HotkeyShortcut? {
-        guard !registrationFailureIdentifiers.contains(command.identifier) else { return nil }
-        return enabledBindings().first { $0.command == command }?.shortcut
+        registeredBindings().first { $0.command == command }?.shortcut
     }
 
     /// Sparkle이 확인을 받을 수 있는지를 설정 창에 계속 알린다. 업데이터가 시작된 뒤(`installMainMenu`) 부른다.
