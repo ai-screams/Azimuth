@@ -320,7 +320,8 @@ extension StatusBarController {
                 NSApp.sendAction(updates.action, to: updates.target, from: nil)
             },
             quit: { NSApp.terminate(nil) },
-            close: { [weak self] in self?.popover?.close() }
+            close: { [weak self] in self?.popover?.close() },
+            closeForWindow: { [weak self] in self?.popover?.close(openedWindow: true) }
         )
         let tracker = frontmostAppTracker
         return StatusPopoverController(dependencies: dependencies) { tracker.targetApplication }

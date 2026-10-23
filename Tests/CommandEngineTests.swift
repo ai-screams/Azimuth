@@ -85,6 +85,7 @@ enum CommandEngineTests {
         testPracticeSession()
         testPermissionWatchPolicy()
         testStatusClickPolicy()
+        testPopoverActivationPolicy()
         testPopoverGridLayout()
 
         if failures == 0 {

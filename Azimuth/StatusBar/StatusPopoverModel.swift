@@ -21,6 +21,8 @@ struct StatusPopoverDependencies {
     let checkForUpdates: () -> Void
     let quit: () -> Void
     let close: () -> Void
+    /// 창을 띄운 단추 뒤에 닫는다. 그 창이 앞에 남도록 활성화를 돌려주지 않는다.
+    let closeForWindow: () -> Void
 }
 
 @Observable
@@ -70,21 +72,20 @@ final class StatusPopoverModel {
         dependencies.shortcut(command)
     }
 
-    /// 동작을 먼저 하고 닫는다. 닫힐 때 다른 창이 없으면 활성화를 이전 앱에 돌려주므로(`StatusPopoverController`),
-    /// 설정 창이 먼저 떠 있어야 Azimuth가 앞에 남는다.
+    /// 창을 띄우는 단추. 닫으면서 활성화를 직전 앱에 돌려주지 않는다(`PopoverActivationPolicy`).
     func openSettings() {
         dependencies.openSettings()
-        dependencies.close()
+        dependencies.closeForWindow()
     }
 
     func requestAccessibility() {
         dependencies.requestAccessibility()
-        dependencies.close()
+        dependencies.closeForWindow()
     }
 
     func checkForUpdates() {
         dependencies.checkForUpdates()
-        dependencies.close()
+        dependencies.closeForWindow()
     }
 
     func quit() {

@@ -17,6 +17,21 @@ extension CommandEngineTests {
         expectName("right click opens the menu over the popover", action(true, false, true), "showMenu")
     }
 
+    // 이것을 실패시키는 것: 이미 Azimuth를 쓰던 중에 연 팝오버가 닫히며 다른 앱으로 넘기는 것,
+    // 설정 창을 띄운 단추 뒤에 넘기는 것, 바깥 클릭으로 이미 넘어간 뒤 또 넘기는 것.
+    static func testPopoverActivationPolicy() {
+        func returns(_ wasActive: Bool, _ active: Bool, _ opened: Bool) -> String {
+            let value = PopoverActivationPolicy.shouldReturnActivation(
+                wasActiveBeforeOpening: wasActive, isActive: active, openedWindow: opened
+            )
+            return "\(value)"
+        }
+        expectName("from another app, closed with Escape", returns(false, true, false), "true")
+        expectName("Azimuth was already in use", returns(true, true, false), "false")
+        expectName("a button opened a window", returns(false, true, true), "false")
+        expectName("an outside click already left", returns(false, false, false), "false")
+    }
+
     // 그룹마다 새 줄, 한 줄 8칸. 크기 [4, 10, 0, 3] → 줄 0..<4, 4..<12, 12..<14, 14..<17.
     // 이것을 실패시키는 것: 그룹이 새 줄에서 시작하지 않는 것, 끝에서 멈추지 않는 것,
     // 짧은 줄로 내려갈 때 마지막 칸에 붙지 않는 것, 위아래가 첫 줄·마지막 줄 밖으로 나가는 것.

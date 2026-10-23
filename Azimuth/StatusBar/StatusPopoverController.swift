@@ -19,6 +19,10 @@ final class StatusPopoverController: NSObject, NSPopoverDelegate {
     /// 닫힌 뒤 활성화를 돌려줄 앱(직전에 쓰던 앱).
     private let returnApplication: () -> NSRunningApplication?
     private weak var anchor: NSStatusBarButton?
+    /// 열기 직전에 Azimuth가 이미 활성이었는지(설정 창을 쓰던 중 등). 닫을 때 돌려줄지 정하는 기준.
+    private var wasActiveBeforeOpening = false
+    /// 창을 띄운 단추로 닫았는지. 그 창이 앞에 남아야 한다.
+    private var openedWindow = false
 
     init(dependencies: StatusPopoverDependencies, returnApplication: @escaping () -> NSRunningApplication?) {
         model = StatusPopoverModel(dependencies: dependencies)
@@ -43,6 +47,8 @@ final class StatusPopoverController: NSObject, NSPopoverDelegate {
         model.refresh()
         fitContent()
         anchor = button
+        wasActiveBeforeOpening = NSApp.isActive
+        openedWindow = false
         NSApp.bringToFront()
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         hosting.view.window?.makeKey()
@@ -56,7 +62,8 @@ final class StatusPopoverController: NSObject, NSPopoverDelegate {
         popover.contentSize = size
     }
 
-    func close() {
+    func close(openedWindow: Bool = false) {
+        self.openedWindow = openedWindow
         popover.performClose(nil)
     }
 
@@ -68,12 +75,15 @@ final class StatusPopoverController: NSObject, NSPopoverDelegate {
         return !(isMouseDown && event.window === anchorWindow)
     }
 
-    /// Escape나 타일 뒤에 닫혀 Azimuth가 창 없이 활성으로 남으면 키 입력이 갈 곳이 없다. 직전 앱을 다시 활성화한다.
-    /// 바깥 클릭으로 닫혔으면 이미 다른 앱이 활성이라 건너뛴다. 설정 창처럼 보이는 창이 있으면 그대로 둔다.
+    /// 다른 앱을 쓰다가 열었으면 Escape·두 번째 클릭으로 닫은 뒤 그 앱을 다시 활성화한다. 뒤에 열려 있던
+    /// 설정 창 때문에 Azimuth가 앞에 남아 키 입력이 끊겼다(실기). 판단은 `PopoverActivationPolicy`.
     func popoverDidClose(_ notification: Notification) {
-        guard NSApp.isActive else { return }
-        let hasWindow = NSApp.windows.contains { $0.isVisible && $0.styleMask.contains(.titled) }
-        guard !hasWindow, let app = returnApplication(), !app.isTerminated else { return }
+        let shouldReturn = PopoverActivationPolicy.shouldReturnActivation(
+            wasActiveBeforeOpening: wasActiveBeforeOpening,
+            isActive: NSApp.isActive,
+            openedWindow: openedWindow
+        )
+        guard shouldReturn, let app = returnApplication(), !app.isTerminated else { return }
         _ = app.activate(from: .current)
     }
 }

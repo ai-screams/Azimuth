@@ -21,6 +21,16 @@ nonisolated enum StatusClickPolicy {
     }
 }
 
+/// 팝오버가 닫힐 때 활성화를 직전 앱에 돌려줄지. `NSMenu`는 앱을 활성화하지 않았으므로, 다른 앱을 쓰다가
+/// 열었다면 닫은 뒤 그 앱으로 돌아가야 키 입력이 이어진다. 창을 여는 단추(설정, 업데이트)로 닫았으면 그 창이
+/// 앞에 남아야 하고, 바깥 클릭으로 닫혀 이미 다른 앱이 활성이면 할 일이 없다.
+/// 열려 있던 Azimuth 창(설정 등)은 기준이 아니다: 그 창이 뒤에 있어도 사용자는 다른 앱을 쓰던 중이다.
+nonisolated enum PopoverActivationPolicy {
+    static func shouldReturnActivation(wasActiveBeforeOpening: Bool, isActive: Bool, openedWindow: Bool) -> Bool {
+        !wasActiveBeforeOpening && isActive && !openedWindow
+    }
+}
+
 /// 명령 격자의 키보드 커서. 그룹마다 새 줄에서 시작하고 한 줄은 `columns`칸이다.
 /// 커서는 그룹 순서대로 이어 붙인 명령 목록의 평평한 인덱스다.
 nonisolated struct PopoverGridLayout: Equatable {
