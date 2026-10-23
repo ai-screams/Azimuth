@@ -65,7 +65,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         windowSnapStore: windowSnapStore
     )
     private let firstRunGuidePresenter = FirstRunGuidePresenter()
-    /// 연습 창 안내(#176). 연습 창이 앞에 있을 때의 단축키는 명령 실행기 대신 여기로 간다(`runHotkeyCommand`).
+    /// 연습 창 안내(#176). 연습 창이 앞에 있을 때의 단축키는 명령 실행기 대신 여기로 간다(`runCommand`).
     private lazy var practiceWindowController = PracticeWindowController(
         shortcut: { [weak self] command in self?.boundShortcut(for: command) },
         soundEnabled: { [weak self] in self?.preferencesStore.soundFeedbackEnabled ?? false }
@@ -157,7 +157,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func reloadHotkeys() {
         let failed = hotkeyService.reload(enabledBindings()) { [weak self] command in
-            self?.runHotkeyCommand(command)
+            self?.runCommand(command)
         }
         registrationFailureIdentifiers = Set(failed.map(\.command.identifier))
     }
@@ -171,7 +171,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    private func runHotkeyCommand(_ command: WindowCommand) {
+    /// 단축키와 메뉴바 팝오버 타일이 같이 쓰는 실행 경로.
+    private func runCommand(_ command: WindowCommand) {
         // 연습 창이 앞에 있으면 연습 창이 받는다(자기 창은 AX 명령 대상이 아니다).
         if practiceWindowController.handle(command) { return }
         let result = WindowCommandExecutor.run(
@@ -333,6 +334,9 @@ extension AppDelegate {
             guard let failure = self?.lastCommandFailure else { return nil }
             return "Last: \(failure.commandName) failed — \(failure.message)"
         }
+        statusBarController.runCommand = { [weak self] command in self?.runCommand(command) }
+        statusBarController.boundShortcut = { [weak self] command in self?.boundShortcut(for: command) }
+        statusBarController.willShowPopover = { [weak self] in self?.firstRunGuidePresenter.close() }
         statusBarController.install()
         statusBarController.setVisible(!preferencesStore.menuBarIconHidden)
     }
@@ -360,7 +364,10 @@ extension AppDelegate {
     private func observeUpdateAvailability() -> NSKeyValueObservation {
         updaterController.updater.observe(\.canCheckForUpdates, options: [.initial, .new]) { [weak self] updater, _ in
             let canCheck = updater.canCheckForUpdates
-            DispatchQueue.main.async { self?.settingsWindowController.setCanCheckForUpdates(canCheck) }
+            DispatchQueue.main.async {
+                self?.settingsWindowController.setCanCheckForUpdates(canCheck)
+                self?.statusBarController.setCanCheckForUpdates(canCheck)
+            }
         }
     }
 }

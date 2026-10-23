@@ -1,5 +1,5 @@
 <!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-06-19 | Updated: 2026-10-22 -->
+<!-- Generated: 2026-06-19 | Updated: 2026-10-23 -->
 
 # Azimuth (app source)
 
@@ -10,7 +10,7 @@ The app source root. From the programmatic AppKit entry (`main.swift`), `AppDele
 | File | Description |
 |------|-------------|
 | `main.swift` | Standard entry point with no storyboard. Uses `MainActor.assumeIsolated` to attach `AppDelegate` to `NSApplication` explicitly, then runs |
-| `AppDelegate.swift` | Composition root. Owns the tracker, undo store, hotkey service, preferences, settings window and status bar; `applicationDidFinishLaunching` installs them, reloads hotkeys and registers observers. Dispatches hotkey commands (`runHotkeyCommand`). Creates and owns Sparkle's `SPUStandardUpdaterController` and injects a "Check for Updates…" closure into the settings window so the UI never imports Sparkle directly |
+| `AppDelegate.swift` | Composition root. Owns the tracker, undo store, hotkey service, preferences, settings window and status bar; `applicationDidFinishLaunching` installs them, reloads hotkeys and registers observers. Dispatches hotkey and menu bar popover commands through one path (`runCommand`). Creates and owns Sparkle's `SPUStandardUpdaterController` and injects a "Check for Updates…" closure into the settings window so the UI never imports Sparkle directly |
 | `MainMenuBuilder.swift` | Builds the App/Edit/Window main menu in code. The "Check for Updates…" item receives the Sparkle updater controller as a target/selector pair (MainMenuBuilder itself imports only AppKit) |
 | `Info.plist` | Custom Info.plist (`GENERATE_INFOPLIST_FILE=NO`). Holds the Sparkle keys (`SUFeedURL`, `SUPublicEDKey`) and the version variables (`MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` / `AZIMUTH_LSUIELEMENT`). This file is copied into the bundle instead of a generated plist |
 | `UpdateVersionDisplayer.swift` | `nonisolated` Sparkle adapter (`SPUStandardUserDriverDelegate` + `SUVersionDisplay`) that routes the standard update window's version strings through `Shared/UpdateVersionText`. Separate from `AppDelegate` so a `@MainActor` type does not adopt Sparkle's unannotated ObjC protocols; `AppDelegate` retains it (Sparkle holds delegates weakly) and passes it as `userDriverDelegate`. The optional selectors are checked against real Sparkle by `scripts/sparkle-adapter-check.sh` (CI) — a misspelled Swift name only warns and silently falls back to "1.7.2". The no-relaunch "Update Installed" alert bypasses the formatter (unused by Azimuth) |
@@ -26,7 +26,7 @@ The app source root. From the programmatic AppKit entry (`main.swift`), `AppDele
 | `Preferences/` | UserDefaults wrapper (see `Preferences/AGENTS.md`) |
 | `Settings/` | Settings window: window controller + toolbar tab container + Shortcuts/Advanced panes + shared skeleton (see `Settings/AGENTS.md`) |
 | `Onboarding/` | First-run popover anchored to the status bar and the practice window (see `Onboarding/AGENTS.md`) |
-| `StatusBar/` | Menu-bar status item and menu (see `StatusBar/AGENTS.md`) |
+| `StatusBar/` | Menu-bar status item, its SwiftUI popover and right-click menu (see `StatusBar/AGENTS.md`) |
 | `Launch/` | Launch at login via SMAppService (see `Launch/AGENTS.md`) |
 | `Notifications/` | Command-failure notifications (opt-in, UserNotifications) (see `Notifications/AGENTS.md`) |
 | `UI/` | Shared SwiftUI parts for the 2.0 screens: command glyphs and keycaps (see `UI/AGENTS.md`) |
@@ -54,7 +54,7 @@ The app source root. From the programmatic AppKit entry (`main.swift`), `AppDele
 
 ### External
 - AppKit, ApplicationServices, Carbon.HIToolbox, ServiceManagement, os (Logger).
-- **Sparkle 2** (SPM, 2.10.0): `AppDelegate` creates `SPUStandardUpdaterController` (`startingUpdater: true`) to begin automatic feed checks. The "Check for Updates…" item appears in three places — the App menu (`MainMenuBuilder`), the status-bar menu (`StatusBarController`) and the Settings About pane (`Settings/SettingsModel.checkForUpdates`, enabled by `canCheckForUpdates`, which `AppDelegate` observes) — and `AppDelegate` injects a closure or target/selector into each, so no individual component imports Sparkle. The feed URL and EdDSA public key (`SUPublicEDKey`) live in `Azimuth/Info.plist`.
+- **Sparkle 2** (SPM, 2.10.0): `AppDelegate` creates `SPUStandardUpdaterController` (`startingUpdater: true`) to begin automatic feed checks. The "Check for Updates…" item appears in three places — the App menu (`MainMenuBuilder`), the status-bar menu and popover (`StatusBarController`; the popover button is enabled by the same `canCheckForUpdates` observation) and the Settings About pane (`Settings/SettingsModel.checkForUpdates`, enabled by `canCheckForUpdates`, which `AppDelegate` observes) — and `AppDelegate` injects a closure or target/selector into each, so no individual component imports Sparkle. The feed URL and EdDSA public key (`SUPublicEDKey`) live in `Azimuth/Info.plist`.
 
 ## Sparkle Auto-Update
 

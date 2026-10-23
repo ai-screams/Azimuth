@@ -15,8 +15,18 @@ final class StatusBarController: NSObject, NSMenuDelegate {
     /// 마지막 명령 실패의 표시 문구(nil이면 행 숨김). AppDelegate가 주입한다 —
     /// "beep만 나고 이유를 알 수 없는" 실패를 메뉴를 열면 설명하기 위한 행이다.
     var lastFailureText: (() -> String?)?
+    /// 팝오버 타일이 명령을 실행하는 경로. 단축키와 같은 경로라 실패 비프·사유·알림이 똑같이 붙는다.
+    var runCommand: ((WindowCommand) -> Void)?
+    /// 팝오버 아래 줄 키캡. 연습 창과 같은 "실제로 등록된 단축키".
+    var boundShortcut: ((WindowCommand) -> HotkeyShortcut?)?
+    /// 팝오버를 열기 직전. 같은 버튼에 붙은 첫 실행 안내 팝오버를 닫아 둘이 겹치지 않게 한다.
+    var willShowPopover: (() -> Void)?
 
     private var statusItem: NSStatusItem?
+    /// 왼쪽 클릭이 여는 팝오버(#178). `install()`에서 주입된 클로저로 만든다.
+    private var popover: StatusPopoverController?
+    /// 오른쪽 클릭·Control-클릭이 여는 메뉴. 평소에는 상태 항목에 붙여 두지 않는다(붙어 있으면 버튼 동작이 오지 않는다).
+    private lazy var statusMenu = makeStatusMenu()
     private let permissionStatusMenuItem = NSMenuItem()
     /// 마지막 명령 실패 사유(정보 행). 실패가 없으면 숨겨지고, menuWillOpen에서 갱신된다.
     private let lastFailureMenuItem: NSMenuItem = {
@@ -55,13 +65,20 @@ final class StatusBarController: NSObject, NSMenuDelegate {
     }
 
     func install() {
+        popover = makePopover()
         configureStatusItem()
         refreshPermissionState()
     }
 
     /// 메뉴바 상태 아이콘 표시/숨김. 숨겨도 Azimuth를 다시 실행하면 설정창이 열린다(접근 경로 보존).
     func setVisible(_ visible: Bool) {
+        if !visible { popover?.close() }
         statusItem?.isVisible = visible
+    }
+
+    /// Sparkle이 확인을 받을 수 있는지. 메뉴 항목은 Sparkle이 스스로 검사하지만 팝오버 단추는 여기서 받는다.
+    func setCanCheckForUpdates(_ canCheck: Bool) {
+        popover?.model.canCheckForUpdates = canCheck
     }
 
     /// 첫 실행 가이드 팝오버의 앵커용 상태바 버튼. 시스템이 메뉴바 슬롯을 주지 않으면 nil.
@@ -89,15 +106,24 @@ final class StatusBarController: NSObject, NSMenuDelegate {
     }
 
     func menuWillOpen(_ menu: NSMenu) {
-        // .accessory 앱은 메뉴를 열어도 활성화(didBecomeActive)되지 않아 권한 캐시가 그대로다.
-        // System Settings에서 방금 토글한 상태가 보이도록 여기서 캐시를 비운다(가끔 열리는
-        // 메뉴의 동기 tccd 호출 1회는 캐시 목적 — 핫키마다 호출 방지 — 와 충돌하지 않는다).
-        AccessibilityPermissionService.invalidateCache()
-        refreshPermissionState()
+        refreshBeforeOpening()
         updateLastFailureItem()
         #if DEBUG
             updateDebugResolutionMenuItem()
         #endif
+    }
+
+    /// 메뉴는 열릴 때만 붙여 둔다. 닫히면 떼어야 다음 왼쪽 클릭이 다시 팝오버로 간다.
+    func menuDidClose(_ menu: NSMenu) {
+        statusItem?.menu = nil
+    }
+
+    /// .accessory 앱은 메뉴나 팝오버를 열어도 활성화(didBecomeActive) 알림이 늘 오지는 않아 권한 캐시가 그대로다.
+    /// System Settings에서 방금 토글한 상태가 보이도록 열 때마다 캐시를 비운다(가끔 여는 동기 tccd 호출 1회는
+    /// 캐시 목적 — 핫키마다 호출 방지 — 와 충돌하지 않는다).
+    private func refreshBeforeOpening() {
+        AccessibilityPermissionService.invalidateCache()
+        refreshPermissionState()
     }
 
     /// 마지막 명령이 실패했으면 그 사유를, 성공/없음이면 행을 숨긴다(메뉴 열 때마다 갱신).
@@ -114,8 +140,12 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         // 메뉴바 슬롯을 일관되게 유지하고, 콘텐츠를 먼저 채운 뒤 표시한다.
         item.autosaveName = "Azimuth"
-        item.menu = makeStatusMenu()
         statusItem = item
+        if let button = item.button {
+            button.target = self
+            button.action = #selector(statusItemClicked(_:))
+            button.sendAction(on: [.leftMouseUp, .rightMouseUp])
+        }
         updateStatusButton(isTrusted: AccessibilityPermissionService.currentStatus().isTrusted)
         item.isVisible = true
         Log.app.debug("Azimuth status item created.")
@@ -249,6 +279,51 @@ final class StatusBarController: NSObject, NSMenuDelegate {
 
     @objc private func quit(_ sender: Any?) {
         NSApp.terminate(sender)
+    }
+}
+
+/// 왼쪽 클릭 팝오버와 오른쪽 클릭 메뉴(#178).
+extension StatusBarController {
+    @objc private func statusItemClicked(_ sender: NSStatusBarButton) {
+        let event = NSApp.currentEvent
+        let action = StatusClickPolicy.action(
+            isRightClick: event?.type == .rightMouseUp,
+            isControlDown: event?.modifierFlags.contains(.control) == true,
+            popoverShown: popover?.isShown == true
+        )
+        switch action {
+        case .showPopover:
+            refreshBeforeOpening()
+            willShowPopover?()
+            popover?.show(relativeTo: sender)
+        case .closePopover:
+            popover?.close()
+        case .showMenu:
+            popover?.close()
+            statusItem?.menu = statusMenu
+            sender.performClick(nil)
+        }
+    }
+
+    /// 팝오버가 앱에 되묻는 경로. 이미 주입된 클로저를 그대로 넘겨 앱 상태를 두 곳에서 들고 있지 않는다.
+    private func makePopover() -> StatusPopoverController {
+        let updates = checkForUpdates
+        let dependencies = StatusPopoverDependencies(
+            run: { [weak self] command in self?.runCommand?(command) },
+            shortcut: { [weak self] command in self?.boundShortcut?(command) },
+            isTrusted: { AccessibilityPermissionService.currentStatus().isTrusted },
+            lastFailure: { [weak self] in self?.lastFailureText?() },
+            openSettings: { [weak self] in self?.onOpenSettings?() },
+            requestAccessibility: { [weak self] in self?.openAccessibilitySettings(nil) },
+            checkForUpdates: {
+                guard let updates else { return }
+                NSApp.sendAction(updates.action, to: updates.target, from: nil)
+            },
+            quit: { NSApp.terminate(nil) },
+            close: { [weak self] in self?.popover?.close() }
+        )
+        let tracker = frontmostAppTracker
+        return StatusPopoverController(dependencies: dependencies) { tracker.targetApplication }
     }
 }
 
