@@ -1,5 +1,5 @@
 <!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-06-19 | Updated: 2026-10-23 -->
+<!-- Generated: 2026-06-19 | Updated: 2026-10-24 -->
 
 # Preferences
 
@@ -9,7 +9,7 @@ Persistence for user settings. A thin wrapper over UserDefaults.
 ## Key Files
 | File | Description |
 |------|-------------|
-| `PreferencesStore.swift` | `@MainActor`. `activePreset: HotkeyPreset` (key `activeHotkeyPreset`, default `.standard`), `soundFeedbackEnabled: Bool` (key `soundFeedbackEnabled`, defaults to true when unset — an `object(forKey:)` nil check distinguishes "unset" from "false"), `notifyOnCommandFailure: Bool` (key `notifyOnCommandFailure`, default false — opt-in, and the notification authorization is requested only at the moment it is switched on), `undoDepth: Int` (key `undoDepth`, default 5, 1–20) and `undoWindowCapacity: Int` (key `undoWindowCapacity`, default 64, 1–256) — both from `UndoHistory`'s `BoundedIntSetting`s, default when unset and clamped on both read and write (#170) |
+| `PreferencesStore.swift` | `@MainActor`. `activePreset: HotkeyPreset` (key `activeHotkeyPreset`, default `.standard`), `soundFeedbackEnabled: Bool` (key `soundFeedbackEnabled`, defaults to true when unset — an `object(forKey:)` nil check distinguishes "unset" from "false"), `notifyOnCommandFailure: Bool` (key `notifyOnCommandFailure`, default false — opt-in, and the notification authorization is requested only at the moment it is switched on), `undoDepth: Int` (key `undoDepth`, default 5, 1–20) and `undoWindowCapacity: Int` (key `undoWindowCapacity`, default 64, 1–256) — both from `UndoHistory`'s `BoundedIntSetting`s, default when unset and clamped on both read and write (#170), `cheatSheetEnabled: Bool` (key `cheatSheetEnabled`, default true) and `cheatSheetDelay: CheatSheetDelay` (key `cheatSheetDelayMilliseconds`, stored as milliseconds, unknown values read as 0.8 s) (#182) |
 
 ## For AI Agents
 

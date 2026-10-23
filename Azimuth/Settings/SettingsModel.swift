@@ -24,6 +24,8 @@ struct SettingsDependencies {
     let showPracticeGuide: () -> Void
     /// 설정 창이 열려 있는 동안 권한이 생겼다. 메뉴 막대 아이콘처럼 창 밖의 권한 표시를 갱신한다.
     let onPermissionGranted: () -> Void
+    /// 치트시트 설정(켜기, 지연)이 바뀌었다. 감시를 다시 건다.
+    let onCheatSheetChanged: () -> Void
     let requestNotificationAuthorization: () async -> NotificationAuthorizationResult
 }
 
@@ -80,6 +82,8 @@ final class SettingsModel {
     private(set) var launchAtLogin = false
     private(set) var launchNeedsApproval = false
     private(set) var menuBarIconHidden = false
+    private(set) var cheatSheetEnabled = true
+    private(set) var cheatSheetDelay = CheatSheetDelay.standard
     private(set) var undoDepth = UndoHistory.depth.defaultValue
     private(set) var undoWindowCapacity = UndoHistory.windowCapacity.defaultValue
     private(set) var resolveTimeout = ResolveTimeoutChoice.balanced
@@ -106,6 +110,8 @@ final class SettingsModel {
         launchAtLogin = dependencies.launchService.isEnabled
         launchNeedsApproval = dependencies.launchService.requiresApproval
         menuBarIconHidden = store.menuBarIconHidden
+        cheatSheetEnabled = store.cheatSheetEnabled
+        cheatSheetDelay = store.cheatSheetDelay
         undoDepth = store.undoDepth
         undoWindowCapacity = store.undoWindowCapacity
         resolveTimeout = ResolveTimeoutChoice.nearest(toSeconds: store.resolveTimeout)
@@ -173,6 +179,18 @@ final class SettingsModel {
             dependencies.launchService.disable { [weak self] in self?.refresh() }
         }
         refresh()
+    }
+
+    func setCheatSheetEnabled(_ on: Bool) {
+        store.cheatSheetEnabled = on
+        cheatSheetEnabled = on
+        dependencies.onCheatSheetChanged()
+    }
+
+    func setCheatSheetDelay(_ delay: CheatSheetDelay) {
+        store.cheatSheetDelay = delay
+        cheatSheetDelay = delay
+        dependencies.onCheatSheetChanged()
     }
 
     func showPracticeGuide() {

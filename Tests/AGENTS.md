@@ -1,5 +1,5 @@
 <!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-06-19 | Updated: 2026-10-23 -->
+<!-- Generated: 2026-06-19 | Updated: 2026-10-24 -->
 
 # Tests
 
@@ -23,6 +23,7 @@ Regression tests for the command engine's **pure logic**. Instead of an Xcode te
 | `CommandEngineTests+Settings.swift` | Settings decisions: the notify-on-failure toggle outcome (`NotifyToggleDecision`) for each authorization result and for "switched off while waiting"; one key while recording a shortcut (`ShortcutCapturePolicy`), including the check order; recording transitions and hotkey suspend balance across start, switch, late finish and cancel (`ShortcutRecordingPolicy`) |
 | `CommandEngineTests+Onboarding.swift` | #176 practice window (`PracticeSession`): step order and commands, advancing only on this step's command once the frame is reached (within 2 pt), Undo history (no-op moves not recorded, pop on undo, capped at 20), `moveToDisplay` ignored; `PermissionWatchPolicy` (keep watching, stop on close, permission checked before the window) |
 | `CommandEngineTests+StatusBar.swift` | #178 menu bar popover: `StatusClickPolicy` (left click toggles the popover, right or Control-click opens the menu), `PopoverActivationPolicy` (hand activation back only when another app was in use and no button opened a window) and `PopoverGridLayout` (each group on new rows of 8, arrow-key moves clamp at the ends and into short rows, the real grid holds all 34 commands with one group per row) |
+| `CommandEngineTests+CheatSheet.swift` | #182 cheat sheet: `CheatSheetLayer` (exact modifier match, nil for an empty combination, keys off the map go to `others`, title in group order), `CheatSheetKeyboard` (every row the same width, fill keys at least one key wide, every preset key on the map), `CheatSheetTrigger` (each transition, including suppress until the combination changes) and the `cheatSheetEnabled` / `cheatSheetDelay` preferences (defaults, persistence, unknown stored value) |
 
 ## For AI Agents
 

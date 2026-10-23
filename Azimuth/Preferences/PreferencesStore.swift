@@ -21,6 +21,8 @@ final class PreferencesStore {
     private let resolveTimeoutKey = "resolveTimeout"
     private let undoDepthKey = "undoDepth"
     private let undoWindowCapacityKey = "undoWindowCapacity"
+    private let cheatSheetEnabledKey = "cheatSheetEnabled"
+    private let cheatSheetDelayKey = "cheatSheetDelayMilliseconds"
     private let migratedAbsoluteHalfRemovedKey = "migration.absoluteHalfRemoved.v1"
 
     /// feat/snap-throw-display: absolute half 명령 4개가 menuCommands에서 제거됨.
@@ -101,6 +103,28 @@ final class PreferencesStore {
         }
         set {
             defaults.set(newValue.rawValue, forKey: activePresetKey)
+        }
+    }
+
+    /// 수정키를 누르고 있으면 단축키 치트시트를 띄울지(#182). 미설정 시 켜짐.
+    var cheatSheetEnabled: Bool {
+        get {
+            guard defaults.object(forKey: cheatSheetEnabledKey) != nil else { return true }
+            return defaults.bool(forKey: cheatSheetEnabledKey)
+        }
+        set {
+            defaults.set(newValue, forKey: cheatSheetEnabledKey)
+        }
+    }
+
+    /// 치트시트를 띄우기 전 기다리는 시간. 손으로 편집된 값은 읽을 때 선택지로 되돌린다(`CheatSheetDelay.stored`).
+    var cheatSheetDelay: CheatSheetDelay {
+        get {
+            let stored = defaults.object(forKey: cheatSheetDelayKey) as? Int
+            return CheatSheetDelay.stored(stored)
+        }
+        set {
+            defaults.set(newValue.rawValue, forKey: cheatSheetDelayKey)
         }
     }
 

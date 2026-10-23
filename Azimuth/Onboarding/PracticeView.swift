@@ -3,7 +3,7 @@
 //  Azimuth
 //
 //  연습 창 안의 안내(#176, 디자인 F2): "Try it · N of 3", 할 일 문장, 명령 그림, 큰 키캡, 진행 점, Skip.
-//  단축키를 눌러 창이 그 자리에 가면 다음 단계로 넘어간다. 마지막은 "You're set."과 Close.
+//  단축키를 눌러 창이 그 자리에 가면 다음 단계로 넘어간다. 마지막은 "You're set."과 Close, 치트시트(#182) 안내.
 //
 
 import SwiftUI
@@ -64,11 +64,14 @@ struct PracticeView: View {
                 .accessibilityHidden(true)
             Text("You're set.")
                 .font(.title2.weight(.semibold))
-            Text("The same shortcuts work on any app's window. Every command is in the menu bar icon and in Settings.")
-                .font(.callout)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
+            Text(
+                "The same shortcuts work on any app's window. Hold ⌃⌥ for a moment to see every shortcut, "
+                    + "or click the menu bar icon."
+            )
+            .font(.callout)
+            .foregroundStyle(.secondary)
+            .multilineTextAlignment(.center)
+            .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 0)
             Button("Close", action: onClose)
                 .keyboardShortcut(.defaultAction)

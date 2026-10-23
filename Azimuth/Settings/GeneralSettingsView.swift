@@ -2,7 +2,7 @@
 //  GeneralSettingsView.swift
 //  Azimuth
 //
-//  General 화면: 권한 · 시작 · 피드백(#175 A안). 켜고 끄는 설정은 스위치. 값과 동작은 `SettingsModel`이 가진다.
+//  General 화면: 권한 · 시작 · 피드백 · 치트시트(#182) · 연습(#175 A안). 켜고 끄는 설정은 스위치. 값과 동작은 `SettingsModel`이 가진다.
 //
 
 import SwiftUI
@@ -40,6 +40,26 @@ struct GeneralSettingsView: View {
                 }
             } header: {
                 Text("Feedback")
+            }
+            Section {
+                Toggle(
+                    "Show shortcuts while holding the modifier keys",
+                    isOn: binding(\.cheatSheetEnabled, model.setCheatSheetEnabled)
+                )
+                Picker("Show after", selection: Binding(
+                    get: { model.cheatSheetDelay },
+                    set: model.setCheatSheetDelay
+                )) {
+                    ForEach(CheatSheetDelay.allCases, id: \.self) { Text($0.displayName).tag($0) }
+                }
+                .disabled(!model.cheatSheetEnabled)
+            } header: {
+                Text("Cheat Sheet")
+            } footer: {
+                Text(
+                    "Hold the modifier keys of a shortcut, such as ⌃⌥, to see which key does what. "
+                        + "It closes when you let go."
+                )
             }
             Section("Practice") {
                 LabeledContent("Try the main shortcuts on a sample window") {

@@ -87,6 +87,9 @@ enum CommandEngineTests {
         testStatusClickPolicy()
         testPopoverActivationPolicy()
         testPopoverGridLayout()
+        testCheatSheetLayer()
+        testCheatSheetTrigger()
+        testCheatSheetPreferences()
 
         if failures == 0 {
             print("PASS — all \(checks) checks")
