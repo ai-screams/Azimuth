@@ -1,5 +1,5 @@
 <!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-06-19 | Updated: 2026-10-22 -->
+<!-- Generated: 2026-06-19 | Updated: 2026-10-23 -->
 
 # StatusBar
 
@@ -9,7 +9,7 @@ The menu-bar status item and its menu. Shows permission state, opens settings, q
 ## Key Files
 | File | Description |
 |------|-------------|
-| `StatusBarController.swift` | `@MainActor`, `NSMenuDelegate`. A compact SF Symbol status icon (`macwindow.on.rectangle` when permission is granted, `exclamationmark.triangle` when it is needed). The menu holds: permission state / open Accessibility settings / the last command failure reason (an informational row fed by the `lastFailureText` closure that AppDelegate injects, hidden when there is no failure) / Check for Updates… / Open Settings (`⌘,`) / Quit (`⌘q`). Under DEBUG it also offers focused-window identification, a submenu of all 34 commands (`WindowCommand.menuCommands`) and "Design Gallery (Debug)", which opens `DesignGallery/DesignGalleryWindowController` |
+| `StatusBarController.swift` | `@MainActor`, `NSMenuDelegate`. A compact SF Symbol status icon (`macwindow.on.rectangle` when permission is granted, `exclamationmark.triangle` when it is needed). The menu holds: permission state / open Accessibility settings / the last command failure reason (an informational row fed by the `lastFailureText` closure that AppDelegate injects, hidden when there is no failure) / Check for Updates… / Open Settings (`⌘,`) / Practice Shortcuts… (`onPracticeShortcuts`, opens the #176 practice window) / Quit (`⌘q`). Under DEBUG it also offers focused-window identification, a submenu of all 34 commands (`WindowCommand.menuCommands`) and "Design Gallery (Debug)", which opens `DesignGallery/DesignGalleryWindowController` |
 
 ## For AI Agents
 

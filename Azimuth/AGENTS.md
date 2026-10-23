@@ -25,7 +25,7 @@ The app source root. From the programmatic AppKit entry (`main.swift`), `AppDele
 | `Permissions/` | Accessibility permission state and requests (see `Permissions/AGENTS.md`) |
 | `Preferences/` | UserDefaults wrapper (see `Preferences/AGENTS.md`) |
 | `Settings/` | Settings window: window controller + toolbar tab container + Shortcuts/Advanced panes + shared skeleton (see `Settings/AGENTS.md`) |
-| `Onboarding/` | First-run popover anchored to the status bar (see `Onboarding/AGENTS.md`) |
+| `Onboarding/` | First-run popover anchored to the status bar and the practice window (see `Onboarding/AGENTS.md`) |
 | `StatusBar/` | Menu-bar status item and menu (see `StatusBar/AGENTS.md`) |
 | `Launch/` | Launch at login via SMAppService (see `Launch/AGENTS.md`) |
 | `Notifications/` | Command-failure notifications (opt-in, UserNotifications) (see `Notifications/AGENTS.md`) |

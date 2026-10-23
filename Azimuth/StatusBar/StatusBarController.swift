@@ -4,6 +4,8 @@ import os
 @MainActor
 final class StatusBarController: NSObject, NSMenuDelegate {
     var onOpenSettings: (() -> Void)?
+    /// "Practice Shortcuts…": 연습 창 안내를 다시 연다(#176).
+    var onPracticeShortcuts: (() -> Void)?
     /// "Open Accessibility Settings" 동작. 성공(알림 요청 또는 설정 열기)이면 true — 실패면 이 컨트롤러가 알린다.
     /// 권한 알림 시도 기록(`PreferencesStore`)을 모르게 하려고 AppDelegate가 주입한다.
     var onRequestAccessibility: (() -> Bool)?
@@ -200,6 +202,14 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         settingsItem.target = self
         menu.addItem(settingsItem)
 
+        let practiceItem = NSMenuItem(
+            title: "Practice Shortcuts…",
+            action: #selector(practiceShortcuts(_:)),
+            keyEquivalent: ""
+        )
+        practiceItem.target = self
+        menu.addItem(practiceItem)
+
         if let checkForUpdates {
             let updatesItem = NSMenuItem(
                 title: "Check for Updates…",
@@ -223,6 +233,10 @@ final class StatusBarController: NSObject, NSMenuDelegate {
 
     @objc private func openSettings(_ sender: Any?) {
         onOpenSettings?()
+    }
+
+    @objc private func practiceShortcuts(_ sender: Any?) {
+        onPracticeShortcuts?()
     }
 
     @objc private func openAccessibilitySettings(_ sender: Any?) {

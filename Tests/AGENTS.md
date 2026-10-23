@@ -1,5 +1,5 @@
 <!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-06-19 | Updated: 2026-10-22 -->
+<!-- Generated: 2026-06-19 | Updated: 2026-10-23 -->
 
 # Tests
 
@@ -21,6 +21,7 @@ Regression tests for the command engine's **pure logic**. Instead of an Xcode te
 | `CommandEngineTests+Permissions.swift` | Accessibility request path: prompt only on the first untrusted request, Settings afterwards; the migration default for upgrades; `PreferencesStore` migration timing (a new install still prompts after onboarding sets `didCompleteFirstRun`) and its defaults, persistence, shortcut and enable-state storage, timeout clamping. Same file as `legacy/10.13` |
 | `CommandEngineTests+Glyphs.swift` | #181 command glyphs and keycap labels: every menu command has a mark, stays inside the 28×20 box, and no two commands share a glyph; pinned regions (halves, thirds, two-thirds, shrink ghost), arrow direction, display target on the matching side; `keycapLabels` keeps multi-character keys as one label; `WindowCommand.menuCommands(in:)` covers every command once in menu order; `HotkeyBinding.shortcut` |
 | `CommandEngineTests+Settings.swift` | Settings decisions: the notify-on-failure toggle outcome (`NotifyToggleDecision`) for each authorization result and for "switched off while waiting"; one key while recording a shortcut (`ShortcutCapturePolicy`), including the check order; recording transitions and hotkey suspend balance across start, switch, late finish and cancel (`ShortcutRecordingPolicy`) |
+| `CommandEngineTests+Onboarding.swift` | #176 practice window (`PracticeSession`): step order and commands, advancing only on this step's command once the frame is reached (within 2 pt), Undo history (no-op moves not recorded, pop on undo, capped at 20), `moveToDisplay` ignored; `PermissionWatchPolicy` (keep watching, stop on close, permission checked before the window) |
 
 ## For AI Agents
 

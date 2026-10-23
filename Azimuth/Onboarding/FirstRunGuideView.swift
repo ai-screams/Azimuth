@@ -14,6 +14,7 @@ struct FirstRunGuideView: View {
     let launchService: LaunchAtLoginService
     let needsPermission: Bool
     let onOpenSettings: () -> Void
+    let onTryShortcuts: () -> Void
     let onDone: () -> Void
 
     @State private var launchAtLogin: Bool
@@ -22,11 +23,13 @@ struct FirstRunGuideView: View {
         launchService: LaunchAtLoginService,
         needsPermission: Bool,
         onOpenSettings: @escaping () -> Void,
+        onTryShortcuts: @escaping () -> Void,
         onDone: @escaping () -> Void
     ) {
         self.launchService = launchService
         self.needsPermission = needsPermission
         self.onOpenSettings = onOpenSettings
+        self.onTryShortcuts = onTryShortcuts
         self.onDone = onDone
         _launchAtLogin = State(initialValue: launchService.isEnabled)
     }
@@ -55,11 +58,7 @@ struct FirstRunGuideView: View {
             }
             Toggle("Launch Azimuth at login", isOn: Binding(get: { launchAtLogin }, set: setLaunchAtLogin))
                 .toggleStyle(.checkbox)
-            Button(action: primaryAction) {
-                Text(needsPermission ? "Open Settings…" : "Got it").frame(maxWidth: .infinity)
-            }
-            .controlSize(.large)
-            .keyboardShortcut(.defaultAction)
+            buttons
         }
         .padding(16)
         .frame(width: 300)
@@ -84,9 +83,33 @@ struct FirstRunGuideView: View {
         }
     }
 
-    private func primaryAction() {
-        if needsPermission { onOpenSettings() }
-        onDone()
+    /// 권한이 없으면 설정(권한 줄)로 보낸다. 권한이 생기면 그 줄에 연습 창 버튼이 나온다(`SettingsWindowController`).
+    /// 권한이 있으면 바로 연습 창으로 갈 수 있다(#176).
+    @ViewBuilder private var buttons: some View {
+        if needsPermission {
+            Button {
+                onOpenSettings()
+                onDone()
+            } label: {
+                Text("Open Settings…").frame(maxWidth: .infinity)
+            }
+            .controlSize(.large)
+            .keyboardShortcut(.defaultAction)
+        } else {
+            HStack {
+                Button(action: onDone) {
+                    Text("Not Now").frame(maxWidth: .infinity)
+                }
+                Button {
+                    onTryShortcuts()
+                    onDone()
+                } label: {
+                    Text("Try the Shortcuts").frame(maxWidth: .infinity)
+                }
+                .keyboardShortcut(.defaultAction)
+            }
+            .controlSize(.large)
+        }
     }
 }
 

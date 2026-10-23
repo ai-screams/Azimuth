@@ -82,6 +82,8 @@ enum CommandEngineTests {
         testNotifyToggleDecision()
         testShortcutCapturePolicy()
         testShortcutRecordingPolicy()
+        testPracticeSession()
+        testPermissionWatchPolicy()
 
         if failures == 0 {
             print("PASS — all \(checks) checks")
@@ -161,5 +163,6 @@ enum CommandEngineTests {
     //   +Permissions 접근성 요청·설정 저장
     //   +Glyphs    명령 그림·키캡 라벨·그룹별 명령
     //   +Settings  설정 화면의 판단(알림 토글, 단축키 녹화의 키 처리와 녹화 상태)
+    //   +Onboarding 첫 실행 연습 창(단계, Undo 기록, 도달 판정), 권한이 생기는 순간 감지
 
 }

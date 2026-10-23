@@ -1,5 +1,5 @@
 <!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-06-19 | Updated: 2026-10-22 -->
+<!-- Generated: 2026-06-19 | Updated: 2026-10-23 -->
 
 # Preferences
 

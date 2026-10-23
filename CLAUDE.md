@@ -64,6 +64,8 @@ block a commit over a file you never touched. Fetch the pinned release zip and l
   DEVELOPMENT_TEAM=7K6MK3KP9K PRODUCT_BUNDLE_IDENTIFIER=<a third id>` — a third id so neither the Debug
   build's nor the installed app's defaults and TCC entry leak in. Remove that id's grant with
   `tccutil reset Accessibility <id>` **before** deleting the app (tccutil looks the id up via LaunchServices).
+  Run that build from `~/Applications`, not a temp folder: from `/private/tmp` its permission request added no
+  Accessibility entry and `tccutil` could not find the id (`-10814`), even after `lsregister -f`.
 - `main` and `legacy/10.13` are protected by repository rulesets: PRs only, **squash merge only** (linear
   history), no force push or deletion, and `lint-and-build` / `gitleaks` / `secret-scan` / `release-scripts`
   must go green before `gh pr merge --squash` (it reports `BLOCKED` until then).

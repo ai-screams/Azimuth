@@ -21,6 +21,9 @@ struct SettingsDependencies {
     let setMenuBarIconHidden: (Bool) -> Void
     let setResolveTimeout: (Float) -> Void
     let checkForUpdates: () -> Void
+    let showPracticeGuide: () -> Void
+    /// 설정 창이 열려 있는 동안 권한이 생겼다. 메뉴 막대 아이콘처럼 창 밖의 권한 표시를 갱신한다.
+    let onPermissionGranted: () -> Void
     let requestNotificationAuthorization: () async -> NotificationAuthorizationResult
 }
 
@@ -69,6 +72,8 @@ final class SettingsModel {
     var selection: Pane? = .general
 
     private(set) var permission = AccessibilityPermissionStatus.required
+    /// 이 창을 띄워 둔 동안 권한이 생겼다. 권한 줄에 연습 창으로 가는 버튼을 보인다(#176).
+    private(set) var permissionJustGranted = false
     private(set) var soundFeedback = false
     private(set) var notifyOnFailure = false
     private(set) var showsNotifyHint = false
@@ -111,6 +116,18 @@ final class SettingsModel {
     func appDidBecomeActive() {
         AccessibilityPermissionService.invalidateCache()
         refresh()
+    }
+
+    /// 권한이 없을 때 시작한 주기 확인(`SettingsWindowController`)이 권한을 찾았다.
+    func permissionDidBecomeGranted() {
+        permission = .granted
+        permissionJustGranted = true
+        dependencies.onPermissionGranted()
+    }
+
+    /// 창을 새로 띄울 때. 지난번에 권한이 생겼다는 안내는 남기지 않는다.
+    func clearPermissionJustGranted() {
+        permissionJustGranted = false
     }
 
     // MARK: - General
@@ -156,6 +173,10 @@ final class SettingsModel {
             dependencies.launchService.disable { [weak self] in self?.refresh() }
         }
         refresh()
+    }
+
+    func showPracticeGuide() {
+        dependencies.showPracticeGuide()
     }
 
     func openLoginItemsSettings() {

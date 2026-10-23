@@ -50,6 +50,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         setMenuBarIconHidden: { [weak self] hidden in self?.statusBarController.setVisible(!hidden) },
         setResolveTimeout: { seconds in FocusedWindowResolver.setResolveTimeout(seconds) },
         checkForUpdates: { [weak self] in self?.updaterController.checkForUpdates(nil) },
+        showPracticeGuide: { [weak self] in self?.practiceWindowController.show() },
+        onPermissionGranted: { [weak self] in self?.statusBarController.refreshPermissionState() },
         requestNotificationAuthorization: { [weak self] in
             await self?.failureNotifier.requestAuthorization() ?? .failed
         }
@@ -63,6 +65,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         windowSnapStore: windowSnapStore
     )
     private let firstRunGuidePresenter = FirstRunGuidePresenter()
+    /// 연습 창 안내(#176). 연습 창이 앞에 있을 때의 단축키는 명령 실행기 대신 여기로 간다(`runHotkeyCommand`).
+    private lazy var practiceWindowController = PracticeWindowController(
+        shortcut: { [weak self] command in self?.boundShortcut(for: command) },
+        soundEnabled: { [weak self] in self?.preferencesStore.soundFeedbackEnabled ?? false }
+    )
 
     /// 기동 순서. 각 단계가 무엇인지 이름으로 읽히도록 블록별로 나눠 두었다 —
     /// **순서가 의미를 갖는다**: 메뉴·상태바가 있어야 온보딩 팝오버가 앵커할 곳이 생기고,
@@ -94,28 +101,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 checkForUpdates: #selector(SPUStandardUpdaterController.checkForUpdates(_:))
             )
         )
-    }
-
-    /// 메뉴바 항목과 그 메뉴가 앱에 되묻는 세 경로(설정 열기·업데이트 확인·마지막 실패 사유).
-    /// 클로저로 주입하는 이유는 `StatusBarController`가 Sparkle과 앱 상태를 모르게 하기 위해서다.
-    private func installStatusBar() {
-        statusBarController.onOpenSettings = { [weak self] in
-            self?.settingsWindowController.show()
-        }
-        statusBarController.onRequestAccessibility = { [weak self] in
-            guard let self else { return false }
-            return AccessibilityPermissionService.requestAccess(preferences: preferencesStore)
-        }
-        statusBarController.checkForUpdates = (
-            target: updaterController,
-            action: #selector(SPUStandardUpdaterController.checkForUpdates(_:))
-        )
-        statusBarController.lastFailureText = { [weak self] in
-            guard let failure = self?.lastCommandFailure else { return nil }
-            return "Last: \(failure.commandName) failed — \(failure.message)"
-        }
-        statusBarController.install()
-        statusBarController.setVisible(!preferencesStore.menuBarIconHidden)
     }
 
     /// 앱 수명 동안 유지되는 알림 구독. 해제는 `deinit`의 `removeObserver(self)`가 한꺼번에 한다.
@@ -171,16 +156,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func reloadHotkeys() {
-        let resolved = BindingResolver.resolve(
-            preset: preferencesStore.activePreset,
-            overrides: preferencesStore.customShortcuts
-        )
-        let bindings = BindingResolver.enabled(
-            resolved,
-            disabledCommands: preferencesStore.disabledCommandIdentifiers,
-            disabledGroups: preferencesStore.disabledGroupTokens
-        )
-        let failed = hotkeyService.reload(bindings) { [weak self] command in
+        let failed = hotkeyService.reload(enabledBindings()) { [weak self] command in
             self?.runHotkeyCommand(command)
         }
         registrationFailureIdentifiers = Set(failed.map(\.command.identifier))
@@ -196,6 +172,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func runHotkeyCommand(_ command: WindowCommand) {
+        // 연습 창이 앞에 있으면 연습 창이 받는다(자기 창은 AX 명령 대상이 아니다).
+        if practiceWindowController.handle(command) { return }
         let result = WindowCommandExecutor.run(
             command, tracker: frontmostAppTracker, undoStore: windowUndoStore, snapStore: windowSnapStore
         )
@@ -299,7 +277,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 relativeTo: button,
                 launchService: launchAtLoginService,
                 needsPermission: needsPermission,
-                onOpenSettings: { [weak self] in self?.settingsWindowController.show(pane: .general) }
+                onOpenSettings: { [weak self] in self?.settingsWindowController.show(pane: .general) },
+                onTryShortcuts: { [weak self] in self?.practiceWindowController.show() }
             )
             Log.app.debug("First-run guide popover shown.")
         }
@@ -333,6 +312,50 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 }
 
 extension AppDelegate {
+    /// 메뉴바 항목과 그 메뉴가 앱에 되묻는 세 경로(설정 열기·업데이트 확인·마지막 실패 사유).
+    /// 클로저로 주입하는 이유는 `StatusBarController`가 Sparkle과 앱 상태를 모르게 하기 위해서다.
+    private func installStatusBar() {
+        statusBarController.onOpenSettings = { [weak self] in
+            self?.settingsWindowController.show()
+        }
+        statusBarController.onPracticeShortcuts = { [weak self] in
+            self?.practiceWindowController.show()
+        }
+        statusBarController.onRequestAccessibility = { [weak self] in
+            guard let self else { return false }
+            return AccessibilityPermissionService.requestAccess(preferences: preferencesStore)
+        }
+        statusBarController.checkForUpdates = (
+            target: updaterController,
+            action: #selector(SPUStandardUpdaterController.checkForUpdates(_:))
+        )
+        statusBarController.lastFailureText = { [weak self] in
+            guard let failure = self?.lastCommandFailure else { return nil }
+            return "Last: \(failure.commandName) failed — \(failure.message)"
+        }
+        statusBarController.install()
+        statusBarController.setVisible(!preferencesStore.menuBarIconHidden)
+    }
+
+    /// 등록할 바인딩: 프리셋 + 사용자 지정에서 꺼진 명령과 그룹을 뺀 것. 등록(`reloadHotkeys`)과 연습 창이 같이 쓴다.
+    private func enabledBindings() -> [HotkeyBinding] {
+        let resolved = BindingResolver.resolve(
+            preset: preferencesStore.activePreset,
+            overrides: preferencesStore.customShortcuts
+        )
+        return BindingResolver.enabled(
+            resolved,
+            disabledCommands: preferencesStore.disabledCommandIdentifiers,
+            disabledGroups: preferencesStore.disabledGroupTokens
+        )
+    }
+
+    /// 연습 창이 보일 단축키. 등록에 실패한 것(다른 앱이 쓰는 조합)은 눌러도 오지 않으므로 없는 것으로 본다.
+    private func boundShortcut(for command: WindowCommand) -> HotkeyShortcut? {
+        guard !registrationFailureIdentifiers.contains(command.identifier) else { return nil }
+        return enabledBindings().first { $0.command == command }?.shortcut
+    }
+
     /// Sparkle이 확인을 받을 수 있는지를 설정 창에 계속 알린다. 업데이터가 시작된 뒤(`installMainMenu`) 부른다.
     private func observeUpdateAvailability() -> NSKeyValueObservation {
         updaterController.updater.observe(\.canCheckForUpdates, options: [.initial, .new]) { [weak self] updater, _ in

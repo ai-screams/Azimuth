@@ -1,5 +1,5 @@
 <!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-06-19 | Updated: 2026-10-22 -->
+<!-- Generated: 2026-06-19 | Updated: 2026-10-23 -->
 
 # Shared
 
@@ -13,6 +13,7 @@ Coordinate conversion, value types, errors and logging utilities shared across l
 | `BundleVersion.swift` | The `Bundle` extension `displayVersion(prefix:)`. Assembles `CFBundleShortVersionString` (plus the build number) into a display string. Used by `Settings/SettingsModel` (About pane) so the version string is not duplicated |
 | `UpdateVersionText.swift` | Pure, harness-tested version text for **Sparkle's update window only**: `label` → `v1.7.2`, `v1.7.2 Legacy N` for a legacy `209.N` build (`legacySequence`); `pair` adds `(build)` to both sides only when the two labels come out identical. About/Settings keep `BundleVersion` ("Version 1.7.2"). Shared verbatim with `legacy/10.13` |
 | `NSApplication+BringToFront.swift` | `NSApp.bringToFront()` — the one place that activates the app before showing a window or popover (About, Settings, first-run guide). It calls the macOS 14 cooperative `activate()`, which the system may decline while the user is working in another app, so callers are paths where the user just chose Azimuth (menus, buttons, reopen, first launch). Verify any new caller from a global hotkey (the #183 palette) on a real machine |
+| `NSWindow+CenterOnMouseScreen.swift` | `centerOnMouseScreen()` — places Azimuth's own windows (Settings, the practice window) at the center of the screen holding the mouse, so they are not opened on another display |
 | `AboutContent.swift` | `nonisolated`. The About text, tagline, the four links (with tint) and the copyright, used by the Settings About pane (the app menu's "About Azimuth" opens that pane) |
 | `WindowFrame.swift` | **(in the harness)** `nonisolated`. The `WindowFrame` value type (origin/size → rect) plus `WindowResolutionError` (permission, full screen, subrole, messaging timeout, AX codes and so on, each with an English `userFacingMessage`) |
 | `WindowCommandError.swift` | **(in the harness)** `nonisolated`. The top-level command execution error (`resolution` / `workAreaUnavailable` / `notMovable` / `applyFailed` / `noUndoState` / `resolveBudgetExceeded`) plus `userFacingMessage`. The `Result.commandError` extension (the error on failure, nil on success) lives here too — it produces the feedback policy's input |
