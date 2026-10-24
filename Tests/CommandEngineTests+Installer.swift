@@ -22,6 +22,7 @@ extension CommandEngineTests {
         expectName("one image with a path", "\(images.count)", "1")
         expectName("only real mount points", "\(images.first?.mountPoints ?? [])", "[\"/Volumes/Azimuth\"]")
         expectName("owner", "\(images.first?.ownerUID ?? -1)", "501")
+        expectName("devices", "\(images.first?.devEntries ?? [])", "[\"/dev/disk9\"]")
         expectName("garbage", "\(InstallerCleanupPolicy.parseImages(Data("x".utf8)).count)", "0")
     }
 
@@ -86,5 +87,28 @@ extension CommandEngineTests {
         expectName("detached", "\(InstallerCleanupPolicy.isDetached(candidate, in: [swapped]))", "true")
         let detached = InstallerCleanupPolicy.isDetached(candidate, in: [unmounted])
         expectName("unmounted but attached", "\(detached)", "false")
+    }
+
+    // 볼륨만 내려가고 이미지가 남은 경우(#207) 다시 꺼낼 장치. hdiutil은 디스크 전체를 먼저, 파티션을 뒤에 적는다.
+    // 이것을 실패시키는 것: 파티션(`disk8s1`)을 고르는 것, 다른 이미지의 장치를 고르는 것, 장치가 없을 때 무언가를 돌려주는 것,
+    // `/dev/disk` 아닌 경로나 번호 없는 `/dev/disk`를 고르는 것.
+    static func testInstallerCleanupWholeDisk() {
+        let candidate = InstallerCleanupCandidate(imagePath: "/Users/me/A.dmg", mountPoint: "/Volumes/Azimuth")
+        let attached = MountedDiskImage(
+            imagePath: "/Users/me/A.dmg", mountPoints: [], devEntries: ["/dev/disk8s1", "/dev/disk8"], ownerUID: 501
+        )
+        let other = MountedDiskImage(imagePath: "/x/B.dmg", mountPoints: [], devEntries: ["/dev/disk5"], ownerUID: 501)
+        func pick(_ images: [MountedDiskImage]) -> String {
+            InstallerCleanupPolicy.wholeDisk(of: candidate, in: images) ?? "nil"
+        }
+        expectName("whole disk, not the partition", pick([other, attached]), "/dev/disk8")
+        expectName("not another image's device", pick([other]), "nil")
+        let odd = MountedDiskImage(
+            imagePath: "/Users/me/A.dmg", mountPoints: [],
+            devEntries: ["/dev/rdsk8", "/dev/disk", "/dev/disk8"], ownerUID: 501
+        )
+        expectName("skips other paths and a bare /dev/disk", pick([odd]), "/dev/disk8")
+        let noDevices = MountedDiskImage(imagePath: "/Users/me/A.dmg", mountPoints: [], ownerUID: 501)
+        expectName("no devices", pick([noDevices]), "nil")
     }
 }

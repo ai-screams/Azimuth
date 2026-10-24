@@ -21,6 +21,8 @@ final class InstallerCleanupController {
     private static let currentVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? ""
     /// 외부 명령의 상한. `hdiutil`이 멈춰도 첫 실행 안내(`then`)는 뜬다.
     private static let commandTimeout: TimeInterval = 10
+    /// 이미지가 떨어지기를 기다리는 횟수(1초 간격, #207).
+    private static let detachAttempts = 5
 
     init(preferences: PreferencesStore) {
         self.preferences = preferences
@@ -73,11 +75,11 @@ final class InstallerCleanupController {
     private func clean(_ candidate: InstallerCleanupCandidate) async {
         // 알림 창이 떠 있는 동안 사용자가 DMG를 바꿨을 수 있다. 같은 이미지가 그대로일 때만 꺼낸다.
         guard InstallerCleanupPolicy.isStillMounted(candidate, in: await Self.mountedImages()) else { return }
-        guard await Self.run("/usr/sbin/diskutil", ["eject", candidate.mountPoint]) != nil,
-              InstallerCleanupPolicy.isDetached(candidate, in: await Self.mountedImages())
-        else {
-            // 볼륨이 쓰이는 중이면 꺼내지 못한다. 연결된 이미지를 휴지통에 넣지 않고 끝낸다.
-            Log.app.error("Installer eject failed: \(candidate.mountPoint, privacy: .public)")
+        var lastError = await Self.eject(candidate.mountPoint)
+        guard await waitUntilDetached(candidate, lastError: &lastError) else {
+            // 볼륨이 쓰이는 중이거나 이미지가 끝내 떨어지지 않았다. 연결된 이미지를 휴지통에 넣지 않고 끝낸다.
+            let mount = candidate.mountPoint
+            Log.app.error("Installer eject failed: \(mount, privacy: .public) \(lastError, privacy: .public)")
             return
         }
         let imageURL = URL(fileURLWithPath: candidate.imagePath)
@@ -94,6 +96,29 @@ final class InstallerCleanupController {
         }
     }
 
+    /// 이미지가 떨어질 때까지 1초 간격으로 최대 `detachAttempts`번 본다(#207). 볼륨은 내려갔는데 이미지가 남아 있으면
+    /// 디스크 전체 장치를 다시 꺼낸다. 2.0.0을 처음 실행한 실기에서 첫 꺼내기가 볼륨만 내리고 이미지를 남겼고, 나중에
+    /// 셸의 `diskutil eject disk8`로는 떨어졌다(그 순간 다른 프로세스가 디스크를 잡고 있었던 것으로 본다, 확인 못 함).
+    private func waitUntilDetached(_ candidate: InstallerCleanupCandidate, lastError: inout String) async -> Bool {
+        for attempt in 0 ..< Self.detachAttempts {
+            let images = await Self.mountedImages()
+            if InstallerCleanupPolicy.isDetached(candidate, in: images) { return true }
+            // 첫 꺼내기가 성공했다면 이미지가 떨어지는 중일 수 있어 한 번은 기다린다. 그 뒤에도 남으면 디스크 전체를 꺼낸다.
+            let retry = attempt > 0 || !lastError.isEmpty
+            if retry, let disk = InstallerCleanupPolicy.wholeDisk(of: candidate, in: images) {
+                lastError = await Self.eject(disk)
+            }
+            try? await Task.sleep(for: .seconds(1))
+        }
+        return InstallerCleanupPolicy.isDetached(candidate, in: await Self.mountedImages())
+    }
+
+    /// `diskutil eject`. 성공하면 빈 문자열, 실패하면 `diskutil`의 오류 문구(로그용).
+    private nonisolated static func eject(_ target: String) async -> String {
+        let result = await execute("/usr/sbin/diskutil", ["eject", target])
+        return result.succeeded ? "" : (result.errorText.isEmpty ? "exit status nonzero" : result.errorText)
+    }
+
     /// `hdiutil info -plist`의 이미지 목록. 실패하면 빈 목록(묻지 않는다).
     private nonisolated static func mountedImages() async -> [MountedDiskImage] {
         guard let data = await run("/usr/bin/hdiutil", ["info", "-plist"]) else { return [] }
@@ -103,25 +128,41 @@ final class InstallerCleanupController {
     /// 명령을 메인 스레드 밖에서 실행하고 표준 출력을 돌려준다. 실행하지 못했거나, 0이 아닌 코드로 끝났거나,
     /// `commandTimeout` 안에 끝나지 않아 멈췄으면 nil.
     private nonisolated static func run(_ tool: String, _ arguments: [String]) async -> Data? {
+        let result = await execute(tool, arguments)
+        return result.succeeded ? result.output : nil
+    }
+
+    private struct CommandResult: Sendable {
+        let succeeded: Bool
+        let output: Data
+        let errorText: String
+    }
+
+    /// 명령을 메인 스레드 밖에서 실행한다. `commandTimeout` 안에 끝나지 않으면 멈추고 실패로 본다.
+    private nonisolated static func execute(_ tool: String, _ arguments: [String]) async -> CommandResult {
         await Task.detached {
             let process = Process()
             process.executableURL = URL(fileURLWithPath: tool)
             process.arguments = arguments
-            let pipe = Pipe()
-            process.standardOutput = pipe
-            process.standardError = FileHandle.nullDevice
+            let output = Pipe(), errors = Pipe()
+            process.standardOutput = output
+            process.standardError = errors
             do {
                 try process.run()
             } catch {
-                return nil
+                return CommandResult(succeeded: false, output: Data(), errorText: error.localizedDescription)
             }
             DispatchQueue.global().asyncAfter(deadline: .now() + commandTimeout) {
                 if process.isRunning { process.terminate() }
             }
-            let data = pipe.fileHandleForReading.readDataToEndOfFile()
+            // 둘 다 짧은 출력이다(hdiutil info 수 KB, diskutil 오류 한두 줄).
+            let data = output.fileHandleForReading.readDataToEndOfFile()
+            let errorData = errors.fileHandleForReading.readDataToEndOfFile()
             process.waitUntilExit()
+            let errorText = (String(bytes: errorData, encoding: .utf8) ?? "")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
             let finished = process.terminationReason == .exit && process.terminationStatus == 0
-            return finished ? data : nil
+            return CommandResult(succeeded: finished, output: data, errorText: errorText)
         }.value
     }
 }
