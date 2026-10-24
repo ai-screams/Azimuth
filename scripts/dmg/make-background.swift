@@ -97,7 +97,9 @@ func draw(scale: CGFloat) {
     plate.lineWidth = 2
     navy.withAlphaComponent(0.7).setStroke()
     plate.stroke()
-    for degrees in stride(from: 0, to: 360, by: 10) {
+    // 아래쪽 150°–210°는 Finder가 앱 이름을 쓰는 자리라 눈금을 비운다. 이름은 확장자 없이 "Azimuth"(create-dmg
+    // --hide-extension)라 이 부채꼴 안에 들어간다. "Azimuth.app"은 원의 테두리와 겹쳤다.
+    for degrees in stride(from: 0, to: 360, by: 10) where !(150 ... 210).contains(degrees) {
         let major = degrees % 30 == 0
         segment(
             point(appCenter, dialRadius - 2, CGFloat(degrees)),
