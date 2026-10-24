@@ -90,6 +90,7 @@ enum CommandEngineTests {
         testConcentricRadius()
         testInstallerCleanupParse()
         testInstallerCleanupCandidate()
+        testInstallerCleanupRecheck()
         testCheatSheetLayer()
         testCheatSheetTrigger()
         testCheatSheetPreferences()

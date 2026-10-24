@@ -45,14 +45,15 @@ nonisolated enum InstallerCleanupPolicy {
         ["/Applications/", home + "/Applications/"].contains { appPath.hasPrefix($0) }
     }
 
-    /// 디스크 이미지를 찾아볼 만한가: 이 버전에서 아직 묻지 않았고, 설치된 자리에서 실행됐다.
+    /// 디스크 이미지를 찾아볼 만한가: 이 빌드에서 아직 찾아보지 않았고, 설치된 자리에서 실행됐다.
     static func shouldLook(appPath: String, environment: InstallerCleanupEnvironment) -> Bool {
-        environment.askedVersion != environment.currentVersion
+        environment.checkedVersion != environment.currentVersion
             && isInstalledLocation(appPath: appPath, home: environment.home)
     }
 
     /// 물어볼 이미지를 고른다. `shouldLook`이 false면 nil.
-    /// 이미지는 지금 사용자가 연결했고 볼륨 맨 위에 `Azimuth.app`이 있어야 한다. DMG 안에서 실행 중인 앱은
+    /// 이미지는 지금 사용자가 연결한 `.dmg` 파일이고(폴더인 sparsebundle 등은 고르지 않는다), 볼륨 맨 위에 이 앱과
+    /// 같은 번들 id의 `Azimuth.app`이 있어야 한다(`containsApp`이 확인). DMG 안에서 실행 중인 앱은
     /// 설치된 자리가 아니라서 여기까지 오지 않는다(실행 중인 앱의 원본을 지우지 않는다).
     static func candidate(
         appPath: String,
@@ -61,12 +62,26 @@ nonisolated enum InstallerCleanupPolicy {
         containsApp: (String) -> Bool
     ) -> InstallerCleanupCandidate? {
         guard shouldLook(appPath: appPath, environment: environment) else { return nil }
-        for image in images where image.ownerUID == environment.userID {
+        let offerable = images.filter {
+            $0.ownerUID == environment.userID && $0.imagePath.lowercased().hasSuffix(".dmg")
+        }
+        for image in offerable {
             for mount in image.mountPoints where containsApp(mount) {
                 return InstallerCleanupCandidate(imagePath: image.imagePath, mountPoint: mount)
             }
         }
         return nil
+    }
+
+    /// 사용자가 정리를 고른 뒤에도 같은 이미지가 같은 자리에 연결돼 있는가. 알림 창이 떠 있는 동안 사용자가 DMG를
+    /// 꺼내고 같은 이름의 다른 이미지를 연결했으면 false다.
+    static func isStillMounted(_ candidate: InstallerCleanupCandidate, in images: [MountedDiskImage]) -> Bool {
+        images.contains { $0.imagePath == candidate.imagePath && $0.mountPoints.contains(candidate.mountPoint) }
+    }
+
+    /// 꺼낸 뒤 이미지가 떨어졌는가. 아직 연결돼 있으면 휴지통으로 옮기지 않는다.
+    static func isDetached(_ candidate: InstallerCleanupCandidate, in images: [MountedDiskImage]) -> Bool {
+        !images.contains { $0.imagePath == candidate.imagePath }
     }
 }
 
@@ -75,6 +90,6 @@ nonisolated struct InstallerCleanupEnvironment: Equatable {
     let home: String
     let userID: Int
     let currentVersion: String
-    /// 마지막으로 물었던 버전(정리했든 그대로 뒀든). 없으면 nil.
-    let askedVersion: String?
+    /// 마지막으로 이미지를 찾아본 빌드(찾았든 못 찾았든, 정리했든 그대로 뒀든). 없으면 nil.
+    let checkedVersion: String?
 }

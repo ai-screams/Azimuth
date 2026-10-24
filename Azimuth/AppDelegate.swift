@@ -103,6 +103,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         FocusedWindowResolver.setResolveTimeout(preferencesStore.resolveTimeout)
         reloadHotkeys()
         updateCheatSheet()
+        #if DEBUG
+            settingsWindowController.show()
+            Log.app.debug("Azimuth debug launch opened settings window.")
+        #endif
         // 설치 파일 정리(#197)를 먼저 묻고, 알림 창이 닫힌 뒤 첫 실행 안내를 띄운다.
         installerCleanupController.runIfNeeded { [weak self] in self?.showFirstRunOnboardingIfNeeded() }
         registerAppObservers()
@@ -267,10 +271,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// 기존 폴백대로 권한 미부여 시 Settings 창을 연다. 어느 경우든 1회만 수행한다.
     /// DEBUG 빌드는 매 실행 Settings를 띄우는 개발 편의를 유지한다(팝오버는 플래그를 따름).
     private func showFirstRunOnboardingIfNeeded() {
-        #if DEBUG
-            settingsWindowController.show()
-            Log.app.debug("Azimuth debug launch opened settings window.")
-        #endif
         guard !preferencesStore.didCompleteFirstRun else { return }
         preferencesStore.didCompleteFirstRun = true
         let needsPermission = !AccessibilityPermissionService.currentStatus().isTrusted

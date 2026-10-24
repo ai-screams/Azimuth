@@ -25,8 +25,9 @@ extension CommandEngineTests {
         expectName("garbage", "\(InstallerCleanupPolicy.parseImages(Data("x".utf8)).count)", "0")
     }
 
-    // 이것을 실패시키는 것: 이 버전에서 이미 물었는데 또 묻는 것, DMG 안·App Translocation 자리에서 실행했는데 묻는 것,
-    // 다른 사용자가 연결한 이미지를 고르는 것, Azimuth.app이 없는 볼륨을 고르는 것, 앞의 다른 볼륨에서 멈추는 것.
+    // 이것을 실패시키는 것: 이 빌드에서 이미 찾아봤는데 또 묻는 것, DMG 안·App Translocation·이름만 비슷한 폴더에서
+    // 실행했는데 묻는 것, 다른 사용자가 연결했거나 연결한 사용자를 모르는 이미지를 고르는 것, .dmg가 아닌 이미지
+    // (폴더인 sparsebundle)를 고르는 것, Azimuth.app이 없는 볼륨을 고르는 것, 앞의 다른 볼륨·마운트에서 멈추는 것.
     static func testInstallerCleanupCandidate() {
         let installed = "/Applications/Azimuth.app"
         let dmg = MountedDiskImage(
@@ -37,7 +38,7 @@ extension CommandEngineTests {
             app: String = installed, asked: String? = nil, images: [MountedDiskImage] = [dmg]
         ) -> String {
             let environment = InstallerCleanupEnvironment(
-                home: "/Users/me", userID: 501, currentVersion: "210", askedVersion: asked
+                home: "/Users/me", userID: 501, currentVersion: "210", checkedVersion: asked
             )
             let found = InstallerCleanupPolicy.candidate(
                 appPath: app, environment: environment, images: images, containsApp: { $0 == "/Volumes/Azimuth" }
@@ -54,5 +55,36 @@ extension CommandEngineTests {
         expectName("someone else's image", pick(images: [rootOwned]), "nil")
         expectName("volume without the app", pick(images: [other]), "nil")
         expectName("skips other volumes", pick(images: [other, dmg]), pick())
+        expectName("look-alike folder", pick(app: "/ApplicationsOld/Azimuth.app"), "nil")
+        let unknownOwner = MountedDiskImage(imagePath: dmg.imagePath, mountPoints: dmg.mountPoints, ownerUID: nil)
+        expectName("unknown owner", pick(images: [unknownOwner]), "nil")
+        let bundle = MountedDiskImage(
+            imagePath: "/Users/me/Backup.sparsebundle", mountPoints: ["/Volumes/Azimuth"], ownerUID: 501
+        )
+        expectName("not a .dmg", pick(images: [bundle]), "nil")
+        let upper = MountedDiskImage(imagePath: "/Users/me/AZIMUTH.DMG", mountPoints: dmg.mountPoints, ownerUID: 501)
+        expectName("upper-case extension", pick(images: [upper]), "/Volumes/Azimuth /Users/me/AZIMUTH.DMG")
+        let twoMounts = MountedDiskImage(
+            imagePath: dmg.imagePath, mountPoints: ["/Volumes/Other", "/Volumes/Azimuth"], ownerUID: 501
+        )
+        expectName("second mount of one image", pick(images: [twoMounts]), pick())
+    }
+
+    // 정리를 고른 뒤 다시 읽은 목록으로 판단한다.
+    // 이것을 실패시키는 것: 알림 창 동안 같은 자리에 다른 이미지가 연결됐는데 꺼내는 것, 이미지가 이미 빠졌거나
+    // 볼륨만 내려간 채인데 꺼내는 것, 꺼낸 뒤에도 연결된 이미지를 휴지통에 넣는 것.
+    static func testInstallerCleanupRecheck() {
+        let candidate = InstallerCleanupCandidate(imagePath: "/Users/me/A.dmg", mountPoint: "/Volumes/Azimuth")
+        let same = MountedDiskImage(imagePath: "/Users/me/A.dmg", mountPoints: ["/Volumes/Azimuth"], ownerUID: 501)
+        let swapped = MountedDiskImage(imagePath: "/Users/me/B.dmg", mountPoints: ["/Volumes/Azimuth"], ownerUID: 501)
+        let unmounted = MountedDiskImage(imagePath: "/Users/me/A.dmg", mountPoints: [], ownerUID: 501)
+        expectName("still there", "\(InstallerCleanupPolicy.isStillMounted(candidate, in: [same]))", "true")
+        expectName("swapped", "\(InstallerCleanupPolicy.isStillMounted(candidate, in: [swapped]))", "false")
+        expectName("already ejected", "\(InstallerCleanupPolicy.isStillMounted(candidate, in: []))", "false")
+        let stillMounted = InstallerCleanupPolicy.isStillMounted(candidate, in: [unmounted])
+        expectName("unmounted, still attached", "\(stillMounted)", "false")
+        expectName("detached", "\(InstallerCleanupPolicy.isDetached(candidate, in: [swapped]))", "true")
+        let detached = InstallerCleanupPolicy.isDetached(candidate, in: [unmounted])
+        expectName("unmounted but attached", "\(detached)", "false")
     }
 }
