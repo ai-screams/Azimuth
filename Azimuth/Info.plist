@@ -37,7 +37,8 @@
 	     (and as a CI secret); only the public key is shipped here. Legacy branch:
 	     the fallback feed is the legacy appcast (asset of the non-latest
 	     `legacy-feed` release). At runtime AppDelegate.feedURLString(for:) picks
-	     it on macOS 10.13-12 and the main feed on 13+ (UpdateFeed). -->
+	     it on macOS 10.13-12 and the main feed on 13+ (UpdateFeed). On 13 the
+	     main feed offers 1.7.7, its last macOS 13 build (main 2.x needs 14). -->
 	<key>SUFeedURL</key>
 	<string>https://github.com/ai-screams/Azimuth/releases/download/legacy-feed/appcast.xml</string>
 	<key>SUPublicEDKey</key>

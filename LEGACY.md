@@ -1,6 +1,6 @@
 # Main and legacy builds
 
-Azimuth ships two builds from one repository. This page explains how they relate, and what to do when a
+Azimuth ships two builds from one repository (plus a final build for macOS 13, below). This page explains how they relate, and what to do when a
 change on one side matters to the other. The same file exists on `main` and on `legacy/10.13`.
 
 ## The two channels
@@ -8,7 +8,7 @@ change on one side matters to the other. The same file exists on `main` and on `
 | | Main build | Legacy build |
 | -- | -- | -- |
 | Branch | `main` | `legacy/10.13` |
-| macOS | 13 and later | 10.13 High Sierra through 12 Monterey |
+| macOS | 14 and later (2.x) | 10.13 High Sierra through 12 Monterey |
 | What goes in | New features and fixes | **Critical and security fixes only** (feature-frozen at 1.7.2) |
 | Release tag | `vX.Y.Z` (pre-release `vX.Y.Z-rcN`) | `legacy-vX.Y.Z-N` (test build `legacy-rc-vX.Y.Z-N`) |
 | Workflow | `release.yml` | `release-legacy.yml` |
@@ -19,8 +19,9 @@ change on one side matters to the other. The same file exists on `main` and on `
 The branches split at 1.7.2 and **do not share code automatically**. A change merged to `main` never reaches
 legacy users unless someone ports it.
 
-A legacy user who upgrades to macOS 13 or later is moved to the main build on their next update check. The legacy
-build numbers stay below main's for that reason.
+A legacy user who upgrades to macOS 13 or later is moved to the main feed on their next update check: macOS 13 gets
+1.7.7, the last build that runs there, and 14 or later gets the newest 2.x. The legacy build numbers stay below
+main's for that reason.
 
 ## Does a main change need to go to legacy?
 
@@ -85,8 +86,18 @@ name "System Preferences" on legacy) is **not** on the list. Port it by hand.
   security fix **is** a legacy port: update the exact version and revision in the project, `Package.resolved`
   and that script. Do not move legacy to 2.10 or later.
 
-## When main drops macOS 13
+## macOS 13 after 2.0
 
-The main build supports macOS 13 and later. If it ever needs 14 or later, keep a last 13-compatible item in the
-main feed. Open a `legacy/13` branch only if 13 users actually need fixes. Its build numbers must sort between
-`209.N` and main's. Do not create that branch in advance.
+From 2.0 the main build requires macOS 14. macOS 13 stays on **1.7.7**, which gets no further updates:
+
+| macOS | Version | Updates |
+| -- | -- | -- |
+| 14 and later | 2.x | Yes |
+| 13 | 1.7.7 | None |
+| 10.13–12 | 1.7.2 Legacy N | Critical and security fixes only |
+
+- The main feed keeps one item per minimum macOS (`release.yml` seeds `generate_appcast` with the previous
+  release's appcast and passes `--maximum-versions 1`, see `RELEASING.md`). It therefore holds the newest 2.x and
+  1.7.7, and Sparkle offers each Mac the newest build its OS can run.
+- There is no `legacy/13` branch. Open one only if 13 users need a critical or security fix. Its build numbers must
+  sort between `209.N` and main's.
