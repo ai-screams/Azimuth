@@ -46,7 +46,10 @@ struct FirstRunGuideView: View {
             }
             .frame(maxWidth: .infinity)
             VStack(alignment: .leading, spacing: 9) {
-                GuideRow(symbol: "macwindow.on.rectangle", text: "Click the menu bar icon for commands and settings.")
+                GuideRow(
+                    image: Image(nsImage: StatusBarIcon.image(needsPermission: false)),
+                    text: "Click the menu bar icon for commands and settings."
+                )
                 GuideRow(symbol: "keyboard", text: "Move and resize windows from anywhere with global shortcuts.")
                 if needsPermission {
                     GuideRow(
@@ -114,13 +117,24 @@ struct FirstRunGuideView: View {
 }
 
 private struct GuideRow: View {
-    let symbol: String
+    /// 그림. 메뉴바 아이콘 줄은 실제 메뉴바 아이콘(#179)을, 나머지는 SF Symbol을 쓴다.
+    let image: Image
     let text: String
     var tint: Color = .secondary
 
+    init(symbol: String, text: String, tint: Color = .secondary) {
+        self.init(image: Image(systemName: symbol), text: text, tint: tint)
+    }
+
+    init(image: Image, text: String, tint: Color = .secondary) {
+        self.image = image
+        self.text = text
+        self.tint = tint
+    }
+
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 9) {
-            Image(systemName: symbol)
+            image
                 .font(.system(size: 13))
                 .foregroundStyle(tint)
                 .frame(width: 18)

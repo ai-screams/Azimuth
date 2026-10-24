@@ -33,7 +33,8 @@ The app source root. From the programmatic AppKit entry (`main.swift`), `AppDele
 | `Palette/` | Command palette: search, preview outline, run on the front app (see `Palette/AGENTS.md`) |
 | `UI/` | Shared SwiftUI parts for the 2.0 screens: command glyphs and keycaps (see `UI/AGENTS.md`) |
 | `DesignGallery/` | DEBUG-only design gallery for the 2.0 redesign (see `DesignGallery/AGENTS.md`) |
-| `Assets.xcassets` | App icon and accent color. The menu-bar icon is an SF Symbol, so it needs no asset |
+| `AppIcon.icon` | The app icon (#179), an Icon Composer document: `icon.json` plus SVG layers in `Assets/` (dial and north marker group, window and filled half group) on a navy fill. Xcode builds it into `Assets.car` and a `AppIcon.icns` fallback for macOS 14–15. Render it without Xcode's UI with Icon Composer's `ictool` (see `scripts/release.sh`) |
+| `Assets.xcassets` | Accent color (left empty: controls follow the system accent) and `BrandAmber` (#F2A541, only for Azimuth's own marks such as the palette outline). The menu-bar icon is drawn in code (`StatusBar/StatusBarIcon`) |
 
 ## For AI Agents
 

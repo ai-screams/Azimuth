@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   secret-scan:
-    runs-on: macos-15 # release.yml과 러너 통일(재현성)
+    runs-on: macos-26 # release.yml과 러너 통일(재현성). Xcode 26의 actool은 macOS 15에서 .icon 컴파일 중 죽는다(#179)
 
     steps:
       - name: Checkout
@@ -50,7 +50,7 @@ jobs:
           exit 1
 
   lint-and-build:
-    runs-on: macos-15 # release.yml과 러너 통일(재현성)
+    runs-on: macos-26 # release.yml과 러너 통일(재현성). Xcode 26의 actool은 macOS 15에서 .icon 컴파일 중 죽는다(#179)
 
     steps:
       - name: Checkout

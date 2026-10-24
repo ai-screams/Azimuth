@@ -137,14 +137,29 @@ STAGE="$BUILD_DIR/dmg-stage"
 rm -rf "$STAGE"; mkdir -p "$STAGE"
 cp -R "$APP" "$STAGE/"
 
-# 앱 아이콘으로 DMG 볼륨 아이콘(.icns) 생성 → create-dmg --volicon에 사용.
+# 앱 아이콘(Icon Composer `AppIcon.icon`)으로 DMG 볼륨 아이콘(.icns) 생성 → create-dmg --volicon에 사용.
+# 빌드된 앱의 AppIcon.icns는 macOS 14–15용 대체본이라 256px까지만 있다. 선택된 Xcode의 ictool로 크기별 PNG를 뽑고,
+# ictool이 없으면(Icon Composer 없는 Xcode) 그 대체본을 쓴다.
 ICONSET="$BUILD_DIR/$APP_NAME.iconset"
 VOLICON="$BUILD_DIR/$APP_NAME.icns"
-rm -rf "$ICONSET"; mkdir -p "$ICONSET"
-cp "$ROOT_DIR/$APP_NAME/Assets.xcassets/AppIcon.appiconset/"icon_*.png "$ICONSET/"
-iconutil -c icns "$ICONSET" -o "$VOLICON"
+ICTOOL="$(xcode-select -p)/../Applications/Icon Composer.app/Contents/Executables/ictool"
+if [[ -x "$ICTOOL" ]]; then
+  rm -rf "$ICONSET"; mkdir -p "$ICONSET"
+  for size in 16 32 128 256 512; do
+    for scale in 1 2; do
+      suffix=""; [[ $scale == 2 ]] && suffix="@2x"
+      "$ICTOOL" "$ROOT_DIR/$APP_NAME/AppIcon.icon" --export-image --output-file "$ICONSET/icon_${size}x${size}${suffix}.png" \
+        --platform macOS --rendition Default --width $size --height $size --scale $scale > /dev/null
+    done
+  done
+  iconutil -c icns "$ICONSET" -o "$VOLICON"
+else
+  print "  ictool 없음 → 빌드된 앱의 AppIcon.icns를 볼륨 아이콘으로 사용"
+  cp "$APP/Contents/Resources/AppIcon.icns" "$VOLICON"
+fi
 
-# DMG 창 배경(브랜드 다크 네이비 + 설치 화살표). 좌표는 540×380, 아이콘 100.
+# DMG 창 배경(구름 낀 하늘 + 앱 아이콘 뒤 방위계 + Applications로 가는 점선 항로와 비행기, #179). 좌표는 540×380, 아이콘 100.
+# 배경 PNG는 scripts/dmg/make-background.swift가 그린다(배치·색을 바꾸면 다시 실행).
 # Retina 선명도: 1x+2x PNG를 hidpi multi-rep TIFF로 결합해 Finder가 화면 배율에
 # 맞는 rep을 고르게 한다(create-dmg 1.2.3은 @2x 파일을 자동 인식하지 않으므로
 # 단일 TIFF로 넘긴다). tiffutil은 Command Line Tools에 포함.
