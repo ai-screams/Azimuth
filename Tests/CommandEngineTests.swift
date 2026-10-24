@@ -88,6 +88,8 @@ enum CommandEngineTests {
         testPopoverActivationPolicy()
         testPopoverGridLayout()
         testConcentricRadius()
+        testInstallerCleanupParse()
+        testInstallerCleanupCandidate()
         testCheatSheetLayer()
         testCheatSheetTrigger()
         testCheatSheetPreferences()

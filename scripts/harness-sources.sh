@@ -37,6 +37,7 @@ HARNESS_SRC=(
     "Azimuth/Commands/ShortcutCapturePolicy.swift"
     "Azimuth/Commands/ShortcutRecordingPolicy.swift"
     "Azimuth/Onboarding/PracticeSession.swift"
+    "Azimuth/Onboarding/InstallerCleanupPolicy.swift"
     "Azimuth/Permissions/PermissionWatchPolicy.swift"
     "Azimuth/StatusBar/StatusPopoverPolicy.swift"
     "Azimuth/Hotkeys/CheatSheetPolicy.swift"
@@ -69,4 +70,5 @@ HARNESS_TESTS=(
     "Tests/CommandEngineTests+StatusBar.swift"
     "Tests/CommandEngineTests+CheatSheet.swift"
     "Tests/CommandEngineTests+Palette.swift"
+    "Tests/CommandEngineTests+Installer.swift"
 )
