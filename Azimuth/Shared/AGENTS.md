@@ -1,5 +1,5 @@
 <!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-06-19 | Updated: 2026-10-23 -->
+<!-- Generated: 2026-06-19 | Updated: 2026-10-24 -->
 
 # Shared
 
@@ -20,6 +20,7 @@ Coordinate conversion, value types, errors and logging utilities shared across l
 | `AXMessagingTimeout.swift` | `nonisolated`. Owns the AX messaging timeout values (`resolve` 0.5s / `write` 2.0s) and **the invariant between them**. Also holds `clampedResolve` for Advanced settings (folding 0, negatives, NaN and out-of-range values away safely — AX reads 0 as "return to the 6-second default") and `ResolveTimeoutChoice`, which bundles each value with its display string so an index can never drift. The values are applied in two places, `WindowAccess/FocusedWindowResolver` (entering resolution) and `WindowFrameWriter` (just before a set), but they are defined only here. The whole-resolution budget `resolveBudget(for:)` = `resolveReadCount` (6, the AX round trips a standard window needs) × the user's timeout also lives here — it removed the defect where, as a fixed constant, picking Patient increased silent failures. The file imports only Foundation, so it is in the test harness, and `make test` enforces `write >= resolve` (violating it would make the write-stage raise *lower* the bound, with no compile error) and `resolveBudget(for: resolve) == 3.0` (violating it would diverge from the previous hardcoded constant and silently change behavior for Balanced users). The write-retry budget `writeRetryBudget(for:)` (= `resolveBudget(for:)` + `write`, 5s by default) is here as well — both budgets are measured from the **start of the command**, and `make test` pins their values at all three timeouts (Quick, Balanced, Patient) as literals |
 | `BoundedIntSetting.swift` | **(in the harness)** `nonisolated`. An integer setting's range and default (#170). `clamped` for stored values, `parse` for a settings number field (trims spaces, clamps; nil for non-numbers, so the field reverts instead of `integerValue` reading "abc" as 0) |
 | `RecentKeys.swift` | **(in the harness)** `nonisolated`, generic. LRU order for per-window stores (#170): `touch` moves a key to most recent, `evict(over:)` returns the least recent keys beyond a capacity (several at once when it was lowered). `WindowUndoStore` uses it with its `AXUIElement` key; tests use `Int` |
+| `ConcentricRadius.swift` | **(in the harness)** `nonisolated`. #179 inner corner radius: `max(minimum, outer - inset)`, so an element at the edge shares the outer curve's center and a deep one keeps a minimum. Read through `UI/AdaptiveShapes` |
 | `Log.swift` | `os.Logger` categories (`app`, `windows`) under the subsystem `com.aiscream.Azimuth` |
 
 ## For AI Agents

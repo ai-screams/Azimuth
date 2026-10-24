@@ -151,9 +151,10 @@ final class CheatSheetController {
 /// 패널 바탕: 시스템 재질 위에 키보드 지도.
 private struct CheatSheetPanelContent: View {
     let layer: CheatSheetLayer
+    private let shape = RoundedRectangle(cornerRadius: CheatSheetView.cornerRadius, style: .continuous)
 
     var body: some View {
         CheatSheetView(layer: layer)
-            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .background(.regularMaterial, in: shape)
     }
 }

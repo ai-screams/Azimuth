@@ -4,7 +4,7 @@
 //
 //  메뉴바 팝오버(#178) 내용: 위에 권한 상태, 가운데 34개 명령을 그룹별 그림 타일(8열)로,
 //  아래에 누른 명령의 이름과 키캡, 마지막 실패 사유, 설정·업데이트·종료.
-//  권한이 없으면 격자를 흐리게 하고 누를 수 없게 한다. glass는 #179에서 다룬다.
+//  권한이 없으면 격자를 흐리게 하고 누를 수 없게 한다. 누른 타일은 macOS 26 이상에서 glass(#179, `UI/AdaptiveShapes`).
 //
 
 import SwiftUI
@@ -158,18 +158,17 @@ private struct PopoverTile: View {
         }
         .buttonStyle(.plain)
         .help(command.displayName)
-        .background(background, in: shape)
-        .overlay { shape.stroke(isApplied ? Color.accentColor : .clear, lineWidth: 1) }
+        .background(hoverFill, in: shape)
+        .selectionGlass(isApplied, in: shape)
         .overlay { shape.inset(by: -2).stroke(hasCursor ? Color.accentColor : .clear, lineWidth: 2) }
         .onHover { isHovered = $0 }
         .accessibilityLabel(command.displayName)
         .accessibilityAddTraits(isApplied ? .isSelected : [])
     }
 
-    /// 누른 타일은 강조색, 마우스가 올라간 타일은 옅은 글자색. 권한이 없어 꺼졌으면 호버를 보이지 않는다.
-    private var background: Color {
-        if isApplied { return Color.accentColor.opacity(0.12) }
-        return isHovered && isEnabled ? Color.primary.opacity(0.08) : .clear
+    /// 마우스가 올라간 타일은 옅은 글자색. 누른 타일은 `selectionGlass`가 그리고, 권한이 없어 꺼졌으면 호버를 보이지 않는다.
+    private var hoverFill: Color {
+        isHovered && isEnabled && !isApplied ? Color.primary.opacity(0.08) : .clear
     }
 }
 

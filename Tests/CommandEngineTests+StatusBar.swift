@@ -62,4 +62,11 @@ extension CommandEngineTests {
         let wideRows = standard.rows.filter { $0.count > PopoverGridLayout.columns }
         expectName("rows fit the columns", "\(wideRows.count)", "0")
     }
+
+    // 바깥 14·여백 6 → 8(팔레트 줄), 바깥 16·여백 18 → 하한 7(치트시트 키 칸).
+    // 이것을 실패시키는 것: 하한을 지키지 않아 깊이 들어간 요소의 반지름이 0 이하가 되는 것, 여백을 빼지 않는 것.
+    static func testConcentricRadius() {
+        expectName("edge row", "\(ConcentricRadius.inner(outer: 14, inset: 6, minimum: 4))", "8.0")
+        expectName("deep cell keeps the minimum", "\(ConcentricRadius.inner(outer: 16, inset: 18, minimum: 7))", "7.0")
+    }
 }
