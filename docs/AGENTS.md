@@ -14,7 +14,7 @@ inline design-token stylesheet.
 |------|-------------|
 | `index.html` | Marketing landing: hero (CSS desktop mockup + Download/GitHub CTAs), feature cards, shortcuts, how-it-works, requirements/install, FAQ, and the funding/support block. Self-contained: inline `<style>` (design tokens, `prefers-color-scheme` dark mode), inline SVGs, JSON-LD `SoftwareApplication` structured data, OG/Twitter meta, and a bottom language-toggle `<script>`. |
 | `manual.html` | Complete reference: requirements, feature summary table, `#shortcuts` ("all 34 commands" + modifier-layer legend + Standard/Vim preset tables), command-behavior cards, roadmap. Duplicates index.html's token CSS and has its own copy of the language-toggle script. |
-| `assets/` | Static images only: `favicon.png`, `apple-touch-icon.png`, `og-image.png`, and demo screenshots `demo-snap.png` / `demo-throw.png`. |
+| `assets/` | Static images only: `favicon.png`, `apple-touch-icon.png`, `og-image.png` (all three generated from the app icon by `scripts/site/make-images.swift`), and demo screenshots `demo-snap.png` / `demo-throw.png`. |
 
 ## For AI Agents
 

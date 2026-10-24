@@ -841,7 +841,32 @@
             <tbody>
               <tr>
                 <td data-en="App shell" data-ko="앱 셸">App shell</td>
-                <td data-en="Menu-bar app + Dock hidden (release) + Settings window" data-ko="메뉴바 앱 + Dock 숨김(릴리스) + 설정창">Menu-bar app + Dock hidden (release) + Settings window</td>
+                <td data-en="Menu-bar app + Dock hidden (release) + Settings window (General · Shortcuts · Advanced · About)" data-ko="메뉴바 앱 + Dock 숨김(릴리스) + 설정창(General · Shortcuts · Advanced · About)">Menu-bar app + Dock hidden (release) + Settings window (General · Shortcuts · Advanced · About)</td>
+                <td>✅</td>
+              </tr>
+              <tr>
+                <td data-en="App shell" data-ko="앱 셸">App shell</td>
+                <td data-en="Menu-bar popover: the 34 commands as tiles, permission status, last failure (right-click for the menu)" data-ko="메뉴바 팝오버: 34개 명령 타일, 권한 상태, 마지막 실패 사유(오른쪽 클릭은 메뉴)">Menu-bar popover: the 34 commands as tiles, permission status, last failure (right-click for the menu)</td>
+                <td>✅</td>
+              </tr>
+              <tr>
+                <td data-en="Input" data-ko="입력">Input</td>
+                <td data-en="Command palette (⌃⌥P): search every command, preview where the window goes" data-ko="명령 팔레트(⌃⌥P): 모든 명령 검색, 창이 갈 자리 미리 보기">Command palette (⌃⌥P): search every command, preview where the window goes</td>
+                <td>✅</td>
+              </tr>
+              <tr>
+                <td data-en="Input" data-ko="입력">Input</td>
+                <td data-en="Shortcut cheat sheet: hold a shortcut's modifier keys to see a keyboard map" data-ko="단축키 치트시트: 단축키의 수정키를 누르고 있으면 자판 지도 표시">Shortcut cheat sheet: hold a shortcut's modifier keys to see a keyboard map</td>
+                <td>✅</td>
+              </tr>
+              <tr>
+                <td data-en="Onboarding" data-ko="첫 실행">Onboarding</td>
+                <td data-en="First-run guide + practice window for the main shortcuts" data-ko="첫 실행 안내 + 주요 단축키 연습 창">First-run guide + practice window for the main shortcuts</td>
+                <td>✅</td>
+              </tr>
+              <tr>
+                <td data-en="Install" data-ko="설치">Install</td>
+                <td data-en="Offers to eject and trash the installer disk image after installing" data-ko="설치 뒤 설치 디스크 이미지를 꺼내고 휴지통으로 옮길지 물어봄">Offers to eject and trash the installer disk image after installing</td>
                 <td>✅</td>
               </tr>
               <tr>
@@ -956,6 +981,85 @@
               </tr>
             </tbody>
           </table>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ── 3b. Beyond shortcuts (2.0) ───────────────────────────── -->
+    <section id="tools" aria-labelledby="tools-heading">
+      <div class="container">
+        <span class="section-label"
+              data-en="2.0" data-ko="2.0">2.0</span>
+        <h2 class="section-title" id="tools-heading"
+            data-en="Beyond shortcuts"
+            data-ko="단축키 외의 도구">
+          Beyond shortcuts
+        </h2>
+        <p class="section-sub"
+           data-en="Other ways to run commands and learn the keys."
+           data-ko="명령을 실행하고 키를 익히는 다른 방법.">
+          Other ways to run commands and learn the keys.
+        </p>
+
+        <div class="req-grid">
+
+          <!-- Tool 1 -->
+          <div class="req-card">
+            <div class="req-card-num" aria-hidden="true">1</div>
+            <h3 data-en="Menu-bar popover"
+                data-ko="메뉴바 팝오버">Menu-bar popover</h3>
+            <p data-en="Click the menu bar icon to open a popover with all 34 commands as tiles, grouped as in Settings. Click a tile, or move with the arrow keys and press Return or Space, to apply it to the front window. The tile you used last is highlighted (as glass on macOS 26 and later). The popover also shows the permission status and the last failure reason, with Open Settings, Check for Updates and Quit at the bottom. Right-click or Control-click the icon for the menu."
+               data-ko="메뉴바 아이콘을 클릭하면 34개 명령이 설정과 같은 그룹으로 묶인 타일 팝오버가 열립니다. 타일을 클릭하거나, 화살표 키로 옮긴 뒤 Return이나 Space를 누르면 앞 창에 적용됩니다. 마지막으로 쓴 타일은 강조되고, macOS 26 이상에서는 유리 질감으로 보입니다. 팝오버에는 권한 상태와 마지막 실패 사유도 나오고, 아래에 설정 열기·업데이트 확인·종료가 있습니다. 아이콘을 오른쪽 클릭하거나 Control-클릭하면 메뉴가 열립니다.">
+              Click the menu bar icon to open a popover with all 34 commands as tiles, grouped as in Settings. Click a tile, or move with the arrow keys and press Return or Space, to apply it to the front window. The tile you used last is highlighted (as glass on macOS 26 and later). The popover also shows the permission status and the last failure reason, with Open Settings, Check for Updates and Quit at the bottom. Right-click or Control-click the icon for the menu.
+            </p>
+          </div>
+
+          <!-- Tool 2 -->
+          <div class="req-card">
+            <div class="req-card-num" aria-hidden="true">2</div>
+            <h3 data-en="Command palette (⌃⌥P)"
+                data-ko="명령 팔레트 (⌃⌥P)">Command palette (⌃⌥P)</h3>
+            <p data-en="Press ⌃⌥P to open a search panel for every command. Type part of a name or a word like “max”, “third” or “monitor”, move with ↑↓ and press Return to apply it to the window that was in front; Esc closes. A dashed amber outline shows where the selected command will put the window. With an empty search, your recent commands come first. Names are searched in English. Change or turn off the shortcut in Settings → Shortcuts → Command Palette."
+               data-ko="⌃⌥P를 누르면 모든 명령을 찾는 검색 패널이 열립니다. 이름의 일부나 “max”, “third”, “monitor” 같은 낱말을 입력하고 ↑↓로 고른 뒤 Return을 누르면 앞에 있던 창에 적용됩니다. Esc는 닫기입니다. 고른 명령이 창을 놓을 자리는 호박색 점선 윤곽으로 보입니다. 검색어가 비어 있으면 최근에 쓴 명령이 먼저 나옵니다. 이름은 영어로 검색합니다. 단축키는 설정 → Shortcuts → Command Palette에서 바꾸거나 끕니다.">
+              Press ⌃⌥P to open a search panel for every command. Type part of a name or a word like “max”, “third” or “monitor”, move with ↑↓ and press Return to apply it to the window that was in front; Esc closes. A dashed amber outline shows where the selected command will put the window. With an empty search, your recent commands come first. Names are searched in English. Change or turn off the shortcut in Settings → Shortcuts → Command Palette.
+            </p>
+          </div>
+
+          <!-- Tool 3 -->
+          <div class="req-card">
+            <div class="req-card-num" aria-hidden="true">3</div>
+            <h3 data-en="Shortcut cheat sheet"
+                data-ko="단축키 치트시트">Shortcut cheat sheet</h3>
+            <p data-en="Hold the modifier keys of a shortcut, such as ⌃⌥, for a moment (0.8 seconds by default) and a keyboard map shows what each key does with those modifiers. It closes when you let go or press a key. Turn it off or change the delay in Settings → General → Cheat Sheet. For this, Azimuth watches which modifier keys are held and whether a key was pressed; it does not read which key."
+               data-ko="⌃⌥처럼 단축키의 수정키를 잠깐(기본 0.8초) 누르고 있으면, 그 수정키와 함께 각 키가 무엇을 하는지 자판 지도가 나옵니다. 손을 떼거나 키를 누르면 닫힙니다. 설정 → General → Cheat Sheet에서 끄거나 지연을 바꿉니다. 이를 위해 Azimuth는 어떤 수정키가 눌려 있는지와 키가 눌렸다는 사실만 보고, 어떤 키인지는 읽지 않습니다.">
+              Hold the modifier keys of a shortcut, such as ⌃⌥, for a moment (0.8 seconds by default) and a keyboard map shows what each key does with those modifiers. It closes when you let go or press a key. Turn it off or change the delay in Settings → General → Cheat Sheet. For this, Azimuth watches which modifier keys are held and whether a key was pressed; it does not read which key.
+            </p>
+          </div>
+
+          <!-- Tool 4 -->
+          <div class="req-card">
+            <div class="req-card-num" aria-hidden="true">4</div>
+            <h3 data-en="Practice window"
+                data-ko="연습 창">Practice window</h3>
+            <p data-en="On first launch a short guide appears under the menu bar icon. With permission granted, Try the Shortcuts opens a practice window where you move a sample window with Left 1/2, Maximize and Undo. Open it again from the icon's right-click menu (Practice Shortcuts…) or Settings → General → Practice."
+               data-ko="첫 실행 때 메뉴바 아이콘 아래에 짧은 안내가 나옵니다. 권한이 있으면 Try the Shortcuts가 연습 창을 열고, 견본 창을 Left 1/2, Maximize, Undo로 움직여 볼 수 있습니다. 다시 열려면 아이콘의 오른쪽 클릭 메뉴(Practice Shortcuts…)나 설정 → General → Practice를 쓰세요.">
+              On first launch a short guide appears under the menu bar icon. With permission granted, Try the Shortcuts opens a practice window where you move a sample window with Left 1/2, Maximize and Undo. Open it again from the icon's right-click menu (Practice Shortcuts…) or Settings → General → Practice.
+            </p>
+          </div>
+
+          <!-- Tool 5 -->
+          <div class="req-card">
+            <div class="req-card-num" aria-hidden="true">5</div>
+            <h3 data-en="Installer cleanup"
+                data-ko="설치 파일 정리">Installer cleanup</h3>
+            <p data-en="If the Azimuth disk image is still mounted when Azimuth first runs from Applications, it asks once per version whether to eject it and move the .dmg to the Trash. macOS may ask for access to your Downloads folder; if you decline, the disk image is still ejected and the file stays."
+               data-ko="Applications에서 Azimuth를 처음 실행할 때 Azimuth 디스크 이미지가 아직 연결돼 있으면, 버전마다 한 번 그 이미지를 꺼내고 .dmg를 휴지통으로 옮길지 묻습니다. macOS가 다운로드 폴더 접근을 물을 수 있으며, 거부하면 디스크 이미지만 꺼내고 파일은 남겨 둡니다.">
+              If the Azimuth disk image is still mounted when Azimuth first runs from Applications, it asks once per version whether to eject it and move the .dmg to the Trash. macOS may ask for access to your Downloads folder; if you decline, the disk image is still ejected and the file stays.
+            </p>
+          </div>
+
         </div>
       </div>
     </section>
@@ -1141,9 +1245,9 @@
         <!-- 3.3 No-shortcut execution note -->
         <div class="shortcuts-meta" role="note">
           <strong data-en="Running commands without shortcuts:" data-ko="단축키 없이 실행:">Running commands without shortcuts:</strong>
-          <span data-en=" In DEBUG builds, use the menu-bar icon → Window Commands (Debug) submenu to trigger any command directly. Settings (⌘,) has three tabs: General (permission status, failure beep and notification, undo steps per window and how many windows to remember, launch at login, hiding the menu-bar icon, updates), Shortcuts (preset, per-command recording and Reset, group and per-command on/off) and Advanced (how long to wait for an unresponsive app). In the Shortcuts tab every group starts collapsed — open one with its disclosure triangle, or type in the filter and matching groups expand on their own."
-                data-ko=" DEBUG 빌드에서는 메뉴바 아이콘 → Window Commands (Debug) 서브메뉴로 각 명령을 직접 실행할 수 있습니다. 설정창(⌘,)은 탭 세 개입니다: General(권한 상태, 실패 비프·알림, 창당 Undo 단계와 기억할 창 수, 로그인 자동 실행, 메뉴바 아이콘 숨김, 업데이트), Shortcuts(프리셋, 명령별 녹화·Reset, 그룹·명령 on/off), Advanced(응답 없는 앱을 얼마나 기다릴지). Shortcuts 탭의 그룹은 모두 접힌 채로 시작합니다 — 삼각형으로 펼치거나, 필터에 입력하면 해당 그룹이 저절로 펼쳐집니다.">
-            In DEBUG builds, use the menu-bar icon → Window Commands (Debug) submenu to trigger any command directly. Settings (⌘,) has three tabs: General (permission status, failure beep and notification, undo steps per window and how many windows to remember, launch at login, hiding the menu-bar icon, updates), Shortcuts (preset, per-command recording and Reset, group and per-command on/off) and Advanced (how long to wait for an unresponsive app). In the Shortcuts tab every group starts collapsed — open one with its disclosure triangle, or type in the filter and matching groups expand on their own.
+          <span data-en=" Click the menu bar icon and pick a command in the popover, or press ⌃⌥P and search in the command palette (see Beyond shortcuts below). Settings (⌘,) has four panes: General (permission status, launch at login, hiding the menu-bar icon, failure sound and notification, cheat sheet, practice), Shortcuts (preset, the command palette shortcut, per-command recording and Reset, group and per-command on/off), Advanced (undo steps per window and how many windows to remember, how long to wait for an unresponsive app) and About (version and updates). In the Shortcuts pane every group starts collapsed — open one with its disclosure triangle, or type in the search field and matching groups expand on their own."
+                data-ko=" 메뉴바 아이콘을 클릭해 팝오버에서 명령을 고르거나, ⌃⌥P를 눌러 명령 팔레트에서 검색하세요(아래 '단축키 외의 도구' 참고). 설정창(⌘,)은 네 화면입니다: General(권한 상태, 로그인 자동 실행, 메뉴바 아이콘 숨김, 실패 소리·알림, 치트시트, 연습), Shortcuts(프리셋, 명령 팔레트 단축키, 명령별 녹화·Reset, 그룹·명령 on/off), Advanced(창당 Undo 단계와 기억할 창 수, 응답 없는 앱을 얼마나 기다릴지), About(버전과 업데이트). Shortcuts 화면의 그룹은 모두 접힌 채로 시작합니다 — 삼각형으로 펼치거나, 검색란에 입력하면 해당 그룹이 저절로 펼쳐집니다.">
+            Click the menu bar icon and pick a command in the popover, or press ⌃⌥P and search in the command palette (see Beyond shortcuts below). Settings (⌘,) has four panes: General (permission status, launch at login, hiding the menu-bar icon, failure sound and notification, cheat sheet, practice), Shortcuts (preset, the command palette shortcut, per-command recording and Reset, group and per-command on/off), Advanced (undo steps per window and how many windows to remember, how long to wait for an unresponsive app) and About (version and updates). In the Shortcuts pane every group starts collapsed — open one with its disclosure triangle, or type in the search field and matching groups expand on their own.
           </span>
           <br /><br />
           <span data-en="All 34 key combinations are registered at launch. If a registration fails — because another app or macOS already holds that combination, or because the hotkey system could not start — Settings marks the row "
@@ -1332,9 +1436,9 @@
               <span data-en="Failure feedback" data-ko="실패 피드백">Failure feedback</span>
             </div>
             <p class="cmd-card-body"
-               data-en="When a command cannot complete, Azimuth plays a beep (configurable in Settings) and records the reason, which you can read in the menu bar item's menu. You can also opt in to a notification on failure. Transient failures — such as those caused by a Space transition or a window animation in progress — are silently skipped without a beep, since they self-resolve immediately. Two cases behave differently. If the command failed because Accessibility permission is missing, Azimuth opens the Settings window for you — once per launch, so it never becomes a nuisance. And if the target app took too long to answer, the reason reads &quot;The app is taking too long to respond&quot;; the Advanced tab decides how long Azimuth waits before giving up."
-               data-ko="명령이 완료될 수 없을 때 Azimuth는 비프음을 재생하고(설정에서 끌 수 있음) 실패 사유를 기록해 메뉴바 항목의 메뉴에서 확인할 수 있습니다. 실패 시 알림을 받도록 선택할 수도 있습니다. Space 전환이나 윈도우 애니메이션 중 발생하는 일시적 실패는 즉시 자가 해결되므로 비프 없이 조용히 스킵됩니다. 두 경우는 다르게 동작합니다. Accessibility 권한이 없어서 실패했다면 Azimuth가 설정창을 대신 열어 줍니다 — 실행당 한 번뿐이라 성가시지 않습니다. 대상 앱이 너무 오래 답하지 않아 실패했다면 사유가 &quot;The app is taking too long to respond&quot;으로 표시되며, 얼마나 기다릴지는 Advanced 탭에서 정합니다.">
-              When a command cannot complete, Azimuth plays a beep (configurable in Settings) and records the reason, which you can read in the menu bar item's menu. You can also opt in to a notification on failure. Transient failures — such as those caused by a Space transition or a window animation in progress — are silently skipped without a beep, since they self-resolve immediately. Two cases behave differently. If the command failed because Accessibility permission is missing, Azimuth opens the Settings window for you — once per launch, so it never becomes a nuisance. And if the target app took too long to answer, the reason reads &quot;The app is taking too long to respond&quot;; the Advanced tab decides how long Azimuth waits before giving up.
+               data-en="When a command cannot complete, Azimuth plays a beep (configurable in Settings) and records the reason, which the menu-bar popover shows (and the menu you get by right-clicking the icon). You can also opt in to a notification on failure. Transient failures — such as those caused by a Space transition or a window animation in progress — are silently skipped without a beep, since they self-resolve immediately. Two cases behave differently. If the command failed because Accessibility permission is missing, Azimuth opens the Settings window for you — once per launch, so it never becomes a nuisance. And if the target app took too long to answer, the reason reads &quot;The app is taking too long to respond&quot;; the Advanced tab decides how long Azimuth waits before giving up."
+               data-ko="명령이 완료될 수 없을 때 Azimuth는 비프음을 재생하고(설정에서 끌 수 있음) 실패 사유를 기록해 메뉴바 팝오버(아이콘을 오른쪽 클릭하면 나오는 메뉴에도)에서 확인할 수 있습니다. 실패 시 알림을 받도록 선택할 수도 있습니다. Space 전환이나 윈도우 애니메이션 중 발생하는 일시적 실패는 즉시 자가 해결되므로 비프 없이 조용히 스킵됩니다. 두 경우는 다르게 동작합니다. Accessibility 권한이 없어서 실패했다면 Azimuth가 설정창을 대신 열어 줍니다 — 실행당 한 번뿐이라 성가시지 않습니다. 대상 앱이 너무 오래 답하지 않아 실패했다면 사유가 &quot;The app is taking too long to respond&quot;으로 표시되며, 얼마나 기다릴지는 Advanced 탭에서 정합니다.">
+              When a command cannot complete, Azimuth plays a beep (configurable in Settings) and records the reason, which the menu-bar popover shows (and the menu you get by right-clicking the icon). You can also opt in to a notification on failure. Transient failures — such as those caused by a Space transition or a window animation in progress — are silently skipped without a beep, since they self-resolve immediately. Two cases behave differently. If the command failed because Accessibility permission is missing, Azimuth opens the Settings window for you — once per launch, so it never becomes a nuisance. And if the target app took too long to answer, the reason reads &quot;The app is taking too long to respond&quot;; the Advanced tab decides how long Azimuth waits before giving up.
             </p>
           </div>
 
