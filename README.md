@@ -37,7 +37,12 @@ Design principle: **predictability over clever inference.** Every command does e
 - **Multi-step undo** — step back through each window's recent frames: 5 by default, adjustable from 1 to 20.
 - **Multi-monitor aware** — position-aware adjacent-display selection (the window goes to the monitor that lines up with where it currently is).
 - **Two presets** — Standard (arrow keys) and Vim (HJKL), each fully customizable with conflict warnings.
-- **Automatic updates** — Azimuth checks for new releases and updates in place (via Sparkle), or check on demand from the menu. Updates are Apple-notarized **and** EdDSA-signature verified.
+- **Menu-bar popover** — click the menu bar icon for all 34 commands as tiles, the permission status and the last failure reason; right-click for the menu.
+- **Command palette** — press `⌃⌥P`, type part of a command's name, and press Return. A dashed outline shows where the window will go first.
+- **Shortcut cheat sheet** — hold a shortcut's modifier keys (such as `⌃⌥`) for a moment to see which key does what.
+- **Guided first run** — a short guide on first launch and a practice window for Left 1/2, Maximize and Undo.
+- **Installer cleanup** — after you install from the DMG, Azimuth offers once to eject the disk image and move it to the Trash.
+- **Automatic updates** — Azimuth checks for new releases and updates in place (via Sparkle), or check on demand from the menu bar popover or Settings → About. Updates are Apple-notarized **and** EdDSA-signature verified.
 
 ## Requirements
 
@@ -92,7 +97,7 @@ make run
 
 ### Grant Accessibility permission
 
-On first launch, open **System Settings → Privacy & Security → Accessibility** and enable **Azimuth**. The menu bar item and the Settings window both show the current permission state and a shortcut to the right settings pane.
+On first launch, open **System Settings → Privacy & Security → Accessibility** and enable **Azimuth**. The menu bar popover and Settings → General both show the current permission state and a shortcut to the right settings pane.
 
 ## Uninstall
 
@@ -164,23 +169,25 @@ Example: `⌃⌥H` (left half) · `⌃⌥⌘K` (move up) · `⌃⌥⇧J` (shrink
 - **Relative shrink (½ / ⅔)** — based on the *current window*, not the screen: pins the chosen edge and shrinks toward it. Arrow keys shrink to ½; `M , . /` shrink to ⅔ (M=left, ,=down, .=up, /=right). Effects compose: ⅔ then ½ lands on ⅓.
 - **Move to next display** — preserves shape and relative position: a centered window stays centered even at a different resolution. It keeps its exact pixel size if it fits the target work area; if it doesn't, both axes shrink by the same factor, so the aspect ratio never changes. No adjacent display → stays put.
 - **Fixed-size windows** — a standard window or dialog that can be moved but not resized (its green zoom button is greyed out) keeps its size, and placement commands only move it: it hugs the work-area edge the target touches and is centered within the target on the other axis (Left ½ → left edge, vertically centered; Maximize → centered on the screen). Pressing the same direction again still throws it to the adjacent display. Relative shrink still fails with "This window can't be resized".
-- **Undo** — restores the window's previous frame; press again to keep stepping back. Each window keeps its own history, 5 steps by default (Settings → General → Behavior, 1–20), for up to 64 recently used windows (1–256). Lowering either limit trims the oldest history on the next window command or Undo. Undo itself is not recorded, so there is no redo. Display reconfiguration discards undo history.
-- **Failure feedback** — a beep on failure (toggleable in Settings) plus a log entry, and the reason is recorded in the menu bar menu. You can also opt in to a notification on failure. Transient failures during Space switches or animations are skipped silently. Two cases differ: if the command failed for lack of Accessibility permission, Azimuth opens the Settings window for you (once per launch), and if the target app took too long to answer, the reason reads "The app is taking too long to respond" — how long Azimuth waits is the Advanced tab's setting.
+- **Undo** — restores the window's previous frame; press again to keep stepping back. Each window keeps its own history, 5 steps by default (Settings → Advanced → Undo, 1–20), for up to 64 recently used windows (1–256). Lowering either limit trims the oldest history on the next window command or Undo. Undo itself is not recorded, so there is no redo. Display reconfiguration discards undo history.
+- **Failure feedback** — a beep on failure (toggleable in Settings) plus a log entry, and the reason is shown in the menu bar popover (and the right-click menu). You can also opt in to a notification on failure. Transient failures during Space switches or animations are skipped silently. Two cases differ: if the command failed for lack of Accessibility permission, Azimuth opens the Settings window for you (once per launch), and if the target app took too long to answer, the reason reads "The app is taking too long to respond" — how long Azimuth waits is set in Settings → Advanced.
 
 > Note: apps with size increments (e.g. Terminal) may leave a sub-row gap when snapped to a half/maximize, because they round down to their character grid. The work area excludes the menu bar and Dock, so a gap at those edges is expected.
 
 ## Settings
 
-Open Settings from the menu bar item or with `⌘,`. It has three tabs — **General** (permissions, behavior, updates), **Shortcuts**, and **Advanced**:
+Open Settings from the menu bar popover or with `⌘,`. It has four panes:
 
-- Switch preset (Standard / Vim).
-- Shortcut groups start collapsed; expand a group with its disclosure triangle, or type in the filter to expand matches automatically.
-- Record custom shortcuts per command, with conflict warnings and per-command Reset.
-- Enable/disable command groups, or unbind individual commands.
-- Toggle failure beep, failure notifications, launch-at-login, and hide the menu bar icon.
-- Choose how many undo steps each window keeps (1–20, default 5) and how many windows keep a history (1–256, default 64).
-- Automatic updates via Sparkle — current version + Check for Updates… in Settings (and the menu bar / App menu).
-- **Advanced** — how long to wait for an unresponsive app before giving up: Quick (0.25s), Balanced (0.5s, default) or Patient (1s). Shorter keeps Azimuth's own menus responsive when an app hangs; longer gives a slow app more time to answer. Leave it alone unless commands fail on apps that are merely slow.
+- **General** — permission status, launch at login, hide the menu bar icon, failure sound and notification, the cheat
+  sheet (on/off and how long to hold: 0.5, 0.8 or 1.2 seconds), and the practice window.
+- **Shortcuts** — switch preset (Standard / Vim); the command palette shortcut (default `⌃⌥P`, can be turned off);
+  record custom shortcuts per command, with conflict warnings and per-command Reset; enable/disable command groups or
+  unbind individual commands. Groups start collapsed; expand one with its disclosure triangle, or type in the search
+  field to expand matches automatically.
+- **Advanced** — how many undo steps each window keeps (1–20, default 5) and how many windows keep a history (1–256,
+  default 64); and how long to wait for an unresponsive app before giving up: Quick (0.25s), Balanced (0.5s, default) or Patient (1s). Shorter keeps Azimuth's own menus responsive when an app hangs; longer gives a slow app more time to answer. Leave it alone unless commands fail on apps that are merely slow.
+- **About** — version, links, and automatic updates via Sparkle (Check for Updates…, also in the menu bar popover and
+  the App menu).
 
 If the menu bar icon is hidden, relaunching Azimuth reopens the Settings window so you always have a way back in.
 
