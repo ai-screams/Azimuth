@@ -72,6 +72,8 @@ The build is Developer ID–signed and notarized, so it opens without Gatekeeper
 
 ### Older macOS
 
+Every version, with its DMG and release notes, is on the [Releases page](https://github.com/ai-screams/Azimuth/releases).
+
 **macOS 13 (Ventura):** download [`Azimuth-1.7.7.dmg`](https://github.com/ai-screams/Azimuth/releases/download/v1.7.7/Azimuth-1.7.7.dmg)
 ([release notes](https://github.com/ai-screams/Azimuth/releases/tag/v1.7.7)) and install it the same way. 1.7.7 is the
 last version for macOS 13 and gets no further updates; after you upgrade the Mac to macOS 14 or later, its next update
