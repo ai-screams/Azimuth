@@ -78,7 +78,7 @@ Before opening a PR: `make build && make lint && make test` (CI runs the same, p
 
 ## Legacy branch (`legacy/10.13`, #138)
 
-- Feature-frozen build for macOS 10.13–12. Only critical fixes; main stays on 13.0, Xcode 27, latest Sparkle.
+- Feature-frozen build for macOS 10.13–12. Only critical fixes; main requires macOS 14 from 2.0 (macOS 13 stays on 1.7.7, see `LEGACY.md`), Xcode 27, latest Sparkle.
   **`LEGACY.md`** covers what to port and how, and `scripts/shared-with-legacy.txt` lists files kept
   byte-identical with `main` (main CI compares them).
 - **Local Xcode 27 rejects deployment targets below 12.0**, so `make build` / `make run` fail here. Use
@@ -97,7 +97,7 @@ Before opening a PR: `make build && make lint && make test` (CI runs the same, p
   (`build/legacy/Azimuth.app`) for real hardware. Do not `cd` into a built bundle — a shell hook can
   drop a state folder there and break its sealed signature.
 - Updates: `UpdateFeed` picks the main appcast on 13+ (migration) and the `legacy-feed` release's
-  appcast below. Versions are short `X.Y.Z` + build `209.N` (tag `legacy-vX.Y.Z-N`, shown as
+  appcast below. Its 13 is where the legacy feed ends, not main's minimum: on 13 the main feed offers 1.7.7. Versions are short `X.Y.Z` + build `209.N` (tag `legacy-vX.Y.Z-N`, shown as
   "Legacy N"); 209 stays below main's commit-count build numbers so main always wins on 13+.
 - Release: tag `legacy-vX.Y.Z-N` (N is a channel-wide serial) → `.github/workflows/release-legacy.yml`;
   this branch has no `release.yml`. It never takes GitHub's "latest" (main users' feed) and rewrites
@@ -141,7 +141,7 @@ Before opening a PR: `make build && make lint && make test` (CI runs the same, p
   Branch off `main`, keep PRs focused, **squash-merge**.
 - New source files under `Azimuth/` are auto-included via the Xcode **file-system synchronized
   group** — no `.pbxproj` edit needed. Adding a new target or SPM dependency still needs the
-  pbxproj / Xcode GUI. Deployment target: macOS **10.13** on this `legacy/10.13` branch (main: 13.0).
+  pbxproj / Xcode GUI. Deployment target: macOS **10.13** on this `legacy/10.13` branch (main: 14.0 from 2.0).
 - A macOS 14+ API is a compile error at that target — guard it with `if #available` and decide the
   13 fallback. Bring the app forward only through `NSApp.bringToFront()` (`Shared/`), never
   `NSApp.activate…` directly. String-keyed resources (SF Symbol names, `x-apple.systempreferences:`
