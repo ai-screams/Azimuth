@@ -7,7 +7,7 @@
 [![Homebrew](https://img.shields.io/badge/Homebrew-ai--screams%2Ftap-F9AB00?logo=homebrew&logoColor=white)](#homebrew)
 
 <!-- Built with -->
-[![Platform](https://img.shields.io/badge/macOS-13%2B%20%C2%B7%20legacy%2010.13--12-555555?logo=apple&logoColor=white)](#requirements)
+[![Platform](https://img.shields.io/badge/macOS-14%2B%20%C2%B7%20older%2010.13--13-555555?logo=apple&logoColor=white)](#requirements)
 [![Swift](https://img.shields.io/badge/Swift-5-F05138?logo=swift&logoColor=white)](https://swift.org)
 [![AppKit](https://img.shields.io/badge/AppKit-1a2a4a?logo=apple&logoColor=white)](https://developer.apple.com/documentation/appkit)
 [![Auto-update](https://img.shields.io/badge/Auto--update-Sparkle-8A4FFF)](https://sparkle-project.org)
@@ -46,8 +46,14 @@ Design principle: **predictability over clever inference.** Every command does e
 
 ## Requirements
 
-- macOS 13 (Ventura) or later. Ventura no longer receives Apple security updates, so use the newest macOS your Mac supports.
-- **On macOS 10.13–12**, use the [legacy build](https://github.com/ai-screams/Azimuth/releases/tag/legacy-v1.7.2-4) (`1.7.2 Legacy`) — see [Older macOS](#older-macos-legacy-build).
+- macOS 14 (Sonoma) or later. Use the newest macOS your Mac supports.
+- **On older macOS**, use an earlier version (see [Older macOS](#older-macos)):
+
+  | macOS | Version | Updates |
+  | -- | -- | -- |
+  | 14 and later | Latest (2.x) | Yes |
+  | 13 | [1.7.7](https://github.com/ai-screams/Azimuth/releases/tag/v1.7.7) | None |
+  | 10.13–12 | [1.7.2 Legacy](https://github.com/ai-screams/Azimuth/releases/tag/legacy-v1.7.2-4) | Critical and security fixes only |
 - **Accessibility permission** (Azimuth controls other apps' windows through the Accessibility API).
 
 ## Privacy
@@ -64,15 +70,20 @@ Azimuth runs entirely on your Mac. It collects no data, has no telemetry or anal
 
 The build is Developer ID–signed and notarized, so it opens without Gatekeeper warnings.
 
-### Older macOS (legacy build)
+### Older macOS
 
-Download [`Azimuth-1.7.2-legacy-4.dmg`](https://github.com/ai-screams/Azimuth/releases/download/legacy-v1.7.2-4/Azimuth-1.7.2-legacy-4.dmg) (release notes: [legacy release](https://github.com/ai-screams/Azimuth/releases/tag/legacy-v1.7.2-4)) and install it the same way
+**macOS 13 (Ventura):** download [`Azimuth-1.7.7.dmg`](https://github.com/ai-screams/Azimuth/releases/download/v1.7.7/Azimuth-1.7.7.dmg)
+([release notes](https://github.com/ai-screams/Azimuth/releases/tag/v1.7.7)) and install it the same way. 1.7.7 is the
+last version for macOS 13 and gets no further updates; after you upgrade the Mac to macOS 14 or later, its next update
+check moves it to the newest version.
+
+**macOS 10.13–12 (legacy build):** download [`Azimuth-1.7.2-legacy-4.dmg`](https://github.com/ai-screams/Azimuth/releases/download/legacy-v1.7.2-4/Azimuth-1.7.2-legacy-4.dmg) (release notes: [legacy release](https://github.com/ai-screams/Azimuth/releases/tag/legacy-v1.7.2-4)) and install it the same way
 (on these versions the setting lives in **System Preferences → Security & Privacy → Privacy → Accessibility**).
 
 - **Same core features, no new ones.** Window commands, shortcuts, the menu and undo all work, as do most settings;
   new features ship only in the regular version. Launch at login needs macOS 13, and failure notifications need 10.15.
-- **Updates itself, then moves on.** It checks its own update feed; after you upgrade the Mac to macOS 13 or later,
-  its next update check switches it to the regular version.
+- **Updates itself, then moves on.** It checks its own update feed; after you upgrade the Mac, its next update check
+  moves it to the newest version that macOS can run (1.7.7 on macOS 13, the latest on 14 or later).
 - **Tested** on a real Mac with macOS 10.13.6 (a 2009 MacBook) and in macOS 12 and 13 virtual machines, including the
   switch to the regular version on 13. macOS 10.14–11 have not been tested on real hardware.
 - These macOS versions no longer receive Apple security updates — upgrade macOS if your Mac can.

@@ -43,7 +43,10 @@ inline design-token stylesheet.
   The `#download-legacy` button links the DMG itself (`releases/download/<tag>/Azimuth-X.Y.Z-legacy-N.dmg`);
   its label is an inner `<span data-en data-ko>` so the toggle keeps the icon.
   The current tag is `legacy-v1.7.2-4`; bump it after each legacy release (README and SECURITY too).
-  JSON-LD `SoftwareApplication` stays "macOS 13+" on purpose: it describes the `/releases/latest` download.
+  macOS 13 is pinned to `v1.7.7` (the last version for 13, never bumped): the same `#legacy` note, the
+  `#download-macos13` button (`releases/download/v1.7.7/Azimuth-1.7.7.dmg`), its own link in the manual's
+  macOS card, README and SECURITY.
+  JSON-LD `SoftwareApplication` says "macOS 14+": it describes the `/releases/latest` download (2.x).
 - **Funding links live in index.html's support block.** Ko-fi `https://ko-fi.com/pignuante`
   and GitHub Sponsors `https://github.com/sponsors/ai-screams` (see `.github/FUNDING.yml`).
 - `assets/` holds only images — no `AGENTS.md` of its own.

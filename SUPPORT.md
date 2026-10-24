@@ -27,8 +27,8 @@ grant Accessibility?" — are answered there.
   **System Settings → Privacy & Security → Accessibility** (macOS 10.13–12: **System Preferences → Security &
   Privacy → Privacy → Accessibility**), and check the Settings window — a
   combo shown as *"In use by system"* is claimed elsewhere and can be remapped.
-- **On macOS 10.13–12?** Use the legacy build — see
-  [Older macOS](README.md#older-macos-legacy-build) in the README.
+- **On macOS 13 or older?** Use 1.7.7 (macOS 13) or the legacy build (10.13–12) — see
+  [Older macOS](README.md#older-macos) in the README.
 - **Running an old version?** Azimuth updates in place via Sparkle — use **Check for Updates…**
   from the menu bar or Settings.
 
