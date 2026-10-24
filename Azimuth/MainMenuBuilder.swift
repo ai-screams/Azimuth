@@ -87,6 +87,9 @@ enum MainMenuBuilder {
         menu.addItem(withTitle: "Copy", action: Selector(("copy:")), keyEquivalent: "c")
         menu.addItem(withTitle: "Paste", action: Selector(("paste:")), keyEquivalent: "v")
         menu.addItem(withTitle: "Select All", action: Selector(("selectAll:")), keyEquivalent: "a")
+        menu.addItem(.separator())
+        // 받는 곳은 설정 창뿐이라 그 창이 key일 때만 켜진다(응답 체인). Shortcuts 검색창으로 간다(#205).
+        menu.addItem(withTitle: "Find…", action: #selector(SettingsWindow.findShortcuts(_:)), keyEquivalent: "f")
         return menu
     }
 

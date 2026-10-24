@@ -54,6 +54,8 @@ final class ShortcutsSettingsModel {
     private(set) var query = ""
     /// 사용자가 펼친 그룹. 저장하지 않는다(화면을 열 때마다 전부 접힘).
     private(set) var expandedGroups: Set<CommandGroup> = []
+    /// Edit → Find…(⌘F)가 검색창 포커스를 요청했고 아직 검색창이 잡지 않았다(#205).
+    private(set) var searchFocusPending = false
     /// 녹화 중인 명령의 식별자. 바꾸는 길은 `apply(_:)` 하나다(일시 정지와 짝을 맞춘다).
     private(set) var recording: String?
     private var rows: [String: Row] = [:]
@@ -162,6 +164,14 @@ final class ShortcutsSettingsModel {
     }
 
     // MARK: - List
+
+    func requestSearchFocus() {
+        searchFocusPending = true
+    }
+
+    func consumeSearchFocus() {
+        searchFocusPending = false
+    }
 
     func setQuery(_ text: String) {
         query = text

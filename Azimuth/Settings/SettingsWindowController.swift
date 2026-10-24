@@ -5,8 +5,9 @@ import SwiftUI
 @MainActor
 final class SettingsWindowController {
     /// 처음 열 때의 콘텐츠 크기와 최소 크기. 사이드바(약 200pt) + grouped Form이 줄바꿈 없이 들어가는 값이다.
-    /// 높이는 가장 긴 About 화면이 스크롤 없이 들어가는 값(560에서 약 32pt 넘쳤다).
-    private static let initialSize = NSSize(width: 760, height: 600)
+    /// 높이는 가장 긴 About 화면이 스크롤 없이 들어가는 값(560에서 약 32pt 넘쳤다). About에 "Links" 제목을 단 뒤(#205)
+    /// 제목 하나만큼(약 46pt: 제목 있는 섹션 간격 57pt − 없는 간격 11pt, 스크린샷 실측) 늘렸다.
+    private static let initialSize = NSSize(width: 760, height: 646)
     private static let minimumSize = NSSize(width: 640, height: 420)
 
     private let model: SettingsModel
@@ -53,7 +54,12 @@ final class SettingsWindowController {
         let hosting = NSHostingController(rootView: SettingsRootView(model: model))
         // 창 크기는 이 컨트롤러가 정한다. 콘텐츠의 선호 크기를 따라가면 화면을 바꿀 때마다 창이 튄다.
         hosting.sizingOptions = []
-        let window = NSWindow(contentViewController: hosting)
+        let window = SettingsWindow(contentViewController: hosting)
+        window.onFind = { [weak self] in
+            guard let self else { return }
+            model.selection = .shortcuts
+            model.shortcuts.requestSearchFocus()
+        }
         window.styleMask = [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView]
         // 처음 연 화면의 제목. 이후 바뀌는 제목은 각 화면의 navigationTitle이 정한다(처음에는 덮어쓰지 않는다).
         window.title = (model.selection ?? .general).title
@@ -100,5 +106,14 @@ final class SettingsWindowController {
     private func stopPermissionWatch() {
         permissionTimer?.invalidate()
         permissionTimer = nil
+    }
+}
+
+/// Edit → Find…(⌘F)를 받는 설정 창(#205). 메뉴 항목은 대상 없이 응답 체인으로 가므로, 이 창이 key일 때만 켜진다.
+final class SettingsWindow: NSWindow {
+    var onFind: () -> Void = {}
+
+    @objc func findShortcuts(_ sender: Any?) {
+        onFind()
     }
 }
