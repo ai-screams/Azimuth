@@ -13,6 +13,8 @@ import Foundation
 nonisolated struct MountedDiskImage: Equatable {
     let imagePath: String
     let mountPoints: [String]
+    /// 이미지가 만든 장치(`/dev/disk8`, `/dev/disk8s1` 등). 볼륨을 내린 뒤에도 남아 있으면 이미지가 아직 연결돼 있다.
+    var devEntries: [String] = []
     /// 이미지를 연결한 사용자. 다른 사용자(시스템 포함)가 연결한 이미지는 건드리지 않는다.
     let ownerUID: Int?
 }
@@ -34,6 +36,7 @@ nonisolated enum InstallerCleanupPolicy {
             return MountedDiskImage(
                 imagePath: path,
                 mountPoints: entities.compactMap { $0["mount-point"] as? String },
+                devEntries: entities.compactMap { $0["dev-entry"] as? String },
                 ownerUID: image["owner-uid"] as? Int
             )
         }
@@ -82,6 +85,17 @@ nonisolated enum InstallerCleanupPolicy {
     /// 꺼낸 뒤 이미지가 떨어졌는가. 아직 연결돼 있으면 휴지통으로 옮기지 않는다.
     static func isDetached(_ candidate: InstallerCleanupCandidate, in images: [MountedDiskImage]) -> Bool {
         !images.contains { $0.imagePath == candidate.imagePath }
+    }
+
+    /// 볼륨을 내렸는데 이미지가 남았을 때 다시 꺼낼 디스크 전체 장치(`/dev/diskN`, 파티션 `sN`이 붙지 않은 것)(#207).
+    /// 실기에서 첫 `diskutil eject <마운트 위치>`가 볼륨만 내리고 이미지를 남긴 적이 있다. 없으면 nil.
+    static func wholeDisk(of candidate: InstallerCleanupCandidate, in images: [MountedDiskImage]) -> String? {
+        let image = images.first { $0.imagePath == candidate.imagePath }
+        let prefix = "/dev/disk"
+        return image?.devEntries.first { entry in
+            let number = entry.dropFirst(prefix.count)
+            return entry.hasPrefix(prefix) && !number.isEmpty && number.allSatisfy(\.isNumber)
+        }
     }
 }
 

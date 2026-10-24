@@ -91,6 +91,7 @@ enum CommandEngineTests {
         testInstallerCleanupParse()
         testInstallerCleanupCandidate()
         testInstallerCleanupRecheck()
+        testInstallerCleanupWholeDisk()
         testCheatSheetLayer()
         testCheatSheetTrigger()
         testCheatSheetPreferences()
