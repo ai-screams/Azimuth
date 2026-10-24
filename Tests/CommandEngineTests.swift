@@ -90,6 +90,11 @@ enum CommandEngineTests {
         testCheatSheetLayer()
         testCheatSheetTrigger()
         testCheatSheetPreferences()
+        testCommandPaletteSearch()
+        testCommandPaletteSelectionAndRecents()
+        testCommandPalettePreview()
+        testCommandPaletteShortcut()
+        testCommandPalettePreferences()
 
         if failures == 0 {
             print("PASS — all \(checks) checks")

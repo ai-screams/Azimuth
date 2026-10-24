@@ -26,6 +26,12 @@ final class ShortcutsSettingsModel {
         }
     }
 
+    /// 팔레트를 여는 단축키 줄(#183). 명령이 아니어서 그룹 밖, 화면 맨 위에 따로 있다.
+    struct PaletteRow {
+        let shortcut: HotkeyShortcut
+        let display: ShortcutRowDisplay
+    }
+
     struct GroupSection: Identifiable {
         let group: CommandGroup
         let isEnabled: Bool
@@ -51,6 +57,13 @@ final class ShortcutsSettingsModel {
     /// 녹화 중인 명령의 식별자. 바꾸는 길은 `apply(_:)` 하나다(일시 정지와 짝을 맞춘다).
     private(set) var recording: String?
     private var rows: [String: Row] = [:]
+    private(set) var paletteRow = PaletteRow(
+        shortcut: CommandPaletteShortcut.standard,
+        display: ShortcutRowPolicy.decide(ShortcutRowInput(
+            shortcutDisplay: nil, hasOverride: false, groupEnabled: true, commandOn: true, effective: true,
+            isConflicting: false, registrationFailed: false
+        ))
+    )
     private var enabledGroups: Set<CommandGroup> = []
 
     init(dependencies: SettingsDependencies) {
@@ -108,8 +121,21 @@ final class ShortcutsSettingsModel {
             disabledCommands: store.disabledCommandIdentifiers,
             disabledGroups: store.disabledGroupTokens
         )
-        let conflicts = BindingResolver.conflictingIdentifiers(in: enabledBindings)
         let failures = registrationFailures()
+        // 팔레트 단축키와 같은 조합을 쓰는 켜진 명령은 둘 다 Duplicate다.
+        let paletteOn = store.commandPaletteEnabled
+        let paletteShortcut = store.commandPaletteShortcut
+        let paletteConflicts = paletteOn ? CommandPaletteShortcut.conflicts(paletteShortcut, in: enabledBindings) : []
+        let conflicts = BindingResolver.conflictingIdentifiers(in: enabledBindings).union(paletteConflicts)
+        paletteRow = PaletteRow(shortcut: paletteShortcut, display: ShortcutRowPolicy.decide(ShortcutRowInput(
+            shortcutDisplay: paletteShortcut.displayString,
+            hasOverride: store.hasCustomCommandPaletteShortcut,
+            groupEnabled: true,
+            commandOn: paletteOn,
+            effective: paletteOn,
+            isConflicting: !paletteConflicts.isEmpty,
+            registrationFailed: failures.contains(CommandPaletteShortcut.identifier)
+        )))
 
         enabledGroups = Set(CommandGroup.allCases.filter { store.isGroupEnabled($0.token) })
         var next: [String: Row] = [:]
@@ -158,6 +184,17 @@ final class ShortcutsSettingsModel {
 
     func resetAll() {
         store.clearAllShortcuts()
+        store.commandPaletteShortcut = CommandPaletteShortcut.standard
+        applyChange()
+    }
+
+    func setCommandPaletteEnabled(_ isOn: Bool) {
+        store.commandPaletteEnabled = isOn
+        applyChange()
+    }
+
+    func resetCommandPalette() {
+        store.commandPaletteShortcut = CommandPaletteShortcut.standard
         applyChange()
     }
 
@@ -197,13 +234,28 @@ final class ShortcutsSettingsModel {
         applyChange()
     }
 
+    /// 팔레트 줄의 녹화. 명령 줄과 같은 전이를 팔레트 식별자로 탄다(한 번에 한 줄만 녹화).
+    func toggleCommandPaletteRecording() {
+        apply(ShortcutRecordingPolicy.toggle(CommandPaletteShortcut.identifier, current: recording))
+    }
+
+    func finishCommandPaletteRecording(with shortcut: HotkeyShortcut?) {
+        let identifier = CommandPaletteShortcut.identifier
+        guard let step = ShortcutRecordingPolicy.finish(identifier, current: recording) else { return }
+        apply(step)
+        guard let shortcut else { return }
+        store.commandPaletteShortcut = shortcut
+        applyChange()
+    }
+
     func cancelRecording() {
         guard let recording, let step = ShortcutRecordingPolicy.finish(recording, current: recording) else { return }
         apply(step)
     }
 
     private func cancelRecordingIfHidden() {
-        let visible = Set(sections.flatMap(\.rows).map(\.id))
+        // 팔레트 줄은 검색·접기와 무관하게 늘 보인다.
+        let visible = Set(sections.flatMap(\.rows).map(\.id)).union([CommandPaletteShortcut.identifier])
         if ShortcutRecordingPolicy.isHidden(current: recording, visible: visible) { cancelRecording() }
     }
 

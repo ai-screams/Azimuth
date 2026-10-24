@@ -23,6 +23,9 @@ final class PreferencesStore {
     private let undoWindowCapacityKey = "undoWindowCapacity"
     private let cheatSheetEnabledKey = "cheatSheetEnabled"
     private let cheatSheetDelayKey = "cheatSheetDelayMilliseconds"
+    private let commandPaletteEnabledKey = "commandPaletteEnabled"
+    private let commandPaletteShortcutKey = "commandPaletteShortcut"
+    private let commandPaletteRecentKey = "commandPaletteRecent"
     private let migratedAbsoluteHalfRemovedKey = "migration.absoluteHalfRemoved.v1"
 
     /// feat/snap-throw-display: absolute half 명령 4개가 menuCommands에서 제거됨.
@@ -126,6 +129,45 @@ final class PreferencesStore {
         set {
             defaults.set(newValue.rawValue, forKey: cheatSheetDelayKey)
         }
+    }
+
+    /// 명령 팔레트 단축키를 등록할지(#183). 미설정 시 켜짐.
+    var commandPaletteEnabled: Bool {
+        get {
+            guard defaults.object(forKey: commandPaletteEnabledKey) != nil else { return true }
+            return defaults.bool(forKey: commandPaletteEnabledKey)
+        }
+        set {
+            defaults.set(newValue, forKey: commandPaletteEnabledKey)
+        }
+    }
+
+    /// 팔레트를 여는 조합. 저장 값이 없거나 읽지 못하면 기본(⌃⌥P). nil을 대입하면 기본으로 되돌린다.
+    var commandPaletteShortcut: HotkeyShortcut {
+        get {
+            guard let data = defaults.data(forKey: commandPaletteShortcutKey),
+                  let shortcut = try? JSONDecoder().decode(HotkeyShortcut.self, from: data)
+            else { return CommandPaletteShortcut.standard }
+            return shortcut
+        }
+        set {
+            if newValue == CommandPaletteShortcut.standard {
+                defaults.removeObject(forKey: commandPaletteShortcutKey)
+            } else if let data = try? JSONEncoder().encode(newValue) {
+                defaults.set(data, forKey: commandPaletteShortcutKey)
+            }
+        }
+    }
+
+    /// 기본값과 다른 조합을 저장했는지(설정의 사용자 지정 점·되돌리기).
+    var hasCustomCommandPaletteShortcut: Bool {
+        defaults.data(forKey: commandPaletteShortcutKey) != nil
+    }
+
+    /// 팔레트로 실행한 명령 식별자, 최근이 앞. 상한은 `CommandPaletteRecents`가 지킨다.
+    var commandPaletteRecent: [String] {
+        get { defaults.stringArray(forKey: commandPaletteRecentKey) ?? [] }
+        set { defaults.set(Array(newValue.prefix(CommandPaletteRecents.capacity)), forKey: commandPaletteRecentKey) }
     }
 
     /// 명령 실패 시 비프음 재생 여부. 미설정 시 기본 활성화.
