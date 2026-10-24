@@ -26,6 +26,7 @@ final class PreferencesStore {
     private let commandPaletteEnabledKey = "commandPaletteEnabled"
     private let commandPaletteShortcutKey = "commandPaletteShortcut"
     private let commandPaletteRecentKey = "commandPaletteRecent"
+    private let installerCleanupCheckedVersionKey = "installerCleanupCheckedVersion"
     private let migratedAbsoluteHalfRemovedKey = "migration.absoluteHalfRemoved.v1"
 
     /// feat/snap-throw-display: absolute half 명령 4개가 menuCommands에서 제거됨.
@@ -257,6 +258,13 @@ final class PreferencesStore {
     var didAttemptAccessibilityPrompt: Bool {
         get { defaults.bool(forKey: didAttemptAccessibilityPromptKey) }
         set { defaults.set(newValue, forKey: didAttemptAccessibilityPromptKey) }
+    }
+
+    /// 설치 파일 정리(#197)를 위해 디스크 이미지를 마지막으로 찾아본 앱 빌드 번호(`CFBundleVersion`). 빌드마다 한 번만
+    /// 찾아보고 묻는다.
+    var installerCleanupCheckedVersion: String? {
+        get { defaults.string(forKey: installerCleanupCheckedVersionKey) }
+        set { defaults.set(newValue, forKey: installerCleanupCheckedVersionKey) }
     }
 
     /// 첫 실행 온보딩(권한 안내 창)을 이미 띄웠는지. 미설정(false)=아직 안 띄움 → 첫 실행에서만 1회 노출.
