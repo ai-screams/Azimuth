@@ -27,6 +27,15 @@ struct ShortcutsSettingsView: View {
             } footer: {
                 Text("Click a shortcut to record a new key combo. Esc cancels.")
             }
+            Section {
+                CommandPaletteShortcutRow(
+                    row: model.paletteRow,
+                    isRecording: model.recording == CommandPaletteShortcut.identifier,
+                    model: model
+                )
+            } footer: {
+                Text("Opens a search panel for every command, with a preview of where the window goes.")
+            }
             let sections = model.sections
             if sections.isEmpty {
                 Section {
@@ -91,28 +100,84 @@ private struct ShortcutRow: View {
     let isRecording: Bool
     let model: ShortcutsSettingsModel
 
-    private var display: ShortcutRowDisplay {
-        row.display
+    var body: some View {
+        ShortcutRowContent(
+            name: row.command.displayName,
+            help: row.command.helpText,
+            shortcut: row.shortcut,
+            display: row.display,
+            isRecording: isRecording,
+            actions: ShortcutRowActions(
+                setEnabled: { model.setCommandEnabled(row.command, $0) },
+                reset: { model.reset(row.command) },
+                toggleRecording: { model.toggleRecording(row.command) },
+                finishRecording: { model.finishRecording(row.command, with: $0) }
+            )
+        ) {
+            CommandGlyphView(command: row.command, emphasized: isRecording)
+        }
     }
+}
 
-    private var name: String {
-        row.command.displayName
+/// 팔레트 단축키 줄(#183): 명령 줄과 같은 모양에 그림 대신 돋보기.
+private struct CommandPaletteShortcutRow: View {
+    let row: ShortcutsSettingsModel.PaletteRow
+    let isRecording: Bool
+    let model: ShortcutsSettingsModel
+
+    var body: some View {
+        ShortcutRowContent(
+            name: "Command Palette",
+            help: "Search every command by name and see where the window goes before applying it.",
+            shortcut: row.shortcut,
+            display: row.display,
+            isRecording: isRecording,
+            actions: ShortcutRowActions(
+                setEnabled: model.setCommandPaletteEnabled,
+                reset: model.resetCommandPalette,
+                toggleRecording: model.toggleCommandPaletteRecording,
+                finishRecording: model.finishCommandPaletteRecording
+            )
+        ) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(isRecording ? Color.accentColor : Color.primary)
+                .frame(width: 28, height: 20)
+        }
     }
+}
+
+private struct ShortcutRowActions {
+    let setEnabled: (Bool) -> Void
+    let reset: () -> Void
+    let toggleRecording: () -> Void
+    let finishRecording: (HotkeyShortcut?) -> Void
+}
+
+/// 단축키 줄 하나: 체크(켜기) · 그림 · 이름(배지) · 사용자 지정 점 · 키캡 · 되돌리기. 명령 줄과 팔레트 줄이 같이 쓴다.
+private struct ShortcutRowContent<Glyph: View>: View {
+    let name: String
+    let help: String
+    let shortcut: HotkeyShortcut?
+    let display: ShortcutRowDisplay
+    let isRecording: Bool
+    let actions: ShortcutRowActions
+    @ViewBuilder let glyph: Glyph
 
     var body: some View {
         HStack(spacing: 8) {
-            Toggle(name, isOn: Binding(get: { display.checkboxOn }, set: { model.setCommandEnabled(row.command, $0) }))
+            Toggle(name, isOn: Binding(get: { display.checkboxOn }, set: actions.setEnabled))
                 .toggleStyle(.checkbox)
                 .labelsHidden()
                 .disabled(!display.checkboxEnabled)
                 .accessibilityLabel("Enable \(name)")
-            CommandGlyphView(command: row.command, emphasized: isRecording)
+            glyph
                 .opacity(display.isDimmed ? 0.45 : 1)
             VStack(alignment: .leading, spacing: 1) {
                 Text(name)
                     .foregroundStyle(display.isDimmed ? .secondary : .primary)
                     .lineLimit(1)
-                    .help(row.command.helpText) // 무엇을 하는 명령인지 hover로 설명한다
+                    .help(help) // 무엇을 하는 명령인지 hover로 설명한다
                 BadgeText(badge: display.badge)
             }
             Spacer(minLength: 8)
@@ -125,7 +190,7 @@ private struct ShortcutRow: View {
             }
             recorder
             Button {
-                model.reset(row.command)
+                actions.reset()
             } label: {
                 Image(systemName: "arrow.uturn.backward")
             }
@@ -141,21 +206,21 @@ private struct ShortcutRow: View {
 
     private var recorder: some View {
         Button {
-            model.toggleRecording(row.command)
+            actions.toggleRecording()
         } label: {
             KeycapsView(
-                shortcut: row.shortcut,
+                shortcut: shortcut,
                 mode: isRecording ? .recording : (display.recorderEnabled ? .normal : .disabled)
             )
         }
         .buttonStyle(.plain)
         .disabled(!display.recorderEnabled)
         .accessibilityLabel("Shortcut for \(name)")
-        .accessibilityValue(isRecording ? "Recording" : (row.shortcut?.displayString ?? "None"))
+        .accessibilityValue(isRecording ? "Recording" : (shortcut?.displayString ?? "None"))
         .help(isRecording ? "Type a key combo. Esc cancels." : "Click to record a new shortcut")
         .background {
             if isRecording {
-                ShortcutKeyCatcher { shortcut in model.finishRecording(row.command, with: shortcut) }
+                ShortcutKeyCatcher(onFinish: actions.finishRecording)
             }
         }
     }

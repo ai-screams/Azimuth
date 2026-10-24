@@ -270,7 +270,8 @@ enum WindowFrameWriter {
     }
 
     /// 조회 실패를 "쓸 수 없다"와 섞지 않는다(#167) — 크기 고정 대체는 `.notSettable`에서만 걸린다.
-    private static func settableAnswer(_ element: AXUIElement, _ attribute: String) -> SettableAnswer {
+    /// 명령 팔레트(#183)도 미리 보기를 실행과 같게 그리려고 크기 답을 여기서 묻는다.
+    static func settableAnswer(_ element: AXUIElement, _ attribute: String) -> SettableAnswer {
         var settable = DarwinBoolean(false)
         let error = AXUIElementIsAttributeSettable(element, attribute as CFString, &settable)
         return SettableAnswer(querySucceeded: error == .success, settable: settable.boolValue)
