@@ -42,9 +42,12 @@ struct AboutSettingsView: View {
                 ForEach(AboutContent.links, id: \.url) { link in
                     Link(destination: link.url) {
                         Label(link.title, systemImage: link.symbol)
+                            .labelStyle(FixedIconLabelStyle())
                             .foregroundStyle(tint(link.tint))
                     }
                 }
+            } header: {
+                Text("Links")
             } footer: {
                 Text(AboutContent.copyright())
             }
@@ -61,6 +64,17 @@ struct AboutSettingsView: View {
             .pink
         case .orange:
             .orange
+        }
+    }
+}
+
+/// 아이콘 칸 폭을 고정한 Label(#205). SF Symbol마다 폭이 달라(지구·벌레·하트·컵) 글자 시작이 줄마다 약 3.5pt씩 어긋났다.
+private struct FixedIconLabelStyle: LabelStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        HStack(spacing: 8) {
+            configuration.icon
+                .frame(width: 20)
+            configuration.title
         }
     }
 }
