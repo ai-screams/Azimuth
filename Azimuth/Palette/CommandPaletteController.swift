@@ -262,11 +262,12 @@ private final class PreviewOutlineWindow: NSPanel {
     }
 }
 
+/// 브랜드 호박색(#179): 시스템 강조색은 컨트롤 몫이고, 윤곽처럼 Azimuth만의 요소는 앱 아이콘과 같은 색으로 그린다.
 private struct PreviewOutlineView: View {
     var body: some View {
         RoundedRectangle(cornerRadius: 10, style: .continuous)
-            .strokeBorder(Color.accentColor, style: StrokeStyle(lineWidth: 3, dash: [10, 6]))
-            .background(Color.accentColor.opacity(0.08), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .strokeBorder(Color(.brandAmber), style: StrokeStyle(lineWidth: 3, dash: [10, 6]))
+            .background(Color(.brandAmber).opacity(0.1), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
             .accessibilityHidden(true)
     }
 }
