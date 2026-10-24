@@ -27,6 +27,7 @@ HARNESS_SRC=(
     "Azimuth/Notifications/NotifyToggleDecision.swift"
     "Azimuth/Shared/BoundedIntSetting.swift"
     "Azimuth/Shared/RecentKeys.swift"
+    "Azimuth/Shared/ConcentricRadius.swift"
     "Azimuth/Shared/UpdateVersionText.swift"
     "Azimuth/Permissions/AccessibilityRequestPolicy.swift"
     "Azimuth/Preferences/PreferencesStore.swift"

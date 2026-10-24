@@ -15,6 +15,9 @@ struct CheatSheetView: View {
     /// 숫자 줄(14키)이 약 700pt에 들어가는 크기. 58pt로 그렸더니 900pt가 넘어 갤러리 창에서 잘렸다.
     static let keySize = CGSize(width: 44, height: 60)
     private static let spacing: CGFloat = 4
+    /// 패널 바탕(`CheatSheetController`)의 모서리와 키 칸까지의 여백. 키 칸 모서리는 둘에서 정한다.
+    static let cornerRadius: CGFloat = 16
+    static let padding: CGFloat = 18
     private static let widths = CheatSheetKeyboard.widths(unit: keySize.width, spacing: spacing)
 
     var body: some View {
@@ -37,7 +40,7 @@ struct CheatSheetView: View {
                 othersStrip
             }
         }
-        .padding(18)
+        .padding(Self.padding)
         .fixedSize()
     }
 
@@ -76,7 +79,7 @@ private struct KeyCell: View {
     let width: CGFloat
 
     var body: some View {
-        let shape = RoundedRectangle(cornerRadius: 7, style: .continuous)
+        let shape = AdaptiveShapes.inner(outer: CheatSheetView.cornerRadius, inset: CheatSheetView.padding, minimum: 7)
         VStack(spacing: 2) {
             HStack {
                 Text(keyCode.map(HotkeyShortcut.keyLabel(for:)) ?? "")

@@ -78,6 +78,8 @@ struct CommandPaletteView: View {
     static let width: CGFloat = 560
     static let rowHeight: CGFloat = 40
     static let visibleRows = 8
+    static let cornerRadius: CGFloat = 14
+    private static let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
 
     var body: some View {
         VStack(spacing: 0) {
@@ -103,7 +105,7 @@ struct CommandPaletteView: View {
             footer
         }
         .frame(width: Self.width)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .background(.regularMaterial, in: Self.shape)
     }
 
     private var list: some View {
@@ -173,7 +175,7 @@ private struct CommandPaletteRow: View {
         .frame(height: CommandPaletteView.rowHeight)
         .background(
             isSelected ? Color.accentColor.opacity(0.15) : Color.clear,
-            in: RoundedRectangle(cornerRadius: 8, style: .continuous)
+            in: AdaptiveShapes.inner(outer: CommandPaletteView.cornerRadius, inset: 6) // 목록 안쪽 여백 6
         )
         .contentShape(Rectangle())
         .accessibilityElement(children: .ignore)
