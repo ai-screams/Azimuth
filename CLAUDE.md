@@ -8,7 +8,8 @@ summary; the per-directory **`AGENTS.md` files are the detailed source of truth*
 
 Azimuth is a menu-bar **window manager for macOS** (Swift + AppKit, programmatic entry at
 `Azimuth/main.swift`, no storyboard). It uses the Accessibility (AX) API to move/resize other
-apps' focused windows via global hotkeys (Carbon) and menu commands. It auto-updates via
+apps' focused windows via global hotkeys (Carbon), the menu-bar popover's command grid and the command
+palette (⌃⌥P). Requires macOS 14+ (macOS 13 stays on 1.7.7). It auto-updates via
 Sparkle 2 and ships Developer ID–signed, Apple-notarized, and EdDSA-verified.
 
 ## Layout
@@ -97,9 +98,9 @@ block a commit over a file you never touched. Fetch the pinned release zip and l
   `make build` is ad-hoc → its cdhash changes every build → TCC resets the grant. Ad-hoc builds
   are for compile/CI only. Debug builds use bundle id `com.aiscream.Azimuth.debug` — a separate
   TCC identity and defaults domain from the installed release copy (prevents grant clashes).
-- **Verify `HotkeyService` changes with an actual hotkey** — the status-bar menu path never goes
-  through it, so a passing menu command proves nothing. That split is also the fastest triage:
-  menu works but hotkeys dead → hotkey registration; both dead → Accessibility/TCC.
+- **Verify `HotkeyService` changes with an actual hotkey** — the menu-bar popover's command grid never goes
+  through it, so a passing popover command proves nothing. That split is also the fastest triage:
+  popover works but hotkeys dead → hotkey registration; both dead → Accessibility/TCC.
 - **`.docs/` is internal — never commit or push it** (it is gitignored).
 - **GUI smoke tests:** do not read other apps' `kCGWindowName` (Screen Recording TCC gate that
   has frozen WindowServer). Confirm liveness via process checks — a scratch/ad-hoc binary
@@ -157,10 +158,12 @@ block a commit over a file you never touched. Fetch the pinned release zip and l
   (currently **34**). Bumping a command means updating both HTML files and the README.
 - The **legacy build** (macOS 10.13–12, branch `legacy/10.13`) is linked by its release tag
   `releases/tag/legacy-v1.7.2-4` (currently) from `index.html` (`#legacy` note), `manual.html` (macOS
-  version card), README ("Older macOS (legacy build)") and SECURITY (supported-versions table), and the
+  version card), README ("Older macOS") and SECURITY (supported-versions table), and the
   direct DMG URL `…/releases/download/legacy-v1.7.2-4/Azimuth-1.7.2-legacy-4.dmg` is in `index.html`
   (`#download-legacy` button) and README. Each new legacy release means bumping those; the
   legacy code, CI and release workflow live on that branch (see its `CLAUDE.md`).
+- **macOS 13** stays on `v1.7.7` (2.x needs 14; the feed keeps that item, see `RELEASING.md`). Its fixed links
+  (`releases/tag/v1.7.7`, `…/releases/download/v1.7.7/Azimuth-1.7.7.dmg`) are in the same places and never change.
 - **`LEGACY.md`** is the source for how main and legacy relate: which fixes to port (critical/security only),
   how, and `scripts/shared-with-legacy.txt` — files kept byte-identical on both branches, `cmp`'d by main CI
   (`release-scripts`). Changing one means a matching `legacy/10.13` PR, merged **first**.
