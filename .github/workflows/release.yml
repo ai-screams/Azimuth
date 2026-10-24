@@ -22,7 +22,7 @@ concurrency:
 
 jobs:
   release:
-    runs-on: macos-15
+    runs-on: macos-26 # ci.yml과 같은 러너. macOS 15에서는 AppIcon.icon 컴파일이 실패한다(#179)
     environment: release # 배포 승인 게이트(필수 리뷰어는 저장소 Environments 설정에서 지정).
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
