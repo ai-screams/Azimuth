@@ -176,6 +176,7 @@ if command -v create-dmg >/dev/null 2>&1; then
         --window-size 540 380 \
         --icon-size 100 \
         --icon "$APP_NAME.app" 140 200 \
+        --hide-extension "$APP_NAME.app" \
         --app-drop-link 400 200 \
         --no-internet-enable \
         "$DMG" "$STAGE" || true
