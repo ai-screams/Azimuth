@@ -995,7 +995,6 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
-      max-width: 72ch;
     }
 
     .faq-item {
@@ -1041,6 +1040,8 @@
       color: var(--text-muted);
       line-height: 1.65;
       border-top: 1px solid var(--border);
+      /* The box spans the container like the cards above; the answer text keeps a readable line length. */
+      padding-right: max(1.1rem, 100% - 72ch - 1.1rem);
     }
 
     /* ─── Mobile shortcuts: hide Group column at 480px ──────────── */
@@ -1960,7 +1961,7 @@
         <p class="section-sub"
            data-en="Azimuth is free and open source — no paywall, no ads, no telemetry — and it always will be. If it earns a place in your workflow, you can chip in to fund development. A supporter license just says thanks; it unlocks nothing, since every feature is already free for everyone."
            data-ko="Azimuth는 유료 장벽도, 광고도, 텔레메트리도 없는 무료 오픈소스이고, 앞으로도 그렇습니다. 작업 흐름에 자리를 잡았다면 개발에 보탬을 주실 수 있어요. 서포터 라이선스는 감사의 표시일 뿐 — 모든 기능은 이미 누구에게나 무료라 잠기는 건 없습니다.">Azimuth는 유료 장벽도, 광고도, 텔레메트리도 없는 무료 오픈소스이고, 앞으로도 그렇습니다. 작업 흐름에 자리를 잡았다면 개발에 보탬을 주실 수 있어요. 서포터 라이선스는 감사의 표시일 뿐 — 모든 기능은 이미 누구에게나 무료라 잠기는 건 없습니다.</p>
-        <div class="support-actions" style="margin-top: 1.75rem; display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center;">
+        <div class="support-actions" style="margin-top: 1.75rem; display: flex; gap: 0.75rem; flex-wrap: wrap;">
           <a href="https://ko-fi.com/pignuante" target="_blank" rel="noopener"
              class="btn btn-primary"
              data-en="💛 Support on Ko-fi" data-ko="💛 Ko-fi로 후원하기">💛 Ko-fi로 후원하기</a>

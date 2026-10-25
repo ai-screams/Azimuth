@@ -13,7 +13,7 @@ inline design-token stylesheet.
 | File | Description |
 |------|-------------|
 | `index.html` | Marketing landing: hero (sky with clouds and an animated glass-window stage + Download/GitHub CTAs), feature cards, shortcuts, how-it-works, requirements/install, FAQ, and the funding/support block. Self-contained: inline `<style>` (design tokens, `prefers-color-scheme` dark mode), inline SVGs, JSON-LD `SoftwareApplication` structured data, OG/Twitter meta, `hreflang`, and a bottom `<script>` that labels the download button from `/releases/latest`. |
-| `manual.html` | Complete reference: requirements, feature summary table, `#shortcuts` ("all 34 commands" + modifier-layer legend + Standard/Vim preset tables), command-behavior cards, roadmap. Duplicates index.html's token CSS. No script. |
+| `manual.html` | Complete reference: requirements, feature summary table, `#shortcuts` ("all 34 commands" + modifier-layer legend + Standard/Vim preset tables), command-behavior cards. Duplicates index.html's token CSS. No script. |
 | `ko/` | **Generated** Korean pages (`index.html`, `manual.html`); see below. Never edit by hand. |
 | `sitemap.xml` | The four pages with `hreflang` pairs, served at `/Azimuth/sitemap.xml`. No `lastmod`. |
 | `404.html` | Not-found page for any missing path under `/Azimuth/` (so its links are absolute), same sky tokens, `noindex`. |

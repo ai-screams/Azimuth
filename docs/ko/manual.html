@@ -641,58 +641,6 @@
       line-height: 1.55;
     }
 
-    /* ─── Roadmap table ──────────────────────────────────────────── */
-    #roadmap { background: var(--surface); }
-
-    table.roadmap-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.85rem;
-    }
-
-    .roadmap-table th {
-      text-align: left;
-      padding: 0.55rem 0.9rem;
-      font-size: 0.72rem;
-      font-weight: 650;
-      letter-spacing: 0.07em;
-      text-transform: uppercase;
-      color: var(--text-faint);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .roadmap-table td {
-      padding: 0.55rem 0.9rem;
-      border-bottom: 1px solid var(--border);
-      vertical-align: top;
-      line-height: 1.5;
-    }
-
-    .roadmap-table tr:last-child td { border-bottom: none; }
-    .roadmap-table tr:hover td { background: var(--accent-glow); }
-
-    .roadmap-table td:first-child {
-      color: var(--text);
-      font-weight: 600;
-      white-space: nowrap;
-      font-size: 0.82rem;
-    }
-    .roadmap-table td:nth-child(2) { color: var(--text-mid); }
-    .roadmap-table td:nth-child(3) { text-align: center; font-size: 1rem; white-space: nowrap; }
-
-    .principle-note {
-      margin-top: 1.5rem;
-      padding: 0.85rem 1.1rem;
-      background: var(--bg-card);
-      border: 1px solid var(--border-card);
-      border-left: 3px solid var(--accent);
-      border-radius: var(--radius-sm);
-      font-size: 0.85rem;
-      color: var(--text-mid);
-      line-height: 1.55;
-      font-style: italic;
-    }
-
     /* ─── Footer ─────────────────────────────────────────────────── */
     footer {
       border-top: 1px solid var(--border);
@@ -1496,71 +1444,6 @@
       </div>
     </section>
 
-    <div class="divider"></div>
-
-    <!-- ── 6. Roadmap ────────────────────────────────────────────── -->
-    <section id="roadmap" aria-labelledby="roadmap-heading">
-      <div class="container">
-        <span class="section-label"
-              data-en="What's next" data-ko="로드맵">로드맵</span>
-        <h2 class="section-title" id="roadmap-heading"
-            data-en="Roadmap"
-            data-ko="로드맵">로드맵</h2>
-        <p class="section-sub"
-           data-en="Planned work, in order of priority."
-           data-ko="우선순위 순으로 정리한 예정 작업.">우선순위 순으로 정리한 예정 작업.</p>
-
-        <div class="features-table-wrap">
-          <table class="roadmap-table" aria-label="로드맵 표" data-ko-aria-label="로드맵 표">
-            <thead>
-              <tr>
-                <th data-en="Stage" data-ko="단계">단계</th>
-                <th data-en="Description" data-ko="내용">내용</th>
-                <th data-en="Status" data-ko="상태">상태</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>P8 / v1</td>
-                <td data-en="Regression testing across representative apps (Finder / Safari / Terminal / VS Code / Xcode), failure case collection and stabilization — v1 release gate"
-                    data-ko="대표 앱(Finder/Safari/Terminal/VS Code/Xcode) 회귀 + 실패 케이스 수집·안정화 → v1 출시 기준">대표 앱(Finder/Safari/Terminal/VS Code/Xcode) 회귀 + 실패 케이스 수집·안정화 → v1 출시 기준</td>
-                <td data-en="✅ Shipped / stable" data-ko="✅ 완료 / 안정화">✅ 완료 / 안정화</td>
-              </tr>
-              <tr>
-                <td data-en="Hardening" data-ko="후속 하드닝">후속 하드닝</td>
-                <td data-en="DisplayResolver: edge-based adjacency detection for asymmetric monitor layouts"
-                    data-ko="DisplayResolver 인접 판정 엣지 기반화 (비대칭 레이아웃 대응)">DisplayResolver 인접 판정 엣지 기반화 (비대칭 레이아웃 대응)</td>
-                <td data-en="⏸ Deferred" data-ko="⏸ 보류">⏸ 보류</td>
-              </tr>
-              <tr>
-                <td data-en="Next" data-ko="다음">다음</td>
-                <td data-en="Anchor: snap or size-match the current window to another window on the same display"
-                    data-ko="anchor: 동일 모니터 내 다른 창을 기준으로 현재 창 붙이기/크기 맞추기">anchor: 동일 모니터 내 다른 창을 기준으로 현재 창 붙이기/크기 맞추기</td>
-                <td>🟡</td>
-              </tr>
-              <tr>
-                <td data-en="Later" data-ko="이후">이후</td>
-                <td data-en="Workspaces: per-app default positions, named scene save/restore, monitor-aware scenes"
-                    data-ko="워크스페이스: app별 기본 위치, named scene 저장/복원, monitor-aware scene">워크스페이스: app별 기본 위치, named scene 저장/복원, monitor-aware scene</td>
-                <td>🟡</td>
-              </tr>
-              <tr>
-                <td data-en="Future" data-ko="장기">장기</td>
-                <td data-en="Automation: URL scheme, AppleScript/Shortcuts actions, per-app rules, edge stash/pin"
-                    data-ko="자동화: URL scheme, AppleScript/Shortcuts action, app별 규칙, edge stash/pin">자동화: URL scheme, AppleScript/Shortcuts action, app별 규칙, edge stash/pin</td>
-                <td>🟡</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="principle-note" role="note">
-          <span data-en="&ldquo;Predictability over clever inference. Any effect achievable by composing simple commands is not added as a separate feature.&rdquo;"
-                data-ko="&ldquo;예측 가능성 > 똑똑한 자동 추론. 단순 명령 조합으로 낼 수 있는 효과는 별도 기능으로 추가하지 않는다.&rdquo;">“예측 가능성 &gt; 똑똑한 자동 추론. 단순 명령 조합으로 낼 수 있는 효과는 별도 기능으로 추가하지 않는다.”</span>
-        </div>
-
-      </div>
-    </section>
 
   </main>
 
