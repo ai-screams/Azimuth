@@ -57,6 +57,9 @@ inline design-token stylesheet.
   elements never get `backdrop-filter` (it re-blurs every frame and stuttered on a phone). Reduce Motion
   sets `animation: none !important` on them, because the base rule only shortens durations and would make
   the infinite loops flicker. Light mode is a day sky, dark mode dusk (`--sky`, `--cloud-*` tokens).
+  manual.html's header uses the same sky tokens, cloud defs and cloud CSS (copied, since the pages share no
+  stylesheet) without the window demo; its clouds stay on the right because its text is left-aligned.
+  Both pages use the app icon (`#1E3A5F` tile, `#F2A541` north mark) in the top bar and footer.
 
 ### Testing Requirements
 - No compiler/bundler: edit and open the file in a browser to verify. Toggle EN⇄KO and check
