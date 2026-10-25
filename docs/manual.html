@@ -50,6 +50,21 @@
       --win-bg:      rgba(255,255,255,0.92);
       --win-border:  rgba(0,0,0,0.12);
       --menubar-bg:  rgba(240,242,248,0.95);
+      /* Hero sky: day in light mode, dusk in dark. --sun is the app icon's north mark. */
+      --sun:           #F2A541;
+      --sky:           linear-gradient(180deg, #5E9BE0 0%, #8FBDF0 40%, #C4DEF7 75%, #E9F3FC 100%);
+      --hero-ink:      #0F2340;
+      --hero-ink-soft: #2B3E5C;
+      --hero-cta-bg:   #1E3A5F;
+      --hero-cta-fg:   #FFFFFF;
+      --cloud-top:     #FFFFFF;
+      --cloud-shade:   #C9D9EE;
+      --haze:          rgba(255,255,255,0.6);
+      --glass:         rgba(255,255,255,0.35);
+      --glass-edge:    rgba(255,255,255,0.65);
+      --sky-win-bg:    linear-gradient(160deg, rgba(255,255,255,0.62), rgba(255,255,255,0.30) 60%, rgba(214,230,248,0.45));
+      --sky-win-edge:  rgba(255,255,255,0.75);
+      --key-name-bg:   rgba(255,255,255,0.5);
 
       --radius-sm:   6px;
       --radius:      10px;
@@ -95,6 +110,19 @@
         --win-bg:      rgba(22,28,48,0.9);
         --win-border:  rgba(255,255,255,0.1);
         --menubar-bg:  rgba(14,22,40,0.96);
+        --sky:           linear-gradient(180deg, #0C1A3A 0%, #24305E 50%, #5E4677 85%, #9A5E6E 100%);
+        --hero-ink:      #FFFFFF;
+        --hero-ink-soft: rgba(255,255,255,0.8);
+        --hero-cta-bg:   #F2A541;
+        --hero-cta-fg:   #10203A;
+        --cloud-top:     #F6C9AE;
+        --cloud-shade:   #6E5A86;
+        --haze:          rgba(246,201,174,0.4);
+        --glass:         rgba(255,255,255,0.12);
+        --glass-edge:    rgba(255,255,255,0.26);
+        --sky-win-bg:    linear-gradient(160deg, rgba(255,255,255,0.26), rgba(255,255,255,0.08) 60%, rgba(246,201,174,0.14));
+        --sky-win-edge:  rgba(255,255,255,0.3);
+        --key-name-bg:   rgba(12,26,58,0.55);
 
         --shadow-card: 0 1px 3px rgba(0,0,0,0.2), 0 4px 16px rgba(0,0,0,0.3);
         --shadow-float: 0 2px 8px rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.4);
@@ -231,51 +259,84 @@
       max-width: 52ch;
     }
 
-    /* ─── Hero ───────────────────────────────────────────────────── */
+    /* ─── Hero sky (same sky and clouds as index.html, no window demo) ── */
     .hero {
+      position: relative;
+      overflow: hidden;
       padding: clamp(3rem, 8vw, 5.5rem) 0 clamp(2.5rem, 6vw, 4.5rem);
-      background: var(--bg-hero);
-      border-bottom: 1px solid var(--border);
+      background: var(--sky);
+      color: var(--hero-ink);
     }
+    .hero .container { position: relative; z-index: 2; }
 
     .back-link {
       display: inline-flex;
       align-items: center;
       gap: 5px;
       font-size: 0.82rem;
-      color: var(--text-muted);
+      color: var(--hero-ink-soft);
       margin-bottom: 1.5rem;
       transition: color 0.15s;
     }
-    .back-link:hover { color: var(--accent); text-decoration: none; }
+    .back-link:hover { color: var(--hero-ink); text-decoration: none; }
+    .hero .section-label { display: block; color: var(--hero-ink-soft); }
 
     .hero-wordmark {
-      font-size: clamp(2.4rem, 5vw, 3.6rem);
-      font-weight: 750;
-      letter-spacing: -0.05em;
-      line-height: 1;
-      color: var(--text);
-      background: linear-gradient(135deg, var(--text) 0%, var(--steel) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 0.6rem;
+      font-size: clamp(2.8rem, 7vw, 4.5rem);
+      font-weight: 800;
+      letter-spacing: -0.045em;
+      line-height: 0.95;
+      color: var(--hero-ink);
+      margin-bottom: 0.8rem;
     }
 
     .hero-tagline {
-      font-size: clamp(1.05rem, 2.5vw, 1.2rem);
-      color: var(--text-mid);
+      font-size: clamp(1.05rem, 2.5vw, 1.25rem);
+      color: var(--hero-ink);
       margin-bottom: 0.6rem;
       line-height: 1.4;
-      font-weight: 420;
+      font-weight: 450;
       max-width: 52ch;
     }
 
     .hero-sub {
-      font-size: 0.85rem;
-      color: var(--text-faint);
-      font-style: italic;
+      font-size: 0.9rem;
+      color: var(--hero-ink-soft);
       letter-spacing: 0.01em;
+    }
+
+    .sky-defs { position: absolute; width: 0; height: 0; }
+    .sky-clouds { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+    .sky-cloud { position: absolute; will-change: transform; animation: sky-drift 50s ease-in-out infinite alternate; }
+    .sky-cloud svg { display: block; width: 100%; height: auto; }
+    .sky-haze { position: absolute; height: 140px; background: radial-gradient(closest-side, var(--haze), transparent); }
+    @keyframes sky-drift { from { transform: translateX(0); } to { transform: translateX(60px); } }
+    .sky-haze-a { left: -4.7%; bottom: -2%; width: 50%; }
+    .sky-haze-b { left: 52.3%; bottom: -4%; width: 53%; }
+    .sky-cloud-a { left: 0; top: 68.4%; width: 34.4%; animation-duration: 46s; }
+    .sky-cloud-b { left: 57%; top: 71%; width: 43%; animation-duration: 58s; animation-direction: alternate-reverse; }
+    .sky-cloud-c { left: 70.9%; top: 5.4%; width: 24.8%; opacity: 0.95; animation-duration: 64s; }
+    .sky-cloud-d { left: -6%; top: 15.9%; width: 24.9%; opacity: 0.9; animation-duration: 52s; animation-direction: alternate-reverse; }
+    .sky-cloud-e { left: 42.8%; top: 39.7%; width: 13.75%; opacity: 0.7; animation-duration: 70s; }
+    /* A narrow hero is tall: clouds placed by height land on the text, so keep them to the corners. */
+    @media (max-width: 720px) {
+      .sky-cloud-d, .sky-cloud-e { display: none; }
+      .sky-cloud-c { top: 0; left: 62%; width: 44%; }
+      .sky-cloud-a { top: auto; bottom: -3%; width: 60%; }
+      .sky-cloud-b { top: auto; bottom: -5%; left: 48%; width: 70%; }
+    }
+
+    /* The manual's text is left-aligned and runs across the whole header, so the clouds stay on the right. */
+    .sky-cloud-d, .sky-cloud-e { display: none; }
+    .sky-cloud-a { left: 60%; top: 58%; width: 24%; }
+    .sky-cloud-b { left: 76%; top: 62%; width: 30%; }
+    .sky-haze-a { left: 50%; }
+    @media (max-width: 720px) {
+      .sky-cloud-a { display: none; }
+      .sky-cloud-b { top: auto; bottom: -16%; left: 58%; width: 55%; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .sky-cloud { animation: none !important; }
     }
 
     /* ─── Section divider ────────────────────────────────────────── */
@@ -673,17 +734,13 @@
   <header role="banner">
     <nav class="topbar" aria-label="Main navigation">
       <a class="topbar-logo" href="index.html" aria-label="Azimuth — home">
-        <!-- Compass inline SVG -->
-        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true"
+        <svg class="compass-icon" width="22" height="22" viewBox="0 0 1024 1024" aria-hidden="true"
              xmlns="http://www.w3.org/2000/svg">
-          <circle cx="11" cy="11" r="10" stroke="var(--accent)" stroke-width="1.4"/>
-          <circle cx="11" cy="11" r="1.8" fill="var(--accent)"/>
-          <polygon points="11,11 9.3,11 11,3" fill="var(--accent)" opacity="0.9"/>
-          <polygon points="11,11 12.7,11 11,19" fill="var(--text-faint)" opacity="0.55"/>
-          <line x1="11" y1="1.5" x2="11" y2="3.5" stroke="var(--accent)" stroke-width="1.2"/>
-          <line x1="11" y1="18.5" x2="11" y2="20.5" stroke="var(--text-faint)" stroke-width="1" opacity="0.5"/>
-          <line x1="1.5" y1="11" x2="3.5" y2="11" stroke="var(--text-faint)" stroke-width="1" opacity="0.5"/>
-          <line x1="18.5" y1="11" x2="20.5" y2="11" stroke="var(--text-faint)" stroke-width="1" opacity="0.5"/>
+          <rect width="1024" height="1024" rx="228" fill="#1E3A5F"/>
+          <circle cx="512" cy="542.7" r="358.4" fill="none" stroke="#F2F5F9" stroke-width="44"/>
+          <rect x="327.7" y="419.8" width="368.6" height="266.2" rx="20.5" fill="none" stroke="#F2F5F9" stroke-width="44"/>
+          <rect x="354.3" y="507.9" width="157.7" height="151.6" rx="8.2" fill="#F2A541"/>
+          <path d="M512 87 L563.2 169 H460.8 Z" fill="#F2A541"/>
         </svg>
         <span>Azimuth</span>
       </a>
@@ -701,6 +758,39 @@
 
     <!-- ── 1. Hero / Intro ───────────────────────────────────────── -->
     <section class="hero" aria-labelledby="hero-heading">
+      <svg class="sky-defs" aria-hidden="true" focusable="false">
+        <defs>
+          <linearGradient id="sky-puff" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" style="stop-color: var(--cloud-top)"/>
+            <stop offset="0.6" style="stop-color: var(--cloud-top)"/>
+            <stop offset="1" style="stop-color: var(--cloud-shade)"/>
+          </linearGradient>
+          <filter id="sky-fluff" x="-20%" y="-40%" width="140%" height="180%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="3" seed="7" result="noise"/>
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="34" xChannelSelector="R" yChannelSelector="G" result="shape"/>
+            <feGaussianBlur in="shape" stdDeviation="2.4"/>
+          </filter>
+          <g id="sky-cloud-1" fill="url(#sky-puff)">
+            <ellipse cx="170" cy="128" rx="190" ry="42"/>
+            <circle cx="70" cy="112" r="40"/><circle cx="128" cy="88" r="58"/><circle cx="200" cy="66" r="78"/>
+            <circle cx="282" cy="92" r="56"/><circle cx="338" cy="116" r="36"/>
+          </g>
+          <g id="sky-cloud-2" fill="url(#sky-puff)">
+            <ellipse cx="240" cy="120" rx="250" ry="44"/>
+            <circle cx="70" cy="110" r="42"/><circle cx="140" cy="84" r="64"/><circle cx="236" cy="56" r="90"/>
+            <circle cx="336" cy="80" r="70"/><circle cx="420" cy="104" r="48"/>
+          </g>
+        </defs>
+      </svg>
+      <div class="sky-clouds" aria-hidden="true">
+        <div class="sky-haze sky-haze-a"></div>
+        <div class="sky-haze sky-haze-b"></div>
+        <div class="sky-cloud sky-cloud-a"><svg viewBox="-30 -40 440 240"><use href="#sky-cloud-1" filter="url(#sky-fluff)"/></svg></div>
+        <div class="sky-cloud sky-cloud-b"><svg viewBox="-30 -50 550 250"><use href="#sky-cloud-2" filter="url(#sky-fluff)"/></svg></div>
+        <div class="sky-cloud sky-cloud-c"><svg viewBox="-30 -40 440 240"><use href="#sky-cloud-1" filter="url(#sky-fluff)"/></svg></div>
+        <div class="sky-cloud sky-cloud-d"><svg viewBox="-30 -50 550 250"><use href="#sky-cloud-2" filter="url(#sky-fluff)"/></svg></div>
+        <div class="sky-cloud sky-cloud-e"><svg viewBox="-30 -40 440 240"><use href="#sky-cloud-1" filter="url(#sky-fluff)"/></svg></div>
+      </div>
       <div class="container">
         <a class="back-link" href="index.html" aria-label="Back to Azimuth home">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
@@ -1556,12 +1646,13 @@
     <div class="container">
       <div class="footer-inner">
         <div class="footer-left">
-          <!-- small compass -->
-          <svg width="16" height="16" viewBox="0 0 22 22" fill="none" aria-hidden="true">
-            <circle cx="11" cy="11" r="10" stroke="var(--text-faint)" stroke-width="1.2"/>
-            <circle cx="11" cy="11" r="1.6" fill="var(--text-faint)"/>
-            <polygon points="11,11 9.5,11 11,3.5" fill="var(--accent)" opacity="0.7"/>
-            <polygon points="11,11 12.5,11 11,18.5" fill="var(--text-faint)" opacity="0.4"/>
+          <svg width="16" height="16" viewBox="0 0 1024 1024" aria-hidden="true"
+               xmlns="http://www.w3.org/2000/svg">
+            <rect width="1024" height="1024" rx="228" fill="#1E3A5F"/>
+            <circle cx="512" cy="542.7" r="358.4" fill="none" stroke="#F2F5F9" stroke-width="44"/>
+            <rect x="327.7" y="419.8" width="368.6" height="266.2" rx="20.5" fill="none" stroke="#F2F5F9" stroke-width="44"/>
+            <rect x="354.3" y="507.9" width="157.7" height="151.6" rx="8.2" fill="#F2A541"/>
+            <path d="M512 87 L563.2 169 H460.8 Z" fill="#F2A541"/>
           </svg>
           <div class="footer-text">
             <div data-en="© 2026 Ai-Scream · Apache-2.0 · Built with Swift + AppKit"
