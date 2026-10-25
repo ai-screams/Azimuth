@@ -850,6 +850,10 @@
       line-height: 1.55;
     }
     .install-note strong { color: var(--text-mid); font-weight: 600; }
+    /* One line per older macOS so each reader finds their own case. */
+    .legacy-note ul { margin: 0; padding-left: 1.1rem; }
+    .legacy-note li + li { margin-top: 0.35rem; }
+    .legacy-note p { margin: 0.5rem 0 0; }
     .install-note a, .dl-legacy a { color: var(--text-mid); text-decoration: underline; text-underline-offset: 2px; }
 
     /* ─── Download meta note ─────────────────────────────────────── */
@@ -924,8 +928,10 @@
     .footer-left {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
     }
+    /* The app icon itself, about the height of the two text lines; the 16px SVG lost the dial and north mark. */
+    .footer-icon { flex-shrink: 0; border-radius: 22%; }
 
     .footer-text {
       font-size: 0.8rem;
@@ -1849,9 +1855,9 @@
                data-en="The download is Developer ID–signed and notarized by Apple, so it opens without Gatekeeper warnings."
                data-ko="다운로드 파일은 Developer ID 서명 + Apple 공증을 거쳐 Gatekeeper 경고 없이 바로 열립니다.">다운로드 파일은 Developer ID 서명 + Apple 공증을 거쳐 Gatekeeper 경고 없이 바로 열립니다.</p>
 
-            <p class="install-note" id="legacy"
-               data-en="&lt;strong&gt;macOS 13?&lt;/strong&gt; Download &lt;a href=&quot;https://github.com/ai-screams/Azimuth/releases/tag/v1.7.7&quot;&gt;version 1.7.7&lt;/a&gt;, the last version for macOS 13. It gets no further updates. &lt;strong&gt;macOS 10.13–12?&lt;/strong&gt; Download the &lt;a href=&quot;https://github.com/ai-screams/Azimuth/releases/tag/legacy-v1.7.2-4&quot;&gt;legacy build (1.7.2 Legacy)&lt;/a&gt;. It keeps the core features but gets no new ones. After you upgrade macOS, either one moves to the newest version that macOS can run on its next update check."
-               data-ko="&lt;strong&gt;macOS 13인가요?&lt;/strong&gt; macOS 13용 마지막 버전인 &lt;a href=&quot;https://github.com/ai-screams/Azimuth/releases/tag/v1.7.7&quot;&gt;1.7.7을&lt;/a&gt; 받으세요. 이후 업데이트는 없습니다. &lt;strong&gt;macOS 10.13~12인가요?&lt;/strong&gt; &lt;a href=&quot;https://github.com/ai-screams/Azimuth/releases/tag/legacy-v1.7.2-4&quot;&gt;레거시판(1.7.2 Legacy)을&lt;/a&gt; 받으세요. 핵심 기능은 같고 새 기능은 들어가지 않습니다. 어느 쪽이든 macOS를 업그레이드한 뒤 업데이트를 확인하면 그 macOS에서 돌 수 있는 가장 새 버전으로 옮겨 갑니다."><strong>macOS 13인가요?</strong> macOS 13용 마지막 버전인 <a href="https://github.com/ai-screams/Azimuth/releases/tag/v1.7.7">1.7.7을</a> 받으세요. 이후 업데이트는 없습니다. <strong>macOS 10.13~12인가요?</strong> <a href="https://github.com/ai-screams/Azimuth/releases/tag/legacy-v1.7.2-4">레거시판(1.7.2 Legacy)을</a> 받으세요. 핵심 기능은 같고 새 기능은 들어가지 않습니다. 어느 쪽이든 macOS를 업그레이드한 뒤 업데이트를 확인하면 그 macOS에서 돌 수 있는 가장 새 버전으로 옮겨 갑니다.</p>
+            <div class="install-note legacy-note" id="legacy"
+               data-en="&lt;ul&gt;&lt;li&gt;&lt;strong&gt;macOS 13?&lt;/strong&gt; Download &lt;a href=&quot;https://github.com/ai-screams/Azimuth/releases/tag/v1.7.7&quot;&gt;version 1.7.7&lt;/a&gt;, the last version for macOS 13. It gets no further updates.&lt;/li&gt;&lt;li&gt;&lt;strong&gt;macOS 10.13–12?&lt;/strong&gt; Download the &lt;a href=&quot;https://github.com/ai-screams/Azimuth/releases/tag/legacy-v1.7.2-4&quot;&gt;legacy build (1.7.2 Legacy)&lt;/a&gt;. It keeps the core features but gets no new ones.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;After you upgrade macOS, either one moves to the newest version that macOS can run on its next update check.&lt;/p&gt;"
+               data-ko="&lt;ul&gt;&lt;li&gt;&lt;strong&gt;macOS 13인가요?&lt;/strong&gt; macOS 13용 마지막 버전인 &lt;a href=&quot;https://github.com/ai-screams/Azimuth/releases/tag/v1.7.7&quot;&gt;1.7.7을&lt;/a&gt; 받으세요. 이후 업데이트는 없습니다.&lt;/li&gt;&lt;li&gt;&lt;strong&gt;macOS 10.13–12인가요?&lt;/strong&gt; &lt;a href=&quot;https://github.com/ai-screams/Azimuth/releases/tag/legacy-v1.7.2-4&quot;&gt;레거시판(1.7.2 Legacy)을&lt;/a&gt; 받으세요. 핵심 기능은 같고 새 기능은 들어가지 않습니다.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;어느 쪽이든 macOS를 업그레이드한 뒤 업데이트를 확인하면 그 macOS에서 돌 수 있는 가장 새 버전으로 옮겨 갑니다.&lt;/p&gt;"><ul><li><strong>macOS 13인가요?</strong> macOS 13용 마지막 버전인 <a href="https://github.com/ai-screams/Azimuth/releases/tag/v1.7.7">1.7.7을</a> 받으세요. 이후 업데이트는 없습니다.</li><li><strong>macOS 10.13–12인가요?</strong> <a href="https://github.com/ai-screams/Azimuth/releases/tag/legacy-v1.7.2-4">레거시판(1.7.2 Legacy)을</a> 받으세요. 핵심 기능은 같고 새 기능은 들어가지 않습니다.</li></ul><p>어느 쪽이든 macOS를 업그레이드한 뒤 업데이트를 확인하면 그 macOS에서 돌 수 있는 가장 새 버전으로 옮겨 갑니다.</p></div>
 
             <!-- macOS 13 DMG, direct: 1.7.7 is the last version for macOS 13 and is never bumped. -->
             <a id="download-macos13"
@@ -1979,14 +1985,7 @@
     <div class="container">
       <div class="footer-inner">
         <div class="footer-left">
-          <svg width="16" height="16" viewBox="0 0 1024 1024" aria-hidden="true"
-               xmlns="http://www.w3.org/2000/svg">
-            <rect width="1024" height="1024" rx="228" fill="#1E3A5F"/>
-            <circle cx="512" cy="542.7" r="358.4" fill="none" stroke="#F2F5F9" stroke-width="44"/>
-            <rect x="327.7" y="419.8" width="368.6" height="266.2" rx="20.5" fill="none" stroke="#F2F5F9" stroke-width="44"/>
-            <rect x="354.3" y="507.9" width="157.7" height="151.6" rx="8.2" fill="#F2A541"/>
-            <path d="M512 87 L563.2 169 H460.8 Z" fill="#F2A541"/>
-          </svg>
+          <img class="footer-icon" src="../assets/apple-touch-icon.png" width="32" height="32" alt="">
           <div class="footer-text">
             <div data-en="© 2026 Ai-Scream · Apache-2.0 · Built with Swift + AppKit"
                  data-ko="© 2026 Ai-Scream · Apache-2.0 · Swift + AppKit으로 제작">© 2026 Ai-Scream · Apache-2.0 · Swift + AppKit으로 제작</div>

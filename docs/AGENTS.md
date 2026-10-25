@@ -45,7 +45,8 @@ inline design-token stylesheet.
   are absolute (`ai-scream.ai/Azimuth/...`); update only if the Pages URL changes.
 - **Legacy build link is the one hardcoded version.** The macOS 10.13–12 legacy build never becomes
   `/releases/latest`, so index.html links its tag page (tag format `legacy-vX.Y.Z-N`) in the
-  `#legacy` `.install-note` (an `<a>` inside, safe because that class is generated as HTML) and names it
+  `#legacy` `.install-note` (a list, one item per older macOS, with `<a>`s inside; safe because that class is
+  generated as HTML) and names it
   in the older-macOS FAQ; the hero's "Older Mac?" line is a separate `.dl-legacy` element so the
   `#dl-meta` rewrite cannot erase it. manual.html's macOS-version card has its own link as a separate
   `<p><a data-en data-ko>` (its text `<p>` is generated as plain text, which cannot hold an inline `<a>`).
@@ -68,7 +69,8 @@ inline design-token stylesheet.
   the infinite loops flicker. Light mode is a day sky, dark mode dusk (`--sky`, `--cloud-*` tokens).
   manual.html's header uses the same sky tokens, cloud defs and cloud CSS (copied, since the pages share no
   stylesheet) without the window demo; its clouds stay on the right because its text is left-aligned.
-  Both pages use the app icon (`#1E3A5F` tile, `#F2A541` north mark) in the top bar and footer.
+  Both pages use the app icon: an inline SVG (`#1E3A5F` tile, `#F2A541` north mark) in the top bar, and
+  `assets/apple-touch-icon.png` at 32px in the footer (the 16px SVG lost the dial there).
 
 ### Testing Requirements
 - No compiler/bundler: edit the English file, run `python3 scripts/site/build-ko.py`, and open both
