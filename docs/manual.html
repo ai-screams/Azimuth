@@ -733,7 +733,7 @@
   <!-- ── Sticky top bar ────────────────────────────────────────── -->
   <header role="banner">
     <nav class="topbar" aria-label="Main navigation">
-      <a class="topbar-logo" href="index.html" aria-label="Azimuth — home">
+      <a class="topbar-logo" href="./" aria-label="Azimuth — home">
         <svg class="compass-icon" width="22" height="22" viewBox="0 0 1024 1024" aria-hidden="true"
              xmlns="http://www.w3.org/2000/svg">
           <rect width="1024" height="1024" rx="228" fill="#1E3A5F"/>
@@ -792,7 +792,7 @@
         <div class="sky-cloud sky-cloud-e"><svg viewBox="-30 -40 440 240"><use href="#sky-cloud-1" filter="url(#sky-fluff)"/></svg></div>
       </div>
       <div class="container">
-        <a class="back-link" href="index.html" aria-label="Back to Azimuth home">
+        <a class="back-link" href="./" aria-label="Back to Azimuth home">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
             <path d="M9 2L4 7l5 5" stroke="currentColor" stroke-width="1.6"
                   stroke-linecap="round" stroke-linejoin="round"/>
@@ -1630,9 +1630,9 @@
         </div>
 
         <div class="principle-note" role="note">
-          <span data-en=""Predictability over clever inference. Any effect achievable by composing simple commands is not added as a separate feature.""
+          <span data-en="&ldquo;Predictability over clever inference. Any effect achievable by composing simple commands is not added as a separate feature.&rdquo;"
                 data-ko="&ldquo;예측 가능성 > 똑똑한 자동 추론. 단순 명령 조합으로 낼 수 있는 효과는 별도 기능으로 추가하지 않는다.&rdquo;">
-            "Predictability over clever inference. Any effect achievable by composing simple commands is not added as a separate feature."
+            &ldquo;Predictability over clever inference. Any effect achievable by composing simple commands is not added as a separate feature.&rdquo;
           </span>
         </div>
 
@@ -1666,9 +1666,9 @@
           </div>
         </div>
         <div class="footer-links">
-          <a href="index.html"
+          <a href="./"
              data-en="← Home" data-ko="← 홈">← Home</a>
-          <a href="index.html#support"
+          <a href="./#support"
              data-en="Support" data-ko="후원">Support</a>
           <a href="https://github.com/ai-screams/Azimuth/issues" target="_blank" rel="noopener"
              data-en="Report an issue" data-ko="이슈 등록">Report an issue</a>
@@ -1686,11 +1686,13 @@
       'use strict';
 
       var STORAGE_KEY = 'azimuth-lang';
-      var currentLang = localStorage.getItem(STORAGE_KEY) || 'en';
+      // Storage can throw (blocked site data, some private modes); the page still works in English.
+      var currentLang = 'en';
+      try { currentLang = localStorage.getItem(STORAGE_KEY) || 'en'; } catch (e) {}
 
       function applyLang(lang) {
         currentLang = lang;
-        localStorage.setItem(STORAGE_KEY, lang);
+        try { localStorage.setItem(STORAGE_KEY, lang); } catch (e) {}
 
         // update all elements with data-en / data-ko
         var els = document.querySelectorAll('[data-en], [data-ko]');
