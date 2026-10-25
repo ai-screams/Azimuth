@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Azimuth pages only; the domain-wide sitemap is https://ai-scream.ai/sitemap.xml. No lastmod: it would need
+     dates by hand, and an inaccurate one is ignored. Keep the hreflang pairs in step with each page's <head>. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://ai-scream.ai/Azimuth/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ai-scream.ai/Azimuth/" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://ai-scream.ai/Azimuth/ko/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ai-scream.ai/Azimuth/" />
+  </url>
+  <url>
+    <loc>https://ai-scream.ai/Azimuth/ko/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ai-scream.ai/Azimuth/" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://ai-scream.ai/Azimuth/ko/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ai-scream.ai/Azimuth/" />
+  </url>
+  <url>
+    <loc>https://ai-scream.ai/Azimuth/manual.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ai-scream.ai/Azimuth/manual.html" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://ai-scream.ai/Azimuth/ko/manual.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ai-scream.ai/Azimuth/manual.html" />
+  </url>
+  <url>
+    <loc>https://ai-scream.ai/Azimuth/ko/manual.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ai-scream.ai/Azimuth/manual.html" />
+    <xhtml:link rel="alternate" hreflang="ko" href="https://ai-scream.ai/Azimuth/ko/manual.html" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ai-scream.ai/Azimuth/manual.html" />
+  </url>
+</urlset>

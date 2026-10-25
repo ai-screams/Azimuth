@@ -1,12 +1,17 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-ko-lang="ko">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Azimuth — A keyboard-driven window manager for macOS. Predictability over clever inference." />
-  <title>Azimuth — macOS Window Manager</title>
+  <meta name="description" content="Azimuth is a free, open-source window manager for macOS. Snap, resize, move and throw windows across displays with keyboard shortcuts, a menu-bar grid or a command palette."
+        data-ko-content="Azimuth는 무료 오픈소스 macOS 창 관리 앱입니다. 단축키, 메뉴바 명령 타일, 명령 팔레트로 창을 반쪽이나 1/3에 놓고, 크기를 줄이고, 다른 디스플레이로 옮깁니다." />
+  <title data-en="Azimuth — Keyboard Window Manager for macOS" data-ko="Azimuth | 키보드로 다루는 macOS 창 관리 앱">Azimuth — Keyboard Window Manager for macOS</title>
 
-  <link rel="canonical" href="https://ai-scream.ai/Azimuth/" />
+  <link rel="canonical" href="https://ai-scream.ai/Azimuth/" data-ko-href="https://ai-scream.ai/Azimuth/ko/" />
+  <!-- Each language version lists both (#212); scripts/site/build-ko.py writes docs/ko/ from this file. -->
+  <link rel="alternate" hreflang="en" href="https://ai-scream.ai/Azimuth/" />
+  <link rel="alternate" hreflang="ko" href="https://ai-scream.ai/Azimuth/ko/" />
+  <link rel="alternate" hreflang="x-default" href="https://ai-scream.ai/Azimuth/" />
   <meta name="theme-color" content="#1a2a4a" />
   <link rel="icon" type="image/png" href="assets/favicon.png" />
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
@@ -14,15 +19,19 @@
   <!-- Open Graph / Twitter Card — rich link previews when shared -->
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Azimuth" />
-  <meta property="og:title" content="Azimuth — macOS Window Manager" />
-  <meta property="og:description" content="A keyboard-driven window manager for macOS. Predictability over clever inference." />
-  <meta property="og:url" content="https://ai-scream.ai/Azimuth/" />
+  <meta property="og:locale" content="en_US" data-ko-content="ko_KR" />
+  <meta property="og:locale:alternate" content="ko_KR" data-ko-content="en_US" />
+  <meta property="og:title" content="Azimuth — Keyboard Window Manager for macOS" data-ko-content="Azimuth | 키보드로 다루는 macOS 창 관리 앱" />
+  <meta property="og:description" content="Azimuth is a free, open-source window manager for macOS. Snap, resize, move and throw windows across displays with keyboard shortcuts, a menu-bar grid or a command palette."
+        data-ko-content="Azimuth는 무료 오픈소스 macOS 창 관리 앱입니다. 단축키, 메뉴바 명령 타일, 명령 팔레트로 창을 반쪽이나 1/3에 놓고, 크기를 줄이고, 다른 디스플레이로 옮깁니다." />
+  <meta property="og:url" content="https://ai-scream.ai/Azimuth/" data-ko-content="https://ai-scream.ai/Azimuth/ko/" />
   <meta property="og:image" content="https://ai-scream.ai/Azimuth/assets/og-image.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Azimuth — macOS Window Manager" />
-  <meta name="twitter:description" content="A keyboard-driven window manager for macOS. Predictability over clever inference." />
+  <meta name="twitter:title" content="Azimuth — Keyboard Window Manager for macOS" data-ko-content="Azimuth | 키보드로 다루는 macOS 창 관리 앱" />
+  <meta name="twitter:description" content="Azimuth is a free, open-source window manager for macOS. Snap, resize, move and throw windows across displays with keyboard shortcuts, a menu-bar grid or a command palette."
+        data-ko-content="Azimuth는 무료 오픈소스 macOS 창 관리 앱입니다. 단축키, 메뉴바 명령 타일, 명령 팔레트로 창을 반쪽이나 1/3에 놓고, 크기를 줄이고, 다른 디스플레이로 옮깁니다." />
   <meta name="twitter:image" content="https://ai-scream.ai/Azimuth/assets/og-image.png" />
 
   <!-- SEO: structured data (no hardcoded version — download resolves via /releases/latest) -->
@@ -33,10 +42,11 @@
     "name": "Azimuth",
     "applicationCategory": "UtilitiesApplication",
     "operatingSystem": "macOS 14+",
-    "description": "A keyboard-driven window manager for macOS. Predictability over clever inference.",
+    "description": "Azimuth is a free, open-source window manager for macOS. Snap, resize, move and throw windows across displays with keyboard shortcuts, a menu-bar grid or a command palette.",
     "url": "https://ai-scream.ai/Azimuth/",
     "downloadUrl": "https://github.com/ai-screams/Azimuth/releases/latest",
     "license": "https://www.apache.org/licenses/LICENSE-2.0",
+    "author": { "@type": "Organization", "@id": "https://ai-scream.ai/#organization", "name": "Ai-Scream", "url": "https://ai-scream.ai/" },
     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
   }
   </script>
@@ -242,7 +252,10 @@
       color: var(--text-muted);
       transition: background 0.15s, color 0.15s;
       line-height: 1.4;
+      display: inline-block;
+      text-decoration: none;
     }
+    .lang-btn:hover { color: var(--text); text-decoration: none; }
     .lang-btn.active {
       background: var(--bg-card);
       color: var(--text);
@@ -1043,7 +1056,7 @@
 
   <!-- ── Sticky top bar ────────────────────────────────────────── -->
   <header role="banner">
-    <nav class="topbar" aria-label="Main navigation">
+    <nav class="topbar" aria-label="Main navigation" data-ko-aria-label="주 메뉴">
       <div class="topbar-logo" aria-label="Azimuth">
         <svg class="compass-icon" width="22" height="22" viewBox="0 0 1024 1024" aria-hidden="true"
              xmlns="http://www.w3.org/2000/svg">
@@ -1060,13 +1073,15 @@
         <a href="manual.html" class="topbar-link"
            data-en="Manual" data-ko="매뉴얼">Manual</a>
         <a href="https://github.com/ai-screams/Azimuth" target="_blank" rel="noopener"
-           aria-label="View Azimuth on GitHub" style="display:flex;align-items:center;">
+           aria-label="View Azimuth on GitHub" data-ko-aria-label="GitHub에서 Azimuth 보기" style="display:flex;align-items:center;">
           <img src="https://img.shields.io/github/stars/ai-screams/Azimuth?style=flat&label=Stars&color=1a2a4a"
-               alt="GitHub stars" loading="lazy" height="20" />
+               alt="GitHub stars" data-ko-alt="GitHub 별 수" loading="lazy" height="20" />
         </a>
-        <div class="lang-toggle" role="group" aria-label="Language selector">
-          <button class="lang-btn active" id="btn-en" onclick="setLang('en')" aria-pressed="true">EN</button>
-          <button class="lang-btn" id="btn-ko" onclick="setLang('ko')" aria-pressed="false">KO</button>
+        <div class="lang-toggle" role="group" aria-label="Language selector" data-ko-aria-label="언어 선택">
+          <a class="lang-btn active" href="./" hreflang="en" lang="en" aria-current="page"
+             data-ko-class="lang-btn" data-ko-href="../" data-ko-aria-current="false">EN</a>
+          <a class="lang-btn" href="ko/" hreflang="ko" lang="ko"
+             data-ko-class="lang-btn active" data-ko-href="./" data-ko-aria-current="page">KO</a>
         </div>
       </div>
     </nav>
@@ -1128,7 +1143,7 @@
               <a id="download-btn"
                  href="https://github.com/ai-screams/Azimuth/releases/latest"
                  class="btn btn-primary js-download"
-                 aria-label="Download Azimuth for macOS">
+                 aria-label="Download Azimuth for macOS" data-ko-aria-label="macOS용 Azimuth 다운로드">
                 <!-- download arrow icon -->
                 <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"
                      xmlns="http://www.w3.org/2000/svg">
@@ -1140,7 +1155,7 @@
               <!-- Secondary: View on GitHub -->
               <a href="https://github.com/ai-screams/Azimuth" class="btn btn-secondary"
                  target="_blank" rel="noopener"
-                 aria-label="View Azimuth on GitHub (opens in new tab)">
+                 aria-label="View Azimuth on GitHub (opens in new tab)" data-ko-aria-label="GitHub에서 Azimuth 보기(새 탭)">
                 <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
                   <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
                            0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13
@@ -1159,7 +1174,7 @@
             </div>
             <p id="dl-meta" class="dl-meta"
                data-en="Universal · macOS 14+ · .dmg"
-               data-ko="macOS 14+ · .dmg">
+               data-ko="Universal · macOS 14+ · .dmg">
               Universal · macOS 14+ · .dmg
             </p>
             <p class="dl-meta dl-legacy">
@@ -1492,7 +1507,7 @@
         </p>
         <div style="display:grid; gap:1.25rem; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); margin-top:2rem;">
           <figure style="margin:0;">
-            <img src="assets/demo-snap.png" alt="Azimuth snapping a window to a screen region"
+            <img src="assets/demo-snap.png" alt="Azimuth snapping a window to a screen region" data-ko-alt="Azimuth가 창을 화면 영역에 스냅하는 모습"
                  width="1600" height="1000" loading="lazy"
                  style="width:100%; height:auto; border-radius:12px; border:1px solid rgba(255,255,255,0.12);" />
             <figcaption style="margin-top:.5rem; font-size:.9rem; color:var(--text-muted);"
@@ -1501,7 +1516,7 @@
             </figcaption>
           </figure>
           <figure style="margin:0;">
-            <img src="assets/demo-throw.png" alt="Azimuth throwing a window to the adjacent display"
+            <img src="assets/demo-throw.png" alt="Azimuth throwing a window to the adjacent display" data-ko-alt="Azimuth가 창을 옆 디스플레이로 던지는 모습"
                  width="1600" height="1000" loading="lazy"
                  style="width:100%; height:auto; border-radius:12px; border:1px solid rgba(255,255,255,0.12);" />
             <figcaption style="margin-top:.5rem; font-size:.9rem; color:var(--text-muted);"
@@ -1576,7 +1591,7 @@
 
         <!-- Shortcut table -->
         <div class="shortcuts-table-wrap">
-          <table class="shortcuts-table" aria-label="Standard preset keyboard shortcuts">
+          <table class="shortcuts-table" aria-label="Standard preset keyboard shortcuts" data-ko-aria-label="Standard 프리셋 단축키">
             <thead>
               <tr>
                 <th class="col-group" data-en="Group" data-ko="그룹">Group</th>
@@ -1710,7 +1725,7 @@
           <div class="how-card">
             <div class="how-diagram" aria-hidden="true">
               <svg width="100%" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg"
-                   role="img" aria-label="Snap and throw diagram">
+                   role="img" aria-label="Snap and throw diagram" data-ko-aria-label="스냅과 throw 그림">
                 <!-- Display 1 -->
                 <rect x="4" y="8" width="88" height="84" rx="4" fill="rgba(255,255,255,0.05)" stroke="rgba(74,127,193,0.4)" stroke-width="1"/>
                 <!-- Display 2 -->
@@ -1750,13 +1765,13 @@
           <div class="how-card">
             <div class="how-diagram" aria-hidden="true">
               <svg width="100%" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg"
-                   role="img" aria-label="Move clamp diagram: window steps right and stops at the work-area edge">
+                   role="img" aria-label="Move clamp diagram: window steps right and stops at the work-area edge" data-ko-aria-label="이동 그림: 창이 오른쪽으로 한 칸씩 가다가 작업 영역 끝에서 멈춤">
                 <!-- Work area -->
                 <rect x="10" y="10" width="180" height="80" rx="4"
                       fill="rgba(255,255,255,0.04)" stroke="rgba(74,127,193,0.3)" stroke-width="1"/>
                 <!-- Menu bar hint -->
                 <rect x="10" y="10" width="180" height="9" rx="0" fill="rgba(74,127,193,0.1)"/>
-                <text x="14" y="17" font-family="-apple-system,sans-serif" font-size="5" fill="rgba(160,200,240,0.5)">work area</text>
+                <text x="14" y="17" font-family="-apple-system,sans-serif" font-size="5" fill="rgba(160,200,240,0.5)" data-en="work area" data-ko="작업 영역">work area</text>
 
                 <!-- Win step 1 (center-ish) -->
                 <rect x="55" y="35" width="48" height="42" rx="2.5" fill="rgba(74,127,193,0.18)" stroke="rgba(74,127,193,0.5)" stroke-width="1"/>
@@ -1775,9 +1790,9 @@
 
                 <!-- Clamp wall -->
                 <line x1="188" y1="22" x2="188" y2="90" stroke="rgba(74,127,193,0.6)" stroke-width="1.5" stroke-dasharray="3 2"/>
-                <text x="182" y="20" font-family="-apple-system,sans-serif" font-size="5" fill="rgba(160,200,240,0.5)">edge</text>
+                <text x="182" y="20" font-family="-apple-system,sans-serif" font-size="5" fill="rgba(160,200,240,0.5)" data-en="edge" data-ko="가장자리">edge</text>
 
-                <text x="12" y="97" font-family="-apple-system,sans-serif" font-size="6.5" fill="rgba(160,200,240,0.6)">⌃⌥⌘→  (move, keep size)</text>
+                <text x="12" y="97" font-family="-apple-system,sans-serif" font-size="6.5" fill="rgba(160,200,240,0.6)" data-en="⌃⌥⌘→  (move, keep size)" data-ko="⌃⌥⌘→  (이동, 크기 유지)">⌃⌥⌘→  (move, keep size)</text>
               </svg>
             </div>
             <div class="how-card-body">
@@ -1796,7 +1811,7 @@
           <div class="how-card">
             <div class="how-diagram" aria-hidden="true">
               <svg width="100%" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg"
-                   role="img" aria-label="Move to next display diagram: window transfers to adjacent monitor preserving relative position">
+                   role="img" aria-label="Move to next display diagram: window transfers to adjacent monitor preserving relative position" data-ko-aria-label="다음 디스플레이 이동 그림: 창이 옆 모니터로 옮겨 가며 상대 위치를 유지">
                 <!-- Display 1 -->
                 <rect x="4" y="8" width="88" height="84" rx="4" fill="rgba(255,255,255,0.05)" stroke="rgba(74,127,193,0.35)" stroke-width="1"/>
                 <!-- Display 2 -->
@@ -1821,7 +1836,7 @@
                 <line x1="46" y1="20" x2="46" y2="90" stroke="rgba(74,127,193,0.2)" stroke-width="0.8" stroke-dasharray="2 3"/>
                 <line x1="150" y1="20" x2="150" y2="90" stroke="rgba(74,127,193,0.2)" stroke-width="0.8" stroke-dasharray="2 3"/>
 
-                <text x="8" y="98" font-family="-apple-system,sans-serif" font-size="6.5" fill="rgba(160,200,240,0.6)">⌃⌥⌘⇧→  (shape &amp; position preserved)</text>
+                <text x="8" y="98" font-family="-apple-system,sans-serif" font-size="6.5" fill="rgba(160,200,240,0.6)" data-en="⌃⌥⌘⇧→  (shape &amp; position preserved)" data-ko="⌃⌥⌘⇧→  (모양·위치 유지)">⌃⌥⌘⇧→  (shape &amp; position preserved)</text>
               </svg>
             </div>
             <div class="how-card-body">
@@ -1889,7 +1904,7 @@
             <a id="download-btn-2"
                href="https://github.com/ai-screams/Azimuth/releases/latest"
                class="btn btn-primary js-download"
-               aria-label="Download Azimuth for macOS">
+               aria-label="Download Azimuth for macOS" data-ko-aria-label="macOS용 Azimuth 다운로드">
               <svg width="14" height="14" viewBox="0 0 15 15" fill="none" aria-hidden="true"
                    xmlns="http://www.w3.org/2000/svg">
                 <path d="M7.5 1v8M4.5 6.5l3 3 3-3M2 11.5h11" stroke="currentColor"
@@ -2090,8 +2105,7 @@
              data-en="Support" data-ko="후원">Support</a>
           <a href="https://github.com/ai-screams/Azimuth/issues" target="_blank" rel="noopener"
              data-en="Report an issue" data-ko="이슈 등록">Report an issue</a>
-          <a href="https://ai-scream.ai/"
-             data-href-en="https://ai-scream.ai/" data-href-ko="https://ai-scream.ai/ko/"
+          <a href="https://ai-scream.ai/" data-ko-href="https://ai-scream.ai/ko/"
              data-en="More from Ai-Scream" data-ko="Ai-Scream의 다른 프로젝트">More from Ai-Scream</a>
         </div>
       </div>
@@ -2103,52 +2117,8 @@
     (function () {
       'use strict';
 
-      var STORAGE_KEY = 'azimuth-lang';
-      // Storage can throw (blocked site data, some private modes); the page still works in English.
-      var currentLang = 'en';
-      try { currentLang = localStorage.getItem(STORAGE_KEY) || 'en'; } catch (e) {}
-
-      function applyLang(lang) {
-        currentLang = lang;
-        try { localStorage.setItem(STORAGE_KEY, lang); } catch (e) {}
-
-        // update all elements with data-en / data-ko
-        var els = document.querySelectorAll('[data-en], [data-ko]');
-        for (var i = 0; i < els.length; i++) {
-          var el = els[i];
-          var val = el.getAttribute('data-' + lang);
-          if (val === null) continue;
-
-          // install-note uses HTML (bold tags)
-          if (el.classList.contains('install-note')) {
-            el.innerHTML = val;
-          } else {
-            el.textContent = val;
-          }
-        }
-
-        // links whose target differs per locale (the Ai-Scream home: / vs /ko/)
-        var hrefs = document.querySelectorAll('[data-href-' + lang + ']');
-        for (var j = 0; j < hrefs.length; j++) {
-          hrefs[j].href = hrefs[j].getAttribute('data-href-' + lang);
-        }
-
-        // update html lang attribute
-        document.documentElement.lang = lang === 'ko' ? 'ko' : 'en';
-
-        // update button states
-        var btnEn = document.getElementById('btn-en');
-        var btnKo = document.getElementById('btn-ko');
-        if (btnEn && btnKo) {
-          btnEn.classList.toggle('active', lang === 'en');
-          btnKo.classList.toggle('active', lang === 'ko');
-          btnEn.setAttribute('aria-pressed', String(lang === 'en'));
-          btnKo.setAttribute('aria-pressed', String(lang === 'ko'));
-        }
-      }
-
-      // expose for onclick
-      window.setLang = applyLang;
+      // Each language is its own page (docs/ko/ is generated, #212); the release label follows <html lang>.
+      var currentLang = document.documentElement.lang === 'ko' ? 'ko' : 'en';
 
       // ── Progressive enhancement: resolve latest DMG from GitHub Releases ──
       // One allowed external request. Silent on any failure.
@@ -2187,7 +2157,7 @@
 
               // Build dl-meta text
               var metaEn = 'Universal · macOS 14+ · .dmg' + (dmgSize ? ' · ' + dmgSize : '');
-              var metaKo = 'macOS 14+ · .dmg' + (dmgSize ? ' · ' + dmgSize : '');
+              var metaKo = 'Universal · macOS 14+ · .dmg' + (dmgSize ? ' · ' + dmgSize : '');
 
               // Update all .js-download buttons
               var btns = document.querySelectorAll('.js-download');
@@ -2214,8 +2184,6 @@
         } catch (e) { /* silent */ }
       })();
 
-      // apply lang on page load (after DOM is ready, before fetch resolves)
-      applyLang(currentLang);
     })();
   </script>
 

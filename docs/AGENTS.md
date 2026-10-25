@@ -12,8 +12,10 @@ inline design-token stylesheet.
 ## Key Files
 | File | Description |
 |------|-------------|
-| `index.html` | Marketing landing: hero (sky with clouds and an animated glass-window stage + Download/GitHub CTAs), feature cards, shortcuts, how-it-works, requirements/install, FAQ, and the funding/support block. Self-contained: inline `<style>` (design tokens, `prefers-color-scheme` dark mode), inline SVGs, JSON-LD `SoftwareApplication` structured data, OG/Twitter meta, and a bottom language-toggle `<script>`. |
-| `manual.html` | Complete reference: requirements, feature summary table, `#shortcuts` ("all 34 commands" + modifier-layer legend + Standard/Vim preset tables), command-behavior cards, roadmap. Duplicates index.html's token CSS and has its own copy of the language-toggle script. |
+| `index.html` | Marketing landing: hero (sky with clouds and an animated glass-window stage + Download/GitHub CTAs), feature cards, shortcuts, how-it-works, requirements/install, FAQ, and the funding/support block. Self-contained: inline `<style>` (design tokens, `prefers-color-scheme` dark mode), inline SVGs, JSON-LD `SoftwareApplication` structured data, OG/Twitter meta, `hreflang`, and a bottom `<script>` that labels the download button from `/releases/latest`. |
+| `manual.html` | Complete reference: requirements, feature summary table, `#shortcuts` ("all 34 commands" + modifier-layer legend + Standard/Vim preset tables), command-behavior cards, roadmap. Duplicates index.html's token CSS. No script. |
+| `ko/` | **Generated** Korean pages (`index.html`, `manual.html`); see below. Never edit by hand. |
+| `sitemap.xml` | The four pages with `hreflang` pairs, served at `/Azimuth/sitemap.xml`. No `lastmod`. |
 | `404.html` | Not-found page for any missing path under `/Azimuth/` (so its links are absolute), same sky tokens, `noindex`. |
 | `assets/` | Static images only: `favicon.png`, `apple-touch-icon.png`, `og-image.png` (all three generated from the app icon by `scripts/site/make-images.swift`), and demo screenshots `demo-snap.png` / `demo-throw.png`. |
 
@@ -23,14 +25,18 @@ inline design-token stylesheet.
 - **Bilingual (EN/KO) — edit THREE places per string.** Every translatable node carries a
   `data-en` attribute, a `data-ko` attribute, **and** the visible default (EN) text child. A
   copy change must update **all three**, or the languages drift.
-- **Put `data-en`/`data-ko` on a text-only element.** The toggle sets `textContent`, which wipes any
-  child: a button with an icon carries the attributes on an inner `<span>` (the download buttons, View on
-  GitHub). The release fetch also writes its label into that span.
-- **Language toggle.** A bottom-of-page inline IIFE `<script>` (one per page) swaps
-  `textContent` for all `[data-en],[data-ko]` nodes; `localStorage` key `azimuth-lang`, default
-  `en`. Special case: `.install-note` uses `innerHTML` (embeds `<strong>`). index.html also
-  rewrites the download button + `#dl-meta` after resolving `/releases/latest`, so any
-  dynamically injected string must set `data-en`/`data-ko` too.
+- **Put `data-en`/`data-ko` on a text-only element.** The generator replaces the whole content, which would
+  drop any child (it refuses instead): a button with an icon carries the attributes on an inner `<span>` (the
+  download buttons, View on GitHub). The release fetch also writes its label into that span.
+- **Korean pages are generated (#212).** `docs/ko/index.html` and `docs/ko/manual.html` come from the
+  English sources by `scripts/site/build-ko.py`: an element's content becomes its `data-ko` (escaped text;
+  `.install-note` as HTML), a `data-ko-<attr>` sets that attribute (`href`, `aria-label`, `alt`, `content`,
+  `class`, `aria-current`, `lang`), and `assets/` paths gain `../`. Edit the English file, rerun the script,
+  commit both. The script fails on a `data-en` without `data-ko`, and on `data-ko` over child elements.
+- **Language links.** EN/KO in the top bar are links between the two pages (with `hreflang` and
+  `aria-current`), not a JS toggle, and nothing redirects by browser language. Each page's `<head>` lists
+  `hreflang` en, ko and x-default (the English page) and its own canonical; `sitemap.xml` repeats the pairs.
+  The only script left is the release fetch on index, which labels the download button by `<html lang>`.
 - **Keep counts in sync with code.** "N commands" / "N shortcuts" strings must match
   `WindowCommand.menuCommands` (currently **34**). In manual.html this is hardcoded in three
   spots (shortcuts heading + "all N unique key combinations" note, EN+KO each).
@@ -39,12 +45,12 @@ inline design-token stylesheet.
   are absolute (`ai-scream.ai/Azimuth/...`); update only if the Pages URL changes.
 - **Legacy build link is the one hardcoded version.** The macOS 10.13–12 legacy build never becomes
   `/releases/latest`, so index.html links its tag page (tag format `legacy-vX.Y.Z-N`) in the
-  `#legacy` `.install-note` (an `<a>` inside, safe because that class swaps `innerHTML`) and names it
+  `#legacy` `.install-note` (an `<a>` inside, safe because that class is generated as HTML) and names it
   in the older-macOS FAQ; the hero's "Older Mac?" line is a separate `.dl-legacy` element so the
   `#dl-meta` rewrite cannot erase it. manual.html's macOS-version card has its own link as a separate
-  `<p><a data-en data-ko>` (its text `<p>` swaps `textContent`, which would erase an inline `<a>`).
+  `<p><a data-en data-ko>` (its text `<p>` is generated as plain text, which cannot hold an inline `<a>`).
   The `#download-legacy` button links the DMG itself (`releases/download/<tag>/Azimuth-X.Y.Z-legacy-N.dmg`);
-  its label is an inner `<span data-en data-ko>` so the toggle keeps the icon.
+  its label is an inner `<span data-en data-ko>` so the icon stays.
   The current tag is `legacy-v1.7.2-4`; bump it after each legacy release (README and SECURITY too).
   macOS 13 is pinned to `v1.7.7` (the last version for 13, never bumped): the same `#legacy` note, the
   `#download-macos13` button (`releases/download/v1.7.7/Azimuth-1.7.7.dmg`), its own link in the manual's
@@ -65,8 +71,8 @@ inline design-token stylesheet.
   Both pages use the app icon (`#1E3A5F` tile, `#F2A541` north mark) in the top bar and footer.
 
 ### Testing Requirements
-- No compiler/bundler: edit and open the file in a browser to verify. Toggle EN⇄KO and check
-  both languages render.
+- No compiler/bundler: edit the English file, run `python3 scripts/site/build-ko.py`, and open both
+  languages in a browser.
 - **Publishing:** merging to `main` triggers the GitHub **"pages build and deployment"**
   workflow; the live site lags until that run completes — poll it to `completed`/`success`
   before verifying live content.
