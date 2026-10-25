@@ -61,7 +61,8 @@ inline design-token stylesheet.
   and GitHub Sponsors `https://github.com/sponsors/ai-screams` (see `.github/FUNDING.yml`).
 - `assets/` holds only images — no `AGENTS.md` of its own.
 - **Hero sky (#211).** One window is placed against the screen (`⌃⌥1` Left 1/3, `⌃⌥←` Left 1/2), shrunk
-  against itself (`⌃⌥⇧↓`, `⌃⌥⇧←`) and undone (`⌃⌥⌫`) on an 18 s CSS loop. The keys and command names must
+  against itself (`⌃⌥⇧↓`, `⌃⌥⇧←`), undone (`⌃⌥⌫`) and centered (`⌃⌥C`, keeps its size, so the loop's last
+  frame is its first) on an 18 s CSS loop. The keys and command names must
   match the Standard preset (`HotkeyPreset.swift`) and `displayName`s; change them together. All `sky-*`
   keyframes share the 18 s duration and their percentages line up by step, so retime them as a set. Moving
   elements never get `backdrop-filter` (it re-blurs every frame and stuttered on a phone). Reduce Motion
