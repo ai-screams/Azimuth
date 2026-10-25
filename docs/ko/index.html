@@ -1,0 +1,2101 @@
+<!DOCTYPE html>
+<!-- Generated from docs/index.html by scripts/site/build-ko.py. Edit the English source and rerun. -->
+<html lang="ko" data-ko-lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Azimuth는 무료 오픈소스 macOS 창 관리 앱입니다. 단축키, 메뉴바 명령 타일, 명령 팔레트로 창을 반쪽이나 1/3에 놓고, 크기를 줄이고, 다른 디스플레이로 옮깁니다."
+        data-ko-content="Azimuth는 무료 오픈소스 macOS 창 관리 앱입니다. 단축키, 메뉴바 명령 타일, 명령 팔레트로 창을 반쪽이나 1/3에 놓고, 크기를 줄이고, 다른 디스플레이로 옮깁니다." />
+  <title data-en="Azimuth — Keyboard Window Manager for macOS" data-ko="Azimuth | 키보드로 다루는 macOS 창 관리 앱">Azimuth | 키보드로 다루는 macOS 창 관리 앱</title>
+
+  <link rel="canonical" href="https://ai-scream.ai/Azimuth/ko/" data-ko-href="https://ai-scream.ai/Azimuth/ko/" />
+  <!-- Each language version lists both (#212); scripts/site/build-ko.py writes docs/ko/ from this file. -->
+  <link rel="alternate" hreflang="en" href="https://ai-scream.ai/Azimuth/" />
+  <link rel="alternate" hreflang="ko" href="https://ai-scream.ai/Azimuth/ko/" />
+  <link rel="alternate" hreflang="x-default" href="https://ai-scream.ai/Azimuth/" />
+  <meta name="theme-color" content="#1a2a4a" />
+  <link rel="icon" type="image/png" href="../assets/favicon.png" />
+  <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png" />
+
+  <!-- Open Graph / Twitter Card — rich link previews when shared -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Azimuth" />
+  <meta property="og:locale" content="ko_KR" data-ko-content="ko_KR" />
+  <meta property="og:locale:alternate" content="en_US" data-ko-content="en_US" />
+  <meta property="og:title" content="Azimuth | 키보드로 다루는 macOS 창 관리 앱" data-ko-content="Azimuth | 키보드로 다루는 macOS 창 관리 앱" />
+  <meta property="og:description" content="Azimuth는 무료 오픈소스 macOS 창 관리 앱입니다. 단축키, 메뉴바 명령 타일, 명령 팔레트로 창을 반쪽이나 1/3에 놓고, 크기를 줄이고, 다른 디스플레이로 옮깁니다."
+        data-ko-content="Azimuth는 무료 오픈소스 macOS 창 관리 앱입니다. 단축키, 메뉴바 명령 타일, 명령 팔레트로 창을 반쪽이나 1/3에 놓고, 크기를 줄이고, 다른 디스플레이로 옮깁니다." />
+  <meta property="og:url" content="https://ai-scream.ai/Azimuth/ko/" data-ko-content="https://ai-scream.ai/Azimuth/ko/" />
+  <meta property="og:image" content="https://ai-scream.ai/Azimuth/assets/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Azimuth | 키보드로 다루는 macOS 창 관리 앱" data-ko-content="Azimuth | 키보드로 다루는 macOS 창 관리 앱" />
+  <meta name="twitter:description" content="Azimuth는 무료 오픈소스 macOS 창 관리 앱입니다. 단축키, 메뉴바 명령 타일, 명령 팔레트로 창을 반쪽이나 1/3에 놓고, 크기를 줄이고, 다른 디스플레이로 옮깁니다."
+        data-ko-content="Azimuth는 무료 오픈소스 macOS 창 관리 앱입니다. 단축키, 메뉴바 명령 타일, 명령 팔레트로 창을 반쪽이나 1/3에 놓고, 크기를 줄이고, 다른 디스플레이로 옮깁니다." />
+  <meta name="twitter:image" content="https://ai-scream.ai/Azimuth/assets/og-image.png" />
+
+  <!-- SEO: structured data (no hardcoded version — download resolves via /releases/latest) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Azimuth",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "macOS 14+",
+    "description": "Azimuth is a free, open-source window manager for macOS. Snap, resize, move and throw windows across displays with keyboard shortcuts, a menu-bar grid or a command palette.",
+    "url": "https://ai-scream.ai/Azimuth/",
+    "downloadUrl": "https://github.com/ai-screams/Azimuth/releases/latest",
+    "license": "https://www.apache.org/licenses/LICENSE-2.0",
+    "author": { "@type": "Organization", "@id": "https://ai-scream.ai/#organization", "name": "Ai-Scream", "url": "https://ai-scream.ai/" },
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  }
+  </script>
+
+  <style>
+    /* ─── Design tokens ──────────────────────────────────────────── */
+    :root {
+      --navy:        #1a2a4a;
+      --navy-mid:    #243656;
+      --navy-light:  #2f4878;
+      --steel:       #3d6199;
+      --accent:      #4a7fc1;
+      --accent-soft: #6494cc;
+      --accent-glow: rgba(74,127,193,0.18);
+
+      --bg:          #f5f6f8;
+      --bg-card:     #ffffff;
+      --bg-hero:     #eef1f6;
+      --surface:     #f0f2f6;
+      --border:      rgba(0,0,0,0.09);
+      --border-card: rgba(0,0,0,0.07);
+
+      --text:        #1a1e2a;
+      --text-mid:    #3a4050;
+      --text-muted:  #585f6e;
+      --text-faint:  #6e7580;
+
+      --keycap-bg:   #ffffff;
+      --keycap-border: #c8cdd8;
+      --keycap-shadow: rgba(0,0,0,0.14);
+      --keycap-text: #1a1e2a;
+
+      --win-bg:      rgba(255,255,255,0.92);
+      --win-border:  rgba(0,0,0,0.12);
+      --menubar-bg:  rgba(240,242,248,0.95);
+
+      /* Hero sky: day in light mode, dusk in dark. --sun is the app icon's north mark. */
+      --sun:           #F2A541;
+      --sky:           linear-gradient(180deg, #5E9BE0 0%, #8FBDF0 40%, #C4DEF7 75%, #E9F3FC 100%);
+      --hero-ink:      #0F2340;
+      --hero-ink-soft: #2B3E5C;
+      --hero-cta-bg:   #1E3A5F;
+      --hero-cta-fg:   #FFFFFF;
+      --cloud-top:     #FFFFFF;
+      --cloud-shade:   #C9D9EE;
+      --haze:          rgba(255,255,255,0.6);
+      --glass:         rgba(255,255,255,0.35);
+      --glass-edge:    rgba(255,255,255,0.65);
+      --sky-win-bg:    linear-gradient(160deg, rgba(255,255,255,0.62), rgba(255,255,255,0.30) 60%, rgba(214,230,248,0.45));
+      --sky-win-edge:  rgba(255,255,255,0.75);
+      --key-name-bg:   rgba(255,255,255,0.5);
+
+      --radius-sm:   6px;
+      --radius:      10px;
+      --radius-lg:   16px;
+      --radius-xl:   22px;
+
+      --shadow-card: 0 1px 3px rgba(0,0,0,0.06), 0 4px 14px rgba(0,0,0,0.07);
+      --shadow-float: 0 2px 8px rgba(0,0,0,0.08), 0 8px 28px rgba(0,0,0,0.1);
+
+      --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+              "Helvetica Neue", Arial, sans-serif;
+      --font-mono: "SF Mono", ui-monospace, "Cascadia Code", "Fira Code",
+                   Menlo, Monaco, Consolas, monospace;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --navy:        #0e1929;
+        --navy-mid:    #162035;
+        --navy-light:  #1e2f4e;
+        --steel:       #3361a0;
+        --accent:      #5a8fd4;
+        --accent-soft: #7aaae0;
+        --accent-glow: rgba(90,143,212,0.2);
+
+        --bg:          #0d1117;
+        --bg-card:     #161b27;
+        --bg-hero:     #0f1520;
+        --surface:     #1a2135;
+        --border:      rgba(255,255,255,0.07);
+        --border-card: rgba(255,255,255,0.06);
+
+        --text:        #e8ecf4;
+        --text-mid:    #b8c0d0;
+        --text-muted:  #7a8499;
+        --text-faint:  #7c8597;
+
+        --keycap-bg:   #1e2640;
+        --keycap-border: #334266;
+        --keycap-shadow: rgba(0,0,0,0.4);
+        --keycap-text: #d0d8f0;
+
+        --win-bg:      rgba(22,28,48,0.9);
+        --win-border:  rgba(255,255,255,0.1);
+        --menubar-bg:  rgba(14,22,40,0.96);
+
+        --sky:           linear-gradient(180deg, #0C1A3A 0%, #24305E 50%, #5E4677 85%, #9A5E6E 100%);
+        --hero-ink:      #FFFFFF;
+        --hero-ink-soft: rgba(255,255,255,0.8);
+        --hero-cta-bg:   #F2A541;
+        --hero-cta-fg:   #10203A;
+        --cloud-top:     #F6C9AE;
+        --cloud-shade:   #6E5A86;
+        --haze:          rgba(246,201,174,0.4);
+        --glass:         rgba(255,255,255,0.12);
+        --glass-edge:    rgba(255,255,255,0.26);
+        --sky-win-bg:    linear-gradient(160deg, rgba(255,255,255,0.26), rgba(255,255,255,0.08) 60%, rgba(246,201,174,0.14));
+        --sky-win-edge:  rgba(255,255,255,0.3);
+        --key-name-bg:   rgba(12,26,58,0.55);
+
+        --shadow-card: 0 1px 3px rgba(0,0,0,0.2), 0 4px 16px rgba(0,0,0,0.3);
+        --shadow-float: 0 2px 8px rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.4);
+      }
+    }
+
+    /* ─── Reset & base ───────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html {
+      scroll-behavior: smooth;
+      font-size: 16px;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    a:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+      border-radius: 3px;
+    }
+
+    /* ─── Nav bar ────────────────────────────────────────────────── */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 clamp(1rem, 5vw, 3rem);
+      height: 52px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .topbar-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 650;
+      font-size: 1rem;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .topbar-link {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: color 0.15s ease;
+    }
+    .topbar-link:hover { color: var(--accent); text-decoration: none; }
+
+    .lang-toggle {
+      display: flex;
+      align-items: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 3px;
+      gap: 2px;
+      cursor: default;
+    }
+    .lang-btn {
+      padding: 3px 10px;
+      border-radius: 16px;
+      font-size: 0.78rem;
+      font-weight: 550;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      transition: background 0.15s, color 0.15s;
+      line-height: 1.4;
+      display: inline-block;
+      text-decoration: none;
+    }
+    .lang-btn:hover { color: var(--text); text-decoration: none; }
+    .lang-btn.active {
+      background: var(--bg-card);
+      color: var(--text);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .lang-btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+
+    /* ─── Layout helpers ─────────────────────────────────────────── */
+    .container {
+      width: 100%;
+      max-width: 1060px;
+      margin: 0 auto;
+      padding: 0 clamp(1rem, 5vw, 2.5rem);
+    }
+
+    section { padding: clamp(3rem, 7vw, 5.5rem) 0; }
+
+    .section-label {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 650;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+    }
+
+    h2.section-title {
+      font-size: clamp(1.5rem, 3.5vw, 2.1rem);
+      font-weight: 680;
+      letter-spacing: -0.03em;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+      line-height: 1.2;
+    }
+
+    .section-sub {
+      color: var(--text-muted);
+      font-size: 1rem;
+      margin-bottom: 2.5rem;
+      max-width: 52ch;
+    }
+
+    .hero-ctas {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 20px;
+      border-radius: var(--radius);
+      font-size: 0.9rem;
+      font-weight: 580;
+      cursor: pointer;
+      border: none;
+      text-decoration: none;
+      transition: transform 0.1s, box-shadow 0.1s, opacity 0.1s;
+    }
+    .btn:hover { transform: translateY(-1px); text-decoration: none; }
+    .btn:active { transform: translateY(0); }
+
+    .btn-primary {
+      background: var(--navy);
+      color: #e8f0ff;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2), 0 4px 14px rgba(26,42,74,0.25);
+    }
+    .btn-primary:hover { background: var(--navy-light); box-shadow: 0 2px 8px rgba(0,0,0,0.25), 0 6px 20px rgba(26,42,74,0.3); }
+
+    .btn-secondary {
+      background: transparent;
+      border: 1.5px solid var(--border-card);
+      color: var(--text-mid);
+      box-shadow: var(--shadow-card);
+    }
+    .btn-secondary:hover { background: var(--bg-card); border-color: var(--accent-soft); color: var(--text); }
+    .btn-legacy { margin-top: 0.6rem; }
+
+    /* ─── Hero sky (#211) ─────────────────────────────────────────
+       Glass windows over a cloudy sky; one window is placed against the screen (1/3, 1/2), then shrunk
+       against itself (relative 1/2 twice), then undone. Keys and names match the Standard preset.
+       Moving elements never use backdrop-filter: re-blurring the sky every frame stuttered on phones.
+       Percentages come from an 880×300 stage. */
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: clamp(3rem, 7vw, 5rem) 0 clamp(2rem, 4vw, 3rem);
+      background: var(--sky);
+      color: var(--hero-ink);
+    }
+    .hero .container { position: relative; z-index: 2; }
+    .hero-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    .hero-content {
+      max-width: 42rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .hero-wordmark {
+      font-size: clamp(3.2rem, 9vw, 6rem);
+      font-weight: 800;
+      letter-spacing: -0.045em;
+      line-height: 0.95;
+      color: var(--hero-ink);
+      margin-bottom: 0.9rem;
+    }
+    .hero-tagline {
+      font-size: clamp(1.1rem, 2.6vw, 1.5rem);
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      line-height: 1.3;
+      color: var(--hero-ink);
+      margin-bottom: 0.4rem;
+    }
+    .hero-sub {
+      font-size: 1.05rem;
+      color: var(--hero-ink-soft);
+      margin-bottom: 1.6rem;
+    }
+    .hero-ctas { justify-content: center; }
+    .hero .btn { border-radius: 999px; padding: 11px 22px; }
+    .hero .btn-primary {
+      background: var(--hero-cta-bg);
+      color: var(--hero-cta-fg);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), 0 10px 24px rgba(16,32,58,0.22);
+    }
+    .hero .btn-primary:hover { background: var(--hero-cta-bg); filter: brightness(1.08); }
+    .hero .btn-secondary {
+      background: var(--glass);
+      border: 1px solid var(--glass-edge);
+      color: var(--hero-ink);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.45);
+      backdrop-filter: blur(20px) saturate(160%);
+      -webkit-backdrop-filter: blur(20px) saturate(160%);
+    }
+    .hero .btn-secondary:hover { background: var(--glass); color: var(--hero-ink); filter: brightness(1.06); }
+    .hero .dl-meta { color: var(--hero-ink-soft); }
+    .hero .dl-legacy a { color: var(--hero-ink); }
+
+    .sky-defs { position: absolute; width: 0; height: 0; }
+    .sky-clouds { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+    .sky-cloud { position: absolute; will-change: transform; animation: sky-drift 50s ease-in-out infinite alternate; }
+    .sky-cloud svg { display: block; width: 100%; height: auto; }
+    .sky-haze { position: absolute; height: 140px; background: radial-gradient(closest-side, var(--haze), transparent); }
+    @keyframes sky-drift { from { transform: translateX(0); } to { transform: translateX(60px); } }
+    .sky-haze-a { left: -4.7%; bottom: -2%; width: 50%; }
+    .sky-haze-b { left: 52.3%; bottom: -4%; width: 53%; }
+    .sky-cloud-a { left: 0; top: 68.4%; width: 34.4%; animation-duration: 46s; }
+    .sky-cloud-b { left: 57%; top: 71%; width: 43%; animation-duration: 58s; animation-direction: alternate-reverse; }
+    .sky-cloud-c { left: 70.9%; top: 5.4%; width: 24.8%; opacity: 0.95; animation-duration: 64s; }
+    .sky-cloud-d { left: -6%; top: 15.9%; width: 24.9%; opacity: 0.9; animation-duration: 52s; animation-direction: alternate-reverse; }
+    .sky-cloud-e { left: 42.8%; top: 39.7%; width: 13.75%; opacity: 0.7; animation-duration: 70s; }
+    /* A narrow hero is tall: clouds placed by height land on the text, so keep them to the corners. */
+    @media (max-width: 720px) {
+      .sky-cloud-d, .sky-cloud-e { display: none; }
+      .sky-cloud-c { top: 0; left: 62%; width: 44%; }
+      .sky-cloud-a { top: auto; bottom: -3%; width: 60%; }
+      .sky-cloud-b { top: auto; bottom: -5%; left: 48%; width: 70%; }
+    }
+
+    .sky-stage {
+      position: relative;
+      width: min(880px, 100%);
+      aspect-ratio: 880 / 300;
+      margin-top: clamp(2.5rem, 6vw, 3.5rem);
+      color: var(--hero-ink);
+    }
+    .sky-win {
+      position: absolute;
+      border-radius: clamp(10px, 2vw, 18px);
+      background: var(--sky-win-bg);
+      border: 1px solid var(--sky-win-edge);
+      overflow: hidden;
+    }
+    .sky-win-dots { display: flex; gap: 6px; padding: clamp(7px, 1.4vw, 12px) clamp(8px, 1.6vw, 14px); }
+    .sky-win-dots span { width: clamp(7px, 1.2vw, 11px); aspect-ratio: 1; border-radius: 50%; background: rgba(255,255,255,0.65); }
+    .sky-win-line { display: block; height: clamp(5px, 0.9vw, 8px); margin: 0 clamp(8px, 1.6vw, 16px) 8px; border-radius: 4px; background: rgba(255,255,255,0.55); }
+    .sky-win-a { left: 50.455%; top: 0; width: 49.545%; height: 48.667%; opacity: 0.7; }
+    .sky-win-b { left: 50.455%; top: 51.333%; width: 49.545%; height: 48.667%; opacity: 0.7; }
+    .sky-main {
+      z-index: 3;
+      border: 2px solid var(--sun);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), 0 14px 30px rgba(16,32,58,0.18);
+      left: 0; top: 50%; width: 49.545%; height: 50%;
+      animation: sky-main 18s cubic-bezier(.3,.9,.3,1) infinite;
+    }
+    .sky-main .sky-win-dots span:nth-child(1) { background: #E36B5D; }
+    .sky-main .sky-win-dots span:nth-child(2) { background: #E8B14A; }
+    .sky-main .sky-win-dots span:nth-child(3) { background: #62B862; }
+    @keyframes sky-main {
+      0%, 5%   { left: 28.409%; top: 10%; width: 45.455%; height: 80%; }
+      11%, 22% { left: 0; top: 0; width: 32.727%; height: 100%; }
+      27%, 41% { left: 0; top: 0; width: 49.545%; height: 100%; }
+      46%, 59% { left: 0; top: 50%; width: 49.545%; height: 50%; }
+      64%, 75% { left: 0; top: 50%; width: 24.773%; height: 50%; }
+      80%, 92% { left: 0; top: 50%; width: 49.545%; height: 50%; }
+      100%     { left: 28.409%; top: 10%; width: 45.455%; height: 80%; }
+    }
+    .sky-frame {
+      position: absolute;
+      inset: -6px;
+      border: 2px dashed currentColor;
+      border-radius: clamp(12px, 2.2vw, 22px);
+      opacity: 0;
+      animation: sky-frame 18s linear infinite;
+    }
+    .sky-frame-label {
+      position: absolute;
+      left: 14px;
+      top: -1.7rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .sky-line, .sky-guide { position: absolute; opacity: 0; animation-duration: 18s; animation-iteration-count: infinite; animation-timing-function: linear; }
+    .sky-line { top: 0; bottom: 0; border-left: 2px dashed currentColor; }
+    .sky-line-third { animation-name: sky-line-third; }
+    .sky-line-half { animation-name: sky-line-half; }
+    .sky-guide-h { left: 0; right: 0; top: 50%; border-top: 2px dashed var(--sun); animation-name: sky-guide-h; }
+    .sky-guide-v { top: 0; bottom: 0; left: 50%; border-left: 2px dashed var(--sun); animation-name: sky-guide-v; }
+    @keyframes sky-frame { 0%, 2% { opacity: 0; } 4%, 29% { opacity: 0.6; } 32%, 100% { opacity: 0; } }
+    @keyframes sky-line-third { 0%, 3% { opacity: 0; } 5%, 14% { opacity: 1; } 16%, 100% { opacity: 0; } }
+    @keyframes sky-line-half { 0%, 18% { opacity: 0; } 20%, 29% { opacity: 1; } 31%, 100% { opacity: 0; } }
+    @keyframes sky-guide-h { 0%, 33% { opacity: 0; } 35%, 42% { opacity: 1; } 44%, 100% { opacity: 0; } }
+    @keyframes sky-guide-v { 0%, 51% { opacity: 0; } 53%, 60% { opacity: 1; } 62%, 100% { opacity: 0; } }
+
+    .sky-keys { position: relative; width: 100%; height: 2.75rem; margin-top: 1.4rem; }
+    .sky-key {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.6rem;
+      opacity: 0;
+      animation-duration: 18s;
+      animation-iteration-count: infinite;
+    }
+    .sky-key kbd {
+      font-family: var(--font-mono);
+      font-size: 1rem;
+      padding: 6px 12px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.92);
+      color: #10203A;
+      border: 1px solid rgba(16,32,58,0.12);
+      box-shadow: 0 2px 0 rgba(16,32,58,0.18);
+    }
+    .sky-key-name { font-size: 0.95rem; font-weight: 600; white-space: nowrap; padding: 3px 10px; border-radius: 999px; background: var(--key-name-bg); }
+    .sky-key-basis {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 4px 9px;
+      border-radius: 999px;
+      white-space: nowrap;
+      background: rgba(255,255,255,0.9);
+      color: #1E3A5F;
+    }
+    .sky-key-basis.is-window { background: var(--sun); color: #10203A; }
+    .sky-key-1 { animation-name: sky-key-1; }
+    .sky-key-2 { animation-name: sky-key-2; }
+    .sky-key-3 { animation-name: sky-key-3; }
+    .sky-key-4 { animation-name: sky-key-4; }
+    .sky-key-5 { animation-name: sky-key-5; }
+    @keyframes sky-key-1 { 0%, 3% { opacity: 0; } 5%, 19% { opacity: 1; } 21%, 100% { opacity: 0; } }
+    @keyframes sky-key-2 { 0%, 19% { opacity: 0; } 21%, 35% { opacity: 1; } 37%, 100% { opacity: 0; } }
+    @keyframes sky-key-3 { 0%, 35% { opacity: 0; } 37%, 53% { opacity: 1; } 55%, 100% { opacity: 0; } }
+    @keyframes sky-key-4 { 0%, 53% { opacity: 0; } 55%, 71% { opacity: 1; } 73%, 100% { opacity: 0; } }
+    @keyframes sky-key-5 { 0%, 71% { opacity: 0; } 73%, 89% { opacity: 1; } 91%, 100% { opacity: 0; } }
+
+    @media (max-width: 480px) {
+      .sky-key { gap: 0.4rem; }
+      .sky-key kbd { font-size: 0.85rem; padding: 4px 8px; }
+      .sky-key-name { font-size: 0.8rem; }
+      .sky-key-basis { font-size: 0.6rem; padding: 3px 7px; }
+      .sky-frame-label { display: none; }
+    }
+
+    /* Reduce Motion: one still frame (the window shrunk to its bottom half, its key shown). The base rule
+       only shortens durations, which would make these infinite loops flicker, so stop them outright. */
+    @media (prefers-reduced-motion: reduce) {
+      .sky-cloud, .sky-main, .sky-frame, .sky-line, .sky-guide, .sky-key { animation: none !important; }
+      .sky-key-3 { opacity: 1; }
+    }
+
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+    }
+
+    /* ─── Highlights cards ───────────────────────────────────────── */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-lg);
+      padding: 1.3rem 1.4rem;
+      box-shadow: var(--shadow-card);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-float);
+    }
+
+    .card-icon {
+      width: 36px;
+      height: 36px;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--accent-glow);
+      border-radius: var(--radius-sm);
+    }
+
+    .card-title {
+      font-size: 0.92rem;
+      font-weight: 650;
+      color: var(--text);
+      margin-bottom: 0.3rem;
+      letter-spacing: -0.01em;
+    }
+
+    .card-body {
+      font-size: 0.83rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    /* ─── Shortcuts section ──────────────────────────────────────── */
+    #shortcuts { background: var(--surface); }
+
+    .modifier-legend {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 10px;
+      margin-bottom: 2.5rem;
+    }
+
+    .modifier-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius);
+      padding: 0.8rem 1rem;
+    }
+
+    .modifier-keys {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3px;
+      flex-shrink: 0;
+    }
+
+    .modifier-desc {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* keycap chip */
+    .key {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--keycap-bg);
+      border: 1px solid var(--keycap-border);
+      border-bottom: 2.5px solid var(--keycap-shadow);
+      border-radius: 5px;
+      padding: 2px 7px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--keycap-text);
+      line-height: 1.5;
+      white-space: nowrap;
+      vertical-align: middle;
+      box-shadow: 0 1px 2px var(--keycap-shadow);
+    }
+    .key.sym { font-family: var(--font); font-size: 0.88rem; padding: 1px 5px; }
+
+    .shortcuts-table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    table.shortcuts-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    .shortcuts-table th {
+      text-align: left;
+      padding: 0.55rem 0.9rem;
+      font-size: 0.72rem;
+      font-weight: 650;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .shortcuts-table td {
+      padding: 0.5rem 0.9rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    .shortcuts-table tr:last-child td { border-bottom: none; }
+    .shortcuts-table tr:hover td { background: var(--accent-glow); }
+
+    .shortcuts-table td:first-child { color: var(--text-muted); font-size: 0.8rem; }
+    .shortcuts-table td:nth-child(2) { color: var(--text); font-weight: 500; }
+    .shortcuts-table td:nth-child(3) { white-space: nowrap; }
+
+    .keys-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .vim-note {
+      margin-top: 1.5rem;
+      padding: 0.85rem 1.1rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-left: 3px solid var(--accent);
+      border-radius: var(--radius-sm);
+      font-size: 0.83rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    .vim-note code {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      background: var(--surface);
+      padding: 1px 5px;
+      border-radius: 3px;
+      color: var(--text-mid);
+    }
+
+    /* ─── How it works ───────────────────────────────────────────── */
+    .how-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .how-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-card);
+    }
+
+    .how-diagram {
+      aspect-ratio: 16/9;
+      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.2rem;
+      position: relative;
+    }
+
+    .how-card-body {
+      padding: 1rem 1.2rem;
+    }
+
+    .how-card-title {
+      font-size: 0.88rem;
+      font-weight: 650;
+      color: var(--text);
+      margin-bottom: 0.25rem;
+    }
+
+    .how-card-text {
+      font-size: 0.81rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* ─── Requirements section ───────────────────────────────────── */
+    /* minmax(0, 1fr), not 1fr: a bare 1fr track never shrinks below its
+       content's min-content width, so the long install command in
+       pre.code-block stretched the column (440px at a 320px viewport) and
+       the page scrolled sideways. The pre keeps its own overflow-x scroll. */
+    .install-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 16px;
+    }
+    @media (max-width: 600px) {
+      .install-grid { grid-template-columns: minmax(0, 1fr); }
+    }
+
+    .req-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-lg);
+      padding: 1.3rem 1.5rem;
+      box-shadow: var(--shadow-card);
+    }
+
+    .req-card h3 {
+      font-size: 0.88rem;
+      font-weight: 650;
+      color: var(--text);
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.01em;
+    }
+
+    .req-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .req-list li {
+      font-size: 0.83rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      line-height: 1.5;
+    }
+
+    .req-list li::before {
+      content: "·";
+      color: var(--accent);
+      font-size: 1rem;
+      line-height: 1.3;
+      flex-shrink: 0;
+    }
+
+    pre.code-block {
+      background: var(--navy);
+      color: #c8d8f4;
+      border-radius: var(--radius);
+      padding: 1.1rem 1.3rem;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      overflow-x: auto;
+      line-height: 1.7;
+      border: 1px solid rgba(74,127,193,0.2);
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+    }
+
+    pre.code-block:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    pre.code-block .comment { color: rgba(160,190,230,0.5); }
+    pre.code-block .cmd { color: #c8d8f4; }
+    pre.code-block .arg { color: var(--accent-soft); }
+
+    .install-note {
+      margin-top: 0.9rem;
+      font-size: 0.79rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+    .install-note strong { color: var(--text-mid); font-weight: 600; }
+    .install-note a, .dl-legacy a { color: var(--text-mid); text-decoration: underline; text-underline-offset: 2px; }
+
+    /* ─── Download meta note ─────────────────────────────────────── */
+    .dl-meta {
+      margin-top: 0.55rem;
+      font-size: 0.78rem;
+      color: var(--text-faint);
+      letter-spacing: 0.01em;
+    }
+
+    /* ─── Install steps ──────────────────────────────────────────── */
+    .install-steps {
+      list-style: none;
+      counter-reset: step;
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+      margin-bottom: 1.1rem;
+    }
+    .install-steps li {
+      counter-increment: step;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.65rem;
+      font-size: 0.85rem;
+      color: var(--text-mid);
+      line-height: 1.5;
+    }
+    .install-steps li::before {
+      content: counter(step);
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--accent-glow);
+      border: 1px solid rgba(74,127,193,0.3);
+      color: var(--accent);
+      font-size: 0.72rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1px;
+    }
+
+    .alt-section-label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 650;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      margin-bottom: 0.6rem;
+      margin-top: 1.4rem;
+    }
+
+    /* ─── Footer ─────────────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem 0;
+      background: var(--bg-hero);
+    }
+
+    .footer-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .footer-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .footer-text {
+      font-size: 0.8rem;
+      color: var(--text-faint);
+      line-height: 1.5;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .footer-links a {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    .footer-links a:hover { color: var(--accent); }
+
+    /* ─── Section divider ────────────────────────────────────────── */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 0;
+    }
+
+    /* ─── Responsive tweaks ──────────────────────────────────────── */
+    @media (max-width: 480px) {
+      .modifier-legend { grid-template-columns: 1fr; }
+      .how-grid { grid-template-columns: 1fr; }
+      .cards-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ─── Skip link ─────────────────────────────────────────────── */
+    .skip-link {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      text-decoration: none;
+      background: var(--navy);
+      color: #e8f0ff;
+      padding: 0.55rem 1.1rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
+      font-weight: 600;
+      z-index: 9999;
+    }
+    .skip-link:focus {
+      position: fixed;
+      top: 0.75rem;
+      left: 50%;
+      transform: translateX(-50%);
+      width: auto;
+      height: auto;
+      clip: auto;
+      overflow: visible;
+      white-space: normal;
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    /* ─── FAQ section ────────────────────────────────────────────── */
+    .faq-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-width: 72ch;
+    }
+
+    .faq-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: border-color 0.15s;
+    }
+    .faq-item[open] {
+      border-color: rgba(74,127,193,0.3);
+    }
+
+    .faq-summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.9rem 1.1rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text);
+      cursor: pointer;
+      list-style: none;
+      user-select: none;
+      gap: 0.75rem;
+    }
+    .faq-summary::-webkit-details-marker { display: none; }
+    .faq-summary::after {
+      content: "+";
+      font-size: 1.15rem;
+      font-weight: 300;
+      color: var(--accent);
+      flex-shrink: 0;
+      line-height: 1;
+    }
+    .faq-item[open] .faq-summary::after {
+      content: "\2212";
+    }
+
+    .faq-answer {
+      padding: 0.75rem 1.1rem 1rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.65;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ─── Mobile shortcuts: hide Group column at 480px ──────────── */
+    @media (max-width: 480px) {
+      .col-group { display: none; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <a class="skip-link" href="#main-content"
+     data-en="Skip to main content" data-ko="본문으로 건너뛰기">본문으로 건너뛰기</a>
+
+  <!-- ── Sticky top bar ────────────────────────────────────────── -->
+  <header role="banner">
+    <nav class="topbar" aria-label="주 메뉴" data-ko-aria-label="주 메뉴">
+      <div class="topbar-logo" aria-label="Azimuth">
+        <svg class="compass-icon" width="22" height="22" viewBox="0 0 1024 1024" aria-hidden="true"
+             xmlns="http://www.w3.org/2000/svg">
+          <rect width="1024" height="1024" rx="228" fill="#1E3A5F"/>
+          <circle cx="512" cy="542.7" r="358.4" fill="none" stroke="#F2F5F9" stroke-width="44"/>
+          <rect x="327.7" y="419.8" width="368.6" height="266.2" rx="20.5" fill="none" stroke="#F2F5F9" stroke-width="44"/>
+          <rect x="354.3" y="507.9" width="157.7" height="151.6" rx="8.2" fill="#F2A541"/>
+          <path d="M512 87 L563.2 169 H460.8 Z" fill="#F2A541"/>
+        </svg>
+        <span>Azimuth</span>
+      </div>
+
+      <div class="topbar-right">
+        <a href="manual.html" class="topbar-link"
+           data-en="Manual" data-ko="매뉴얼">매뉴얼</a>
+        <a href="https://github.com/ai-screams/Azimuth" target="_blank" rel="noopener"
+           aria-label="GitHub에서 Azimuth 보기" data-ko-aria-label="GitHub에서 Azimuth 보기" style="display:flex;align-items:center;">
+          <img src="https://img.shields.io/github/stars/ai-screams/Azimuth?style=flat&label=Stars&color=1a2a4a"
+               alt="GitHub 별 수" data-ko-alt="GitHub 별 수" loading="lazy" height="20" />
+        </a>
+        <div class="lang-toggle" role="group" aria-label="언어 선택" data-ko-aria-label="언어 선택">
+          <a class="lang-btn" href="../" hreflang="en" lang="en" aria-current="false"
+             data-ko-class="lang-btn" data-ko-href="../" data-ko-aria-current="false">EN</a>
+          <a class="lang-btn active" href="./" hreflang="ko" lang="ko"
+             data-ko-class="lang-btn active" data-ko-href="./" data-ko-aria-current="page" aria-current="page">KO</a>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main id="main-content">
+    <!-- ── 1. Hero ─────────────────────────────────────────────── -->
+    <section class="hero" aria-labelledby="hero-heading">
+      <svg class="sky-defs" aria-hidden="true" focusable="false">
+        <defs>
+          <linearGradient id="sky-puff" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" style="stop-color: var(--cloud-top)"/>
+            <stop offset="0.6" style="stop-color: var(--cloud-top)"/>
+            <stop offset="1" style="stop-color: var(--cloud-shade)"/>
+          </linearGradient>
+          <filter id="sky-fluff" x="-20%" y="-40%" width="140%" height="180%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="3" seed="7" result="noise"/>
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="34" xChannelSelector="R" yChannelSelector="G" result="shape"/>
+            <feGaussianBlur in="shape" stdDeviation="2.4"/>
+          </filter>
+          <g id="sky-cloud-1" fill="url(#sky-puff)">
+            <ellipse cx="170" cy="128" rx="190" ry="42"/>
+            <circle cx="70" cy="112" r="40"/><circle cx="128" cy="88" r="58"/><circle cx="200" cy="66" r="78"/>
+            <circle cx="282" cy="92" r="56"/><circle cx="338" cy="116" r="36"/>
+          </g>
+          <g id="sky-cloud-2" fill="url(#sky-puff)">
+            <ellipse cx="240" cy="120" rx="250" ry="44"/>
+            <circle cx="70" cy="110" r="42"/><circle cx="140" cy="84" r="64"/><circle cx="236" cy="56" r="90"/>
+            <circle cx="336" cy="80" r="70"/><circle cx="420" cy="104" r="48"/>
+          </g>
+        </defs>
+      </svg>
+      <div class="sky-clouds" aria-hidden="true">
+        <div class="sky-haze sky-haze-a"></div>
+        <div class="sky-haze sky-haze-b"></div>
+        <div class="sky-cloud sky-cloud-a"><svg viewBox="-30 -40 440 240"><use href="#sky-cloud-1" filter="url(#sky-fluff)"/></svg></div>
+        <div class="sky-cloud sky-cloud-b"><svg viewBox="-30 -50 550 250"><use href="#sky-cloud-2" filter="url(#sky-fluff)"/></svg></div>
+        <div class="sky-cloud sky-cloud-c"><svg viewBox="-30 -40 440 240"><use href="#sky-cloud-1" filter="url(#sky-fluff)"/></svg></div>
+        <div class="sky-cloud sky-cloud-d"><svg viewBox="-30 -50 550 250"><use href="#sky-cloud-2" filter="url(#sky-fluff)"/></svg></div>
+        <div class="sky-cloud sky-cloud-e"><svg viewBox="-30 -40 440 240"><use href="#sky-cloud-1" filter="url(#sky-fluff)"/></svg></div>
+      </div>
+      <div class="container">
+        <div class="hero-inner">
+          <div class="hero-content">
+            <h1 id="hero-heading" class="hero-wordmark">Azimuth</h1>
+            <p class="hero-tagline"
+               data-en="A keyboard-driven window manager for macOS."
+               data-ko="키보드로 다루는 macOS 윈도우 매니저.">키보드로 다루는 macOS 윈도우 매니저.</p>
+            <p class="hero-sub"
+               data-en="Predictability over clever inference."
+               data-ko="똑똑한 추론보다 예측 가능성.">똑똑한 추론보다 예측 가능성.</p>
+
+            <div class="hero-ctas">
+              <!-- Primary: Download -->
+              <a id="download-btn"
+                 href="https://github.com/ai-screams/Azimuth/releases/latest"
+                 class="btn btn-primary js-download"
+                 aria-label="macOS용 Azimuth 다운로드" data-ko-aria-label="macOS용 Azimuth 다운로드">
+                <!-- download arrow icon -->
+                <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"
+                     xmlns="http://www.w3.org/2000/svg">
+                  <path d="M7.5 1v8M4.5 6.5l3 3 3-3M2 11.5h11" stroke="currentColor"
+                        stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span data-en="Download for macOS" data-ko="macOS용 다운로드">macOS용 다운로드</span>
+              </a>
+              <!-- Secondary: View on GitHub -->
+              <a href="https://github.com/ai-screams/Azimuth" class="btn btn-secondary"
+                 target="_blank" rel="noopener"
+                 aria-label="GitHub에서 Azimuth 보기(새 탭)" data-ko-aria-label="GitHub에서 Azimuth 보기(새 탭)">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                  <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
+                           0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13
+                           -.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66
+                           .07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15
+                           -.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27
+                           .68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12
+                           .51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48
+                           0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+                </svg>
+                <span data-en="View on GitHub" data-ko="GitHub에서 보기">GitHub에서 보기</span>
+              </a>
+              <!-- Tertiary: anchor -->
+              <a href="#how-it-works" class="btn btn-secondary"
+                 data-en="How it works" data-ko="작동 방식">작동 방식</a>
+            </div>
+            <p id="dl-meta" class="dl-meta"
+               data-en="Universal · macOS 14+ · .dmg"
+               data-ko="Universal · macOS 14+ · .dmg">Universal · macOS 14+ · .dmg</p>
+            <p class="dl-meta dl-legacy">
+              <a href="#legacy"
+                 data-en="Older Mac (macOS 10.13–13)? Get an earlier version →"
+                 data-ko="구형 Mac(macOS 10.13~13)이라면 이전 버전 받기 →">구형 Mac(macOS 10.13~13)이라면 이전 버전 받기 →</a>
+            </p>
+            <p class="dl-meta dl-legacy">
+              <a href="https://github.com/ai-screams/Azimuth/releases"
+                 data-en="All versions and release notes →"
+                 data-ko="모든 버전과 릴리스 노트 →">모든 버전과 릴리스 노트 →</a>
+            </p>
+          </div>
+          <p class="visually-hidden"
+             data-en="Animation: one window is placed with Left 1/3 and Left 1/2, which measure against the screen, then shrunk to its own bottom half and its own left half, then undone."
+             data-ko="애니메이션: 창 하나를 화면 기준인 Left 1/3과 Left 1/2로 놓은 뒤, 그 창 기준으로 아래 절반과 왼쪽 절반으로 줄이고, 되돌립니다.">애니메이션: 창 하나를 화면 기준인 Left 1/3과 Left 1/2로 놓은 뒤, 그 창 기준으로 아래 절반과 왼쪽 절반으로 줄이고, 되돌립니다.</p>
+          <div class="sky-stage" aria-hidden="true">
+            <div class="sky-win sky-win-a"><div class="sky-win-dots"><span></span><span></span><span></span></div></div>
+            <div class="sky-win sky-win-b"><div class="sky-win-dots"><span></span><span></span><span></span></div></div>
+            <div class="sky-frame">
+              <span class="sky-frame-label" data-en="Screen" data-ko="화면">화면</span>
+              <div class="sky-line sky-line-third" style="left: 33.333%;"></div>
+              <div class="sky-line sky-line-third" style="left: 66.667%;"></div>
+              <div class="sky-line sky-line-half" style="left: 50%;"></div>
+            </div>
+            <div class="sky-win sky-main">
+              <div class="sky-win-dots"><span></span><span></span><span></span></div>
+              <span class="sky-win-line" style="width: 60%;"></span>
+              <span class="sky-win-line" style="width: 82%; opacity: 0.7;"></span>
+              <div class="sky-guide sky-guide-h"></div>
+              <div class="sky-guide sky-guide-v"></div>
+            </div>
+          </div>
+          <div class="sky-keys" aria-hidden="true">
+            <div class="sky-key sky-key-1"><kbd>⌃⌥1</kbd><span class="sky-key-name">Left 1/3</span>
+              <span class="sky-key-basis" data-en="of the screen" data-ko="화면 기준">화면 기준</span></div>
+            <div class="sky-key sky-key-2"><kbd>⌃⌥←</kbd><span class="sky-key-name">Left 1/2</span>
+              <span class="sky-key-basis" data-en="of the screen" data-ko="화면 기준">화면 기준</span></div>
+            <div class="sky-key sky-key-3"><kbd>⌃⌥⇧↓</kbd><span class="sky-key-name">Shrink Bottom 1/2</span>
+              <span class="sky-key-basis is-window" data-en="of this window" data-ko="이 창 기준">이 창 기준</span></div>
+            <div class="sky-key sky-key-4"><kbd>⌃⌥⇧←</kbd><span class="sky-key-name">Shrink Left 1/2</span>
+              <span class="sky-key-basis is-window" data-en="of this window" data-ko="이 창 기준">이 창 기준</span></div>
+            <div class="sky-key sky-key-5"><kbd>⌃⌥⌫</kbd><span class="sky-key-name">Undo</span>
+              <span class="sky-key-basis" data-en="per window" data-ko="창마다 기록">창마다 기록</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 2. Highlights ──────────────────────────────────────── -->
+    <section aria-labelledby="highlights-heading">
+      <div class="container">
+        <span class="section-label"
+              data-en="Features" data-ko="기능">기능</span>
+        <h2 class="section-title" id="highlights-heading"
+            data-en="Everything in one modifier layer."
+            data-ko="하나의 수식키 레이어로 모든 것을.">하나의 수식키 레이어로 모든 것을.</h2>
+        <p class="section-sub"
+           data-en="Nine kinds of command, 34 shortcuts. No scenes. No automation. Just a reliable spatial grammar for your windows."
+           data-ko="9가지 명령, 단축키 34개. 씬도 없고 자동화도 없습니다. 오직 신뢰할 수 있는 윈도우 배치 문법만.">9가지 명령, 단축키 34개. 씬도 없고 자동화도 없습니다. 오직 신뢰할 수 있는 윈도우 배치 문법만.</p>
+
+        <div class="cards-grid">
+          <!-- Card 1 -->
+          <div class="card">
+            <div class="card-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="1" y="3" width="8" height="14" rx="1.5" stroke="var(--accent)" stroke-width="1.5"/>
+                <rect x="11" y="3" width="8" height="14" rx="1.5" stroke="var(--accent)" stroke-width="1.5" opacity="0.35"/>
+                <path d="M8 10 L5 7 M8 10 L5 13" stroke="var(--accent)" stroke-width="1.3" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div class="card-title"
+                 data-en="Halves &amp; snap-throw"
+                 data-ko="반분 &amp; 튕기기">반분 &amp; 튕기기</div>
+            <p class="card-body"
+               data-en="Snap a window to a screen half. Press the same edge again to throw it to the adjacent display, landing in the opposite half."
+               data-ko="윈도우를 화면 반쪽에 스냅합니다. 같은 방향을 다시 누르면 인접 디스플레이로 던져 반대쪽 반분에 배치합니다.">윈도우를 화면 반쪽에 스냅합니다. 같은 방향을 다시 누르면 인접 디스플레이로 던져 반대쪽 반분에 배치합니다.</p>
+          </div>
+
+          <!-- Card 2 -->
+          <div class="card">
+            <div class="card-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="1" y="3" width="5" height="14" rx="1.2" stroke="var(--accent)" stroke-width="1.4" opacity="0.5"/>
+                <rect x="7.5" y="3" width="5" height="14" rx="1.2" stroke="var(--accent)" stroke-width="1.4"/>
+                <rect x="14" y="3" width="5" height="14" rx="1.2" stroke="var(--accent)" stroke-width="1.4" opacity="0.5"/>
+              </svg>
+            </div>
+            <div class="card-title"
+                 data-en="Thirds &amp; two-thirds"
+                 data-ko="삼등분 &amp; 삼분의 이">삼등분 &amp; 삼분의 이</div>
+            <p class="card-body"
+               data-en="Left/center/right and top/middle/bottom — horizontal and vertical. Axis-independent, so they compose freely."
+               data-ko="좌/중/우 및 상/중/하 — 수평·수직 모두 지원. 축이 독립적이라 자유롭게 조합됩니다.">좌/중/우 및 상/중/하 — 수평·수직 모두 지원. 축이 독립적이라 자유롭게 조합됩니다.</p>
+          </div>
+
+          <!-- Card 3 -->
+          <div class="card">
+            <div class="card-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="1.5" y="1.5" width="17" height="17" rx="2" stroke="var(--accent)" stroke-width="1.5"/>
+                <rect x="4" y="4" width="12" height="12" rx="1" fill="var(--accent)" opacity="0.18"/>
+              </svg>
+            </div>
+            <div class="card-title"
+                 data-en="Maximize / Center"
+                 data-ko="최대화 / 가운데 배치">최대화 / 가운데 배치</div>
+            <p class="card-body"
+               data-en="Maximize fills the work area (minus menu bar and Dock); Maximize with gaps leaves a uniform inset on all sides. Center keeps the current size and places the window in the middle."
+               data-ko="최대화는 작업영역을 채웁니다(메뉴 바·Dock 제외). 여백 최대화는 사방에 균일한 여백을 남깁니다. 가운데 배치는 현재 크기를 유지한 채 중앙으로 이동합니다.">최대화는 작업영역을 채웁니다(메뉴 바·Dock 제외). 여백 최대화는 사방에 균일한 여백을 남깁니다. 가운데 배치는 현재 크기를 유지한 채 중앙으로 이동합니다.</p>
+          </div>
+
+          <!-- Card 4 -->
+          <div class="card">
+            <div class="card-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="3" y="5" width="9" height="10" rx="1.5" stroke="var(--accent)" stroke-width="1.4"/>
+                <path d="M13.5 10 L17 10 M17 10 L15 8 M17 10 L15 12"
+                      stroke="var(--accent)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="card-title"
+                 data-en="Move (keep size)"
+                 data-ko="이동 (크기 유지)">이동 (크기 유지)</div>
+            <p class="card-body"
+               data-en="Nudge the window one step in any direction — by its own width or height — clamped at the work-area edge. Never resizes, never changes display."
+               data-ko="윈도우를 자체 너비·높이만큼 한 단계씩 이동합니다. 작업영역 경계에서 멈추며 크기 변경이나 디스플레이 이동은 없습니다.">윈도우를 자체 너비·높이만큼 한 단계씩 이동합니다. 작업영역 경계에서 멈추며 크기 변경이나 디스플레이 이동은 없습니다.</p>
+          </div>
+
+          <!-- Card 5 -->
+          <div class="card">
+            <div class="card-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="1.5" y="4" width="17" height="12" rx="1.5" stroke="var(--accent)" stroke-width="1.3" opacity="0.3"/>
+                <rect x="1.5" y="4" width="8" height="12" rx="1.5" fill="var(--accent)" opacity="0.2" stroke="var(--accent)" stroke-width="1.4"/>
+                <path d="M10 10 L7 10" stroke="var(--accent)" stroke-width="1.3" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div class="card-title"
+                 data-en="Relative shrink"
+                 data-ko="상대 축소">상대 축소</div>
+            <p class="card-body"
+               data-en="Shrink the window to ½ or ⅔ of its current size against a pinned edge — based on the window, not the screen. Effects compose: ⅔ then ½ lands on ⅓."
+               data-ko="현재 윈도우 크기(화면 기준 아님)를 기준으로 고정 엣지 쪽으로 ½ 또는 ⅔로 줄입니다. 효과가 조합됩니다 — ⅔ 다음 ½는 ⅓.">현재 윈도우 크기(화면 기준 아님)를 기준으로 고정 엣지 쪽으로 ½ 또는 ⅔로 줄입니다. 효과가 조합됩니다 — ⅔ 다음 ½는 ⅓.</p>
+          </div>
+
+          <!-- Card 6 -->
+          <div class="card">
+            <div class="card-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="1" y="5" width="8" height="10" rx="1.5" stroke="var(--accent)" stroke-width="1.3" opacity="0.4"/>
+                <rect x="11" y="5" width="8" height="10" rx="1.5" stroke="var(--accent)" stroke-width="1.4"/>
+                <path d="M9.5 10 L12.5 10 M12.5 10 L11 8.5 M12.5 10 L11 11.5"
+                      stroke="var(--accent)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="card-title"
+                 data-en="Move to next display"
+                 data-ko="다음 디스플레이로 이동">다음 디스플레이로 이동</div>
+            <p class="card-body"
+               data-en="Send the window to an adjacent monitor, preserving its shape and relative position. It keeps its pixel size, shrinking proportionally only if it doesn't fit."
+               data-ko="윈도우를 인접 모니터로 보내며 형태와 상대 위치를 유지합니다. 픽셀 크기를 그대로 유지하고, 들어가지 않을 때만 비율에 맞춰 축소합니다.">윈도우를 인접 모니터로 보내며 형태와 상대 위치를 유지합니다. 픽셀 크기를 그대로 유지하고, 들어가지 않을 때만 비율에 맞춰 축소합니다.</p>
+          </div>
+
+          <!-- Card 7 -->
+          <div class="card">
+            <div class="card-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14 6 C14 6 13 3 10 3 C7 3 5 5 5 8 C5 11 7 13 10 13"
+                      stroke="var(--accent)" stroke-width="1.4" stroke-linecap="round" fill="none"/>
+                <path d="M6.5 6 L5 3.5 L3 5.5" stroke="var(--accent)" stroke-width="1.3"
+                      stroke-linecap="round" stroke-linejoin="round"/>
+                <rect x="7" y="13" width="6" height="4" rx="1" stroke="var(--accent)" stroke-width="1.3" opacity="0.5"/>
+              </svg>
+            </div>
+            <div class="card-title"
+                 data-en="Undo"
+                 data-ko="실행 취소">실행 취소</div>
+            <p class="card-body"
+               data-en="Step back through the window's recent frames — 5 by default, up to 20. Display reconfiguration clears history."
+               data-ko="윈도우의 최근 프레임을 한 단계씩 되돌립니다 — 기본 5단계, 최대 20단계. 디스플레이 재구성 시 이력이 초기화됩니다.">윈도우의 최근 프레임을 한 단계씩 되돌립니다 — 기본 5단계, 최대 20단계. 디스플레이 재구성 시 이력이 초기화됩니다.</p>
+          </div>
+
+          <!-- Card 8 -->
+          <div class="card">
+            <div class="card-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="1" y="4" width="8" height="12" rx="1.5" stroke="var(--accent)" stroke-width="1.4"/>
+                <rect x="11" y="4" width="8" height="12" rx="1.5" stroke="var(--accent)" stroke-width="1.4"/>
+                <path d="M5 10 H15" stroke="var(--accent)" stroke-width="1" stroke-dasharray="2 2" opacity="0.5"/>
+              </svg>
+            </div>
+            <div class="card-title"
+                 data-en="Multi-monitor aware"
+                 data-ko="멀티 모니터 인식">멀티 모니터 인식</div>
+            <p class="card-body"
+               data-en="Position-aware adjacent-display selection: the window goes to the monitor that spatially lines up with where it currently sits."
+               data-ko="위치 인식 기반 인접 디스플레이 선택: 윈도우의 현재 위치에 공간적으로 정렬된 모니터로 이동합니다.">위치 인식 기반 인접 디스플레이 선택: 윈도우의 현재 위치에 공간적으로 정렬된 모니터로 이동합니다.</p>
+          </div>
+
+          <!-- Card 9 -->
+          <div class="card">
+            <div class="card-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="2" y="5" width="16" height="10" rx="1.5" stroke="var(--accent)" stroke-width="1.3" opacity="0.3"/>
+                <rect x="2" y="5" width="6" height="4" rx="1" fill="var(--accent)" opacity="0.3"/>
+                <rect x="10" y="5" width="4" height="4" rx="1" fill="var(--accent)" opacity="0.15"/>
+                <text x="3.5" y="14" font-family="-apple-system,sans-serif" font-size="4.5"
+                      font-weight="600" fill="var(--accent)" opacity="0.8">⌃⌥</text>
+                <text x="10.5" y="14" font-family="-apple-system,sans-serif" font-size="4.5"
+                      font-weight="600" fill="var(--accent-soft)" opacity="0.6">HJKL</text>
+              </svg>
+            </div>
+            <div class="card-title"
+                 data-en="Two presets"
+                 data-ko="두 가지 프리셋">두 가지 프리셋</div>
+            <p class="card-body"
+               data-en="Standard (arrow keys) and Vim (HJKL). Both fully customizable per-command, with conflict warnings and per-command Reset in Settings."
+               data-ko="Standard(화살표 키)와 Vim(HJKL). 두 프리셋 모두 명령별로 완전히 커스터마이징 가능하며, 충돌 경고와 개별 Reset을 제공합니다.">Standard(화살표 키)와 Vim(HJKL). 두 프리셋 모두 명령별로 완전히 커스터마이징 가능하며, 충돌 경고와 개별 Reset을 제공합니다.</p>
+          </div>
+
+          <!-- Card 10 -->
+          <div class="card">
+            <div class="card-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="10" cy="10" r="7.5" stroke="var(--accent)" stroke-width="1.4" opacity="0.5"/>
+                <path d="M10 6 L10 10 L13 13" stroke="var(--accent)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M7 3.5 C5 4.5 3.5 6.5 3.5 10" stroke="var(--accent)" stroke-width="1.2" stroke-linecap="round" opacity="0.6"/>
+                <path d="M3.5 10 L2 8.5 M3.5 10 L5 8.5" stroke="var(--accent)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>
+              </svg>
+            </div>
+            <div class="card-title"
+                 data-en="Automatic updates"
+                 data-ko="자동 업데이트">자동 업데이트</div>
+            <p class="card-body"
+               data-en="Azimuth checks for new notarized, signature-verified releases and updates itself (Sparkle); or check on demand."
+               data-ko="공증·서명 검증된 새 릴리스를 확인해 스스로 업데이트(Sparkle)하거나, 원할 때 직접 확인.">공증·서명 검증된 새 릴리스를 확인해 스스로 업데이트(Sparkle)하거나, 원할 때 직접 확인.</p>
+          </div>
+          <!-- Card 11 -->
+          <div class="card">
+            <div class="card-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="1.5" y="3" width="17" height="14" rx="2" stroke="var(--accent)" stroke-width="1.4"/>
+                <circle cx="6" cy="7.5" r="2" stroke="var(--accent)" stroke-width="1.3"/>
+                <path d="M7.5 9 L9 10.5" stroke="var(--accent)" stroke-width="1.3" stroke-linecap="round"/>
+                <path d="M4 13.5 H16" stroke="var(--accent)" stroke-width="1.2" stroke-linecap="round" opacity="0.5"/>
+              </svg>
+            </div>
+            <div class="card-title"
+                 data-en="Command palette"
+                 data-ko="명령 팔레트">명령 팔레트</div>
+            <p class="card-body"
+               data-en="Press ⌃⌥P, type part of a command's name, and press Return. A dashed outline shows where the window will go before you commit."
+               data-ko="⌃⌥P를 누르고 명령 이름 일부를 입력한 뒤 Return. 적용하기 전에 창이 갈 자리를 점선 윤곽으로 보여 줍니다.">⌃⌥P를 누르고 명령 이름 일부를 입력한 뒤 Return. 적용하기 전에 창이 갈 자리를 점선 윤곽으로 보여 줍니다.</p>
+          </div>
+          <!-- Card 12 -->
+          <div class="card">
+            <div class="card-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M1.5 3.5 H18.5" stroke="var(--accent)" stroke-width="1.4" stroke-linecap="round"/>
+                <rect x="4" y="7" width="12" height="10" rx="1.5" stroke="var(--accent)" stroke-width="1.4"/>
+                <rect x="6" y="9" width="3" height="2.5" rx="0.5" fill="var(--accent)"/>
+                <rect x="11" y="9" width="3" height="2.5" rx="0.5" fill="var(--accent)" opacity="0.4"/>
+                <rect x="6" y="13" width="3" height="2.5" rx="0.5" fill="var(--accent)" opacity="0.4"/>
+                <rect x="11" y="13" width="3" height="2.5" rx="0.5" fill="var(--accent)" opacity="0.4"/>
+              </svg>
+            </div>
+            <div class="card-title"
+                 data-en="Menu bar &amp; cheat sheet"
+                 data-ko="메뉴바 &amp; 치트시트">메뉴바 &amp; 치트시트</div>
+            <p class="card-body"
+               data-en="Click the menu bar icon for every command as a tile. Hold ⌃⌥ for a moment to see which key does what."
+               data-ko="메뉴바 아이콘을 클릭하면 모든 명령이 타일로. ⌃⌥를 잠깐 누르고 있으면 어떤 키가 무엇을 하는지 보여 줍니다.">메뉴바 아이콘을 클릭하면 모든 명령이 타일로. ⌃⌥를 잠깐 누르고 있으면 어떤 키가 무엇을 하는지 보여 줍니다.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ── 2.5 See it in action (screenshots / GIF) ──────────────────
+         TEMPORARILY HIDDEN (the `hidden` attribute below) until real captures land —
+         the images in docs/assets/ are branded placeholders, not real screenshots.
+         TO RE-ENABLE: replace assets/demo-snap.png + assets/demo-throw.png with real
+         captures (~1600×1000 PNG, or an animated GIF / looping .mp4, same filenames),
+         then delete `hidden` here AND on the matching divider right after this section. -->
+    <section id="screenshots" aria-labelledby="screenshots-heading" hidden>
+      <div class="container">
+        <span class="section-label"
+              data-en="In action" data-ko="실제 동작">실제 동작</span>
+        <h2 class="section-title" id="screenshots-heading"
+            data-en="See it in action"
+            data-ko="동작 화면">동작 화면</h2>
+        <p class="section-sub"
+           data-en="Predictable placement and snap-throw across displays — keyboard only, no mouse."
+           data-ko="예측 가능한 배치와 디스플레이 간 스냅-throw — 키보드만으로, 마우스 없이.">예측 가능한 배치와 디스플레이 간 스냅-throw — 키보드만으로, 마우스 없이.</p>
+        <div style="display:grid; gap:1.25rem; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); margin-top:2rem;">
+          <figure style="margin:0;">
+            <img src="../assets/demo-snap.png" alt="Azimuth가 창을 화면 영역에 스냅하는 모습" data-ko-alt="Azimuth가 창을 화면 영역에 스냅하는 모습"
+                 width="1600" height="1000" loading="lazy"
+                 style="width:100%; height:auto; border-radius:12px; border:1px solid rgba(255,255,255,0.12);" />
+            <figcaption style="margin-top:.5rem; font-size:.9rem; color:var(--text-muted);"
+                        data-en="Snap & resize with one shortcut" data-ko="단축키 하나로 스냅·리사이즈">단축키 하나로 스냅·리사이즈</figcaption>
+          </figure>
+          <figure style="margin:0;">
+            <img src="../assets/demo-throw.png" alt="Azimuth가 창을 옆 디스플레이로 던지는 모습" data-ko-alt="Azimuth가 창을 옆 디스플레이로 던지는 모습"
+                 width="1600" height="1000" loading="lazy"
+                 style="width:100%; height:auto; border-radius:12px; border:1px solid rgba(255,255,255,0.12);" />
+            <figcaption style="margin-top:.5rem; font-size:.9rem; color:var(--text-muted);"
+                        data-en="Throw across displays, keep the shape" data-ko="디스플레이 간 이동, 모양 유지">디스플레이 간 이동, 모양 유지</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider" hidden></div><!-- paired with the hidden #screenshots section above; un-hide together -->
+
+    <!-- ── 3. Shortcuts ───────────────────────────────────────── -->
+    <section id="shortcuts" aria-labelledby="shortcuts-heading">
+      <div class="container">
+        <span class="section-label"
+              data-en="Reference" data-ko="참조">참조</span>
+        <h2 class="section-title" id="shortcuts-heading"
+            data-en="Modifier layers"
+            data-ko="수식키 레이어">수식키 레이어</h2>
+        <p class="section-sub"
+           data-en="Four modifier combinations, each governing a distinct class of behavior. The layers never overlap."
+           data-ko="네 가지 수식키 조합이 각각 독립된 동작 그룹을 담당합니다. 레이어는 절대 겹치지 않습니다.">네 가지 수식키 조합이 각각 독립된 동작 그룹을 담당합니다. 레이어는 절대 겹치지 않습니다.</p>
+
+        <div class="modifier-legend" role="list">
+          <div class="modifier-row" role="listitem">
+            <div class="modifier-keys">
+              <span class="key sym">⌃</span><span class="key sym">⌥</span>
+            </div>
+            <div class="modifier-desc"
+                 data-en="Halves (snap/throw) · Maximize · Center · Undo · Thirds &amp; two-thirds (number keys)"
+                 data-ko="반분(스냅/튕기기) · 최대화 · 가운데 · 실행 취소 · 삼등분 &amp; 삼분의 이 (숫자 키)">반분(스냅/튕기기) · 최대화 · 가운데 · 실행 취소 · 삼등분 &amp; 삼분의 이 (숫자 키)</div>
+          </div>
+          <div class="modifier-row" role="listitem">
+            <div class="modifier-keys">
+              <span class="key sym">⌃</span><span class="key sym">⌥</span><span class="key sym">⌘</span>
+            </div>
+            <div class="modifier-desc"
+                 data-en="Move (keep current size)"
+                 data-ko="이동 (현재 크기 유지)">이동 (현재 크기 유지)</div>
+          </div>
+          <div class="modifier-row" role="listitem">
+            <div class="modifier-keys">
+              <span class="key sym">⌃</span><span class="key sym">⌥</span><span class="key sym">⇧</span>
+            </div>
+            <div class="modifier-desc"
+                 data-en="Relative shrink — ½ on arrows, ⅔ on M , . /"
+                 data-ko="상대 축소 — 화살표로 ½, M , . /로 ⅔">상대 축소 — 화살표로 ½, M , . /로 ⅔</div>
+          </div>
+          <div class="modifier-row" role="listitem">
+            <div class="modifier-keys">
+              <span class="key sym">⌃</span><span class="key sym">⌥</span><span class="key sym">⌘</span><span class="key sym">⇧</span>
+            </div>
+            <div class="modifier-desc"
+                 data-en="Move to next display"
+                 data-ko="다음 디스플레이로 이동">다음 디스플레이로 이동</div>
+          </div>
+        </div>
+
+        <!-- Shortcut table -->
+        <div class="shortcuts-table-wrap">
+          <table class="shortcuts-table" aria-label="Standard 프리셋 단축키" data-ko-aria-label="Standard 프리셋 단축키">
+            <thead>
+              <tr>
+                <th class="col-group" data-en="Group" data-ko="그룹">그룹</th>
+                <th data-en="Command" data-ko="명령">명령</th>
+                <th data-en="Shortcut" data-ko="단축키">단축키</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Halves -->
+              <tr>
+                <td class="col-group" rowspan="4" data-en="Halves" data-ko="반분">반분</td>
+                <td data-en="Left" data-ko="왼쪽">왼쪽</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">←</span></div></td>
+              </tr>
+              <tr>
+                <td data-en="Right" data-ko="오른쪽">오른쪽</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">→</span></div></td>
+              </tr>
+              <tr>
+                <td data-en="Top" data-ko="위">위</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">↑</span></div></td>
+              </tr>
+              <tr>
+                <td data-en="Bottom" data-ko="아래">아래</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">↓</span></div></td>
+              </tr>
+              <!-- Maximize / Undo / Center -->
+              <tr>
+                <td class="col-group" rowspan="4" data-en="Maximize · Undo · Center" data-ko="최대화 · 실행 취소 · 가운데">최대화 · 실행 취소 · 가운데</td>
+                <td data-en="Maximize" data-ko="최대화">최대화</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">↩</span></div></td>
+              </tr>
+              <tr>
+                <td data-en="Maximize with gaps" data-ko="여백 최대화">여백 최대화</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥⇧</span><span class="key">↩</span></div></td>
+              </tr>
+              <tr>
+                <td data-en="Undo" data-ko="실행 취소">실행 취소</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">⌫</span></div></td>
+              </tr>
+              <tr>
+                <td data-en="Center" data-ko="가운데 배치">가운데 배치</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">C</span></div></td>
+              </tr>
+              <!-- Thirds (1/3): rowspan=2 — covers horizontal and vertical rows only -->
+              <tr>
+                <td class="col-group" rowspan="2" data-en="Thirds (1/3)" data-ko="삼등분 (1/3)">삼등분 (1/3)</td>
+                <td data-en="Horizontal: left · center · right" data-ko="수평: 왼쪽 · 가운데 · 오른쪽">수평: 왼쪽 · 가운데 · 오른쪽</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">1</span><span class="key">2</span><span class="key">3</span></div></td>
+              </tr>
+              <tr>
+                <td data-en="Vertical: top · middle · bottom" data-ko="수직: 위 · 가운데 · 아래">수직: 위 · 가운데 · 아래</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">4</span><span class="key">5</span><span class="key">6</span></div></td>
+              </tr>
+              <!-- Two-thirds (2/3): own rowspan=2 group -->
+              <tr>
+                <td class="col-group" rowspan="2" data-en="Two-thirds (2/3)" data-ko="삼분의 이 (2/3)">삼분의 이 (2/3)</td>
+                <td data-en="Horizontal: left · right" data-ko="수평: 왼쪽 · 오른쪽">수평: 왼쪽 · 오른쪽</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">7</span><span class="key">8</span></div></td>
+              </tr>
+              <tr>
+                <td data-en="Vertical: top · bottom" data-ko="수직: 위 · 아래">수직: 위 · 아래</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥</span><span class="key">9</span><span class="key">0</span></div></td>
+              </tr>
+              <!-- Move -->
+              <tr>
+                <td class="col-group" data-en="Move (keep size)" data-ko="이동 (크기 유지)">이동 (크기 유지)</td>
+                <td data-en="Left · Right · Up · Down" data-ko="좌 · 우 · 위 · 아래">좌 · 우 · 위 · 아래</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥⌘</span><span class="key">←</span><span class="key">→</span><span class="key">↑</span><span class="key">↓</span></div></td>
+              </tr>
+              <!-- Relative shrink -->
+              <tr>
+                <td class="col-group" data-en="Relative shrink (½)" data-ko="상대 축소 (½)">상대 축소 (½)</td>
+                <td data-en="Left · Right · Up · Down" data-ko="좌 · 우 · 위 · 아래">좌 · 우 · 위 · 아래</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥⇧</span><span class="key">←</span><span class="key">→</span><span class="key">↑</span><span class="key">↓</span></div></td>
+              </tr>
+              <tr>
+                <td class="col-group" data-en="Relative shrink (⅔)" data-ko="상대 축소 (⅔)">상대 축소 (⅔)</td>
+                <td data-en="Left · Down · Up · Right" data-ko="좌 · 하 · 상 · 우">좌 · 하 · 상 · 우</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥⇧</span><span class="key">M</span><span class="key">,</span><span class="key">.</span><span class="key">/</span></div></td>
+              </tr>
+              <!-- Move to next display -->
+              <tr>
+                <td class="col-group" data-en="Move to next display" data-ko="다음 디스플레이로 이동">다음 디스플레이로 이동</td>
+                <td data-en="Left · Right · Up · Down" data-ko="좌 · 우 · 위 · 아래">좌 · 우 · 위 · 아래</td>
+                <td><div class="keys-group"><span class="key sym">⌃⌥⌘⇧</span><span class="key">←</span><span class="key">→</span><span class="key">↑</span><span class="key">↓</span></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="vim-note" role="note">
+          <strong data-en="Vim preset:" data-ko="Vim 프리셋:">Vim 프리셋:</strong>
+          <span data-en="Only directional keys and Undo change. Directions become "
+              data-ko="방향 키와 실행 취소만 변경됩니다. 방향은 ">방향 키와 실행 취소만 변경됩니다. 방향은 </span>
+          <code>H</code> <span data-en="(left)" data-ko="(왼쪽)">(왼쪽)</span>&nbsp;·
+          <code>L</code> <span data-en="(right)" data-ko="(오른쪽)">(오른쪽)</span>&nbsp;·
+          <code>K</code> <span data-en="(up)" data-ko="(위)">(위)</span>&nbsp;·
+          <code>J</code> <span data-en="(down)" data-ko="(아래)">(아래)</span><span data-en=", Undo → " data-ko="로 바뀌고, 실행 취소 → ">로 바뀌고, 실행 취소 → </span><code>U</code>.
+          <span data-en="Maximize, Center, and number shortcuts are identical."
+                data-ko="최대화, 가운데, 숫자 단축키는 동일합니다.">최대화, 가운데, 숫자 단축키는 동일합니다.</span>
+        </div>
+
+        <div style="margin-top: 1.5rem;">
+          <a href="manual.html" class="btn btn-secondary"
+             data-en="Read the full manual →"
+             data-ko="전체 매뉴얼 보기 →">전체 매뉴얼 보기 →</a>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ── 4. How it works ────────────────────────────────────── -->
+    <section id="how-it-works" aria-labelledby="how-heading">
+      <div class="container">
+        <span class="section-label"
+              data-en="Mechanics" data-ko="작동 방식">작동 방식</span>
+        <h2 class="section-title" id="how-heading"
+            data-en="How it works"
+            data-ko="작동 방식">작동 방식</h2>
+        <p class="section-sub"
+           data-en="Three behaviors that define Azimuth's spatial model."
+           data-ko="Azimuth의 공간 모델을 정의하는 세 가지 동작.">Azimuth의 공간 모델을 정의하는 세 가지 동작.</p>
+
+        <div class="how-grid">
+
+          <!-- Diagram A: Snap + throw -->
+          <div class="how-card">
+            <div class="how-diagram" aria-hidden="true">
+              <svg width="100%" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg"
+                   role="img" aria-label="스냅과 throw 그림" data-ko-aria-label="스냅과 throw 그림">
+                <!-- Display 1 -->
+                <rect x="4" y="8" width="88" height="84" rx="4" fill="rgba(255,255,255,0.05)" stroke="rgba(74,127,193,0.4)" stroke-width="1"/>
+                <!-- Display 2 -->
+                <rect x="108" y="8" width="88" height="84" rx="4" fill="rgba(255,255,255,0.05)" stroke="rgba(74,127,193,0.25)" stroke-width="1"/>
+
+                <!-- Win snapped left (display 1) -->
+                <rect x="7" y="11" width="42" height="78" rx="2.5" fill="rgba(74,127,193,0.3)" stroke="rgba(74,127,193,0.7)" stroke-width="1"/>
+                <!-- Win landing right (display 2, thrown) -->
+                <rect x="152" y="11" width="41" height="78" rx="2.5" fill="rgba(74,127,193,0.12)" stroke="rgba(74,127,193,0.4)" stroke-width="1" stroke-dasharray="3 2"/>
+
+                <!-- Throw arrow -->
+                <path d="M56 50 Q98 50 143 50" stroke="rgba(74,127,193,0.8)" stroke-width="1.5"
+                      fill="none" stroke-dasharray="4 3" marker-end="url(#arr-a)"/>
+                <defs>
+                  <marker id="arr-a" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                    <path d="M0,0 L6,3 L0,6 Z" fill="rgba(74,127,193,0.9)"/>
+                  </marker>
+                </defs>
+
+                <!-- Label -->
+                <text x="8" y="98" font-family="-apple-system,sans-serif" font-size="6.5" fill="rgba(160,200,240,0.6)">⌃⌥←  →  ⌃⌥←</text>
+              </svg>
+            </div>
+            <div class="how-card-body">
+              <div class="how-card-title"
+                   data-en="Snap, then throw"
+                   data-ko="스냅 후 튕기기">스냅 후 튕기기</div>
+              <p class="how-card-text"
+                 data-en="First press snaps to the left half. Second press on the same edge throws the window to the adjacent display, landing in the opposite half."
+                 data-ko="첫 번째 누름에 왼쪽 반분으로 스냅됩니다. 같은 방향을 다시 누르면 인접 디스플레이로 던져져 반대쪽 반분에 배치됩니다.">첫 번째 누름에 왼쪽 반분으로 스냅됩니다. 같은 방향을 다시 누르면 인접 디스플레이로 던져져 반대쪽 반분에 배치됩니다.</p>
+            </div>
+          </div>
+
+          <!-- Diagram B: Move + clamp -->
+          <div class="how-card">
+            <div class="how-diagram" aria-hidden="true">
+              <svg width="100%" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg"
+                   role="img" aria-label="이동 그림: 창이 오른쪽으로 한 칸씩 가다가 작업 영역 끝에서 멈춤" data-ko-aria-label="이동 그림: 창이 오른쪽으로 한 칸씩 가다가 작업 영역 끝에서 멈춤">
+                <!-- Work area -->
+                <rect x="10" y="10" width="180" height="80" rx="4"
+                      fill="rgba(255,255,255,0.04)" stroke="rgba(74,127,193,0.3)" stroke-width="1"/>
+                <!-- Menu bar hint -->
+                <rect x="10" y="10" width="180" height="9" rx="0" fill="rgba(74,127,193,0.1)"/>
+                <text x="14" y="17" font-family="-apple-system,sans-serif" font-size="5" fill="rgba(160,200,240,0.5)" data-en="work area" data-ko="작업 영역">작업 영역</text>
+
+                <!-- Win step 1 (center-ish) -->
+                <rect x="55" y="35" width="48" height="42" rx="2.5" fill="rgba(74,127,193,0.18)" stroke="rgba(74,127,193,0.5)" stroke-width="1"/>
+
+                <!-- Win step 2 (clamped at right) -->
+                <rect x="142" y="35" width="46" height="42" rx="2.5" fill="rgba(74,127,193,0.32)" stroke="rgba(74,127,193,0.75)" stroke-width="1.2"/>
+
+                <!-- Move arrows -->
+                <path d="M107 56 L136 56" stroke="rgba(74,127,193,0.7)" stroke-width="1.3" fill="none" marker-end="url(#arr-b)"/>
+                <defs>
+                  <marker id="arr-b" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto">
+                    <path d="M0,0 L5,2.5 L0,5 Z" fill="rgba(74,127,193,0.8)"/>
+                  </marker>
+                </defs>
+                <text x="110" y="53" font-family="-apple-system,sans-serif" font-size="5.5" fill="rgba(160,200,240,0.7)">→ →</text>
+
+                <!-- Clamp wall -->
+                <line x1="188" y1="22" x2="188" y2="90" stroke="rgba(74,127,193,0.6)" stroke-width="1.5" stroke-dasharray="3 2"/>
+                <text x="182" y="20" font-family="-apple-system,sans-serif" font-size="5" fill="rgba(160,200,240,0.5)" data-en="edge" data-ko="가장자리">가장자리</text>
+
+                <text x="12" y="97" font-family="-apple-system,sans-serif" font-size="6.5" fill="rgba(160,200,240,0.6)" data-en="⌃⌥⌘→  (move, keep size)" data-ko="⌃⌥⌘→  (이동, 크기 유지)">⌃⌥⌘→  (이동, 크기 유지)</text>
+              </svg>
+            </div>
+            <div class="how-card-body">
+              <div class="how-card-title"
+                   data-en="Move clamps at the edge"
+                   data-ko="이동은 경계에서 멈춤">이동은 경계에서 멈춤</div>
+              <p class="how-card-text"
+                 data-en="The window steps by its own width and stops at the work-area boundary. No resize, no display change — just a reliable nudge."
+                 data-ko="윈도우는 자체 너비만큼 이동하며 작업영역 경계에서 멈춥니다. 크기 변경이나 디스플레이 전환 없이 정확히 이동합니다.">윈도우는 자체 너비만큼 이동하며 작업영역 경계에서 멈춥니다. 크기 변경이나 디스플레이 전환 없이 정확히 이동합니다.</p>
+            </div>
+          </div>
+
+          <!-- Diagram C: Move to next display -->
+          <div class="how-card">
+            <div class="how-diagram" aria-hidden="true">
+              <svg width="100%" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg"
+                   role="img" aria-label="다음 디스플레이 이동 그림: 창이 옆 모니터로 옮겨 가며 상대 위치를 유지" data-ko-aria-label="다음 디스플레이 이동 그림: 창이 옆 모니터로 옮겨 가며 상대 위치를 유지">
+                <!-- Display 1 -->
+                <rect x="4" y="8" width="88" height="84" rx="4" fill="rgba(255,255,255,0.05)" stroke="rgba(74,127,193,0.35)" stroke-width="1"/>
+                <!-- Display 2 -->
+                <rect x="108" y="8" width="88" height="84" rx="4" fill="rgba(255,255,255,0.05)" stroke="rgba(74,127,193,0.25)" stroke-width="1"/>
+
+                <!-- Original window (display 1, upper-right area) -->
+                <rect x="46" y="20" width="44" height="36" rx="2.5" fill="rgba(74,127,193,0.25)" stroke="rgba(74,127,193,0.6)" stroke-width="1"/>
+
+                <!-- Transferred window (display 2, same relative position) -->
+                <rect x="150" y="20" width="43" height="35" rx="2.5" fill="rgba(74,127,193,0.18)" stroke="rgba(74,127,193,0.5)" stroke-width="1" stroke-dasharray="3 2"/>
+
+                <!-- Arrow -->
+                <path d="M96 38 Q100 38 103 38" stroke="rgba(74,127,193,0.85)" stroke-width="1.5"
+                      fill="none" marker-end="url(#arr-c)"/>
+                <defs>
+                  <marker id="arr-c" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto">
+                    <path d="M0,0 L5,2.5 L0,5 Z" fill="rgba(74,127,193,0.9)"/>
+                  </marker>
+                </defs>
+
+                <!-- Position reference lines -->
+                <line x1="46" y1="20" x2="46" y2="90" stroke="rgba(74,127,193,0.2)" stroke-width="0.8" stroke-dasharray="2 3"/>
+                <line x1="150" y1="20" x2="150" y2="90" stroke="rgba(74,127,193,0.2)" stroke-width="0.8" stroke-dasharray="2 3"/>
+
+                <text x="8" y="98" font-family="-apple-system,sans-serif" font-size="6.5" fill="rgba(160,200,240,0.6)" data-en="⌃⌥⌘⇧→  (shape &amp; position preserved)" data-ko="⌃⌥⌘⇧→  (모양·위치 유지)">⌃⌥⌘⇧→  (모양·위치 유지)</text>
+              </svg>
+            </div>
+            <div class="how-card-body">
+              <div class="how-card-title"
+                   data-en="Shape preserved across displays"
+                   data-ko="디스플레이 간 형태 보존">디스플레이 간 형태 보존</div>
+              <p class="how-card-text"
+                 data-en="Move to next display keeps the window's relative position and size. If it doesn't fit, both axes shrink by the same factor, so the aspect ratio never changes."
+                 data-ko="다음 디스플레이로 이동 시 상대 위치와 크기를 유지합니다. 들어가지 않으면 두 축을 같은 배율로 줄여 종횡비가 바뀌지 않습니다.">다음 디스플레이로 이동 시 상대 위치와 크기를 유지합니다. 들어가지 않으면 두 축을 같은 배율로 줄여 종횡비가 바뀌지 않습니다.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ── 5. Requirements & Install ──────────────────────────── -->
+    <section id="install" aria-labelledby="install-heading">
+      <div class="container">
+        <span class="section-label"
+              data-en="Getting started" data-ko="시작하기">시작하기</span>
+        <h2 class="section-title" id="install-heading"
+            data-en="Requirements &amp; install"
+            data-ko="요구사항 &amp; 설치">요구사항 &amp; 설치</h2>
+        <p class="section-sub"
+           data-en="Download the notarized DMG — no build tools required."
+           data-ko="공증된 DMG를 다운로드하세요 — 빌드 도구 불필요.">공증된 DMG를 다운로드하세요 — 빌드 도구 불필요.</p>
+
+        <div class="install-grid">
+          <!-- Left card: Requirements -->
+          <div class="req-card">
+            <h3 data-en="Requirements" data-ko="요구사항">요구사항</h3>
+            <ul class="req-list">
+              <li data-en="macOS 14 (Sonoma) or later — on macOS 13, use version 1.7.7, and on macOS 10.13–12 the legacy build (both below). Use the newest macOS your Mac supports."
+                  data-ko="macOS 14 (Sonoma) 이상 — macOS 13에서는 1.7.7을, macOS 10.13~12에서는 레거시판을 쓰세요(둘 다 아래에 있습니다). 사용 중인 Mac에서 지원하는 최신 macOS를 쓰는 것이 좋습니다.">macOS 14 (Sonoma) 이상 — macOS 13에서는 1.7.7을, macOS 10.13~12에서는 레거시판을 쓰세요(둘 다 아래에 있습니다). 사용 중인 Mac에서 지원하는 최신 macOS를 쓰는 것이 좋습니다.</li>
+              <li data-en="Accessibility permission — Azimuth controls other apps' windows via the Accessibility API. Grant it in System Settings on first launch (macOS 10.13–12: System Preferences)."
+                  data-ko="손쉬운 사용 권한 — Azimuth는 손쉬운 사용 API로 다른 앱의 윈도우를 제어합니다. 첫 실행 시 시스템 설정에서 허용하세요(macOS 10.13~12: 시스템 환경설정).">손쉬운 사용 권한 — Azimuth는 손쉬운 사용 API로 다른 앱의 윈도우를 제어합니다. 첫 실행 시 시스템 설정에서 허용하세요(macOS 10.13~12: 시스템 환경설정).</li>
+            </ul>
+          </div>
+
+          <!-- Right card: Install (DMG primary + build from source secondary) -->
+          <div class="req-card">
+            <h3 data-en="Install" data-ko="설치">설치</h3>
+
+            <ol class="install-steps">
+              <li data-en="Download the .dmg from the link below."
+                  data-ko="아래 링크에서 .dmg를 다운로드합니다.">아래 링크에서 .dmg를 다운로드합니다.</li>
+              <li data-en="Drag Azimuth to your Applications folder."
+                  data-ko="Azimuth를 응용 프로그램 폴더로 드래그합니다.">Azimuth를 응용 프로그램 폴더로 드래그합니다.</li>
+              <li data-en="Launch Azimuth from Applications."
+                  data-ko="응용 프로그램에서 Azimuth를 실행합니다.">응용 프로그램에서 Azimuth를 실행합니다.</li>
+              <li data-en="Enable Azimuth in System Settings → Privacy &amp; Security → Accessibility (macOS 10.13–12: System Preferences → Security &amp; Privacy → Privacy → Accessibility)."
+                  data-ko="시스템 설정 → 개인 정보 보호 및 보안 → 손쉬운 사용에서 Azimuth를 활성화합니다(macOS 10.13~12: 시스템 환경설정 → 보안 및 개인 정보 보호 → 개인 정보 보호 → 손쉬운 사용).">시스템 설정 → 개인 정보 보호 및 보안 → 손쉬운 사용에서 Azimuth를 활성화합니다(macOS 10.13~12: 시스템 환경설정 → 보안 및 개인 정보 보호 → 개인 정보 보호 → 손쉬운 사용).</li>
+            </ol>
+
+            <a id="download-btn-2"
+               href="https://github.com/ai-screams/Azimuth/releases/latest"
+               class="btn btn-primary js-download"
+               aria-label="macOS용 Azimuth 다운로드" data-ko-aria-label="macOS용 Azimuth 다운로드">
+              <svg width="14" height="14" viewBox="0 0 15 15" fill="none" aria-hidden="true"
+                   xmlns="http://www.w3.org/2000/svg">
+                <path d="M7.5 1v8M4.5 6.5l3 3 3-3M2 11.5h11" stroke="currentColor"
+                      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span data-en="Download for macOS" data-ko="macOS용 다운로드">macOS용 다운로드</span>
+            </a>
+
+            <p class="install-note"
+               data-en="The download is Developer ID–signed and notarized by Apple, so it opens without Gatekeeper warnings."
+               data-ko="다운로드 파일은 Developer ID 서명 + Apple 공증을 거쳐 Gatekeeper 경고 없이 바로 열립니다.">다운로드 파일은 Developer ID 서명 + Apple 공증을 거쳐 Gatekeeper 경고 없이 바로 열립니다.</p>
+
+            <p class="install-note" id="legacy"
+               data-en="&lt;strong&gt;macOS 13?&lt;/strong&gt; Download &lt;a href=&quot;https://github.com/ai-screams/Azimuth/releases/tag/v1.7.7&quot;&gt;version 1.7.7&lt;/a&gt;, the last version for macOS 13. It gets no further updates. &lt;strong&gt;macOS 10.13–12?&lt;/strong&gt; Download the &lt;a href=&quot;https://github.com/ai-screams/Azimuth/releases/tag/legacy-v1.7.2-4&quot;&gt;legacy build (1.7.2 Legacy)&lt;/a&gt;. It keeps the core features but gets no new ones. After you upgrade macOS, either one moves to the newest version that macOS can run on its next update check."
+               data-ko="&lt;strong&gt;macOS 13인가요?&lt;/strong&gt; macOS 13용 마지막 버전인 &lt;a href=&quot;https://github.com/ai-screams/Azimuth/releases/tag/v1.7.7&quot;&gt;1.7.7을&lt;/a&gt; 받으세요. 이후 업데이트는 없습니다. &lt;strong&gt;macOS 10.13~12인가요?&lt;/strong&gt; &lt;a href=&quot;https://github.com/ai-screams/Azimuth/releases/tag/legacy-v1.7.2-4&quot;&gt;레거시판(1.7.2 Legacy)을&lt;/a&gt; 받으세요. 핵심 기능은 같고 새 기능은 들어가지 않습니다. 어느 쪽이든 macOS를 업그레이드한 뒤 업데이트를 확인하면 그 macOS에서 돌 수 있는 가장 새 버전으로 옮겨 갑니다."><strong>macOS 13인가요?</strong> macOS 13용 마지막 버전인 <a href="https://github.com/ai-screams/Azimuth/releases/tag/v1.7.7">1.7.7을</a> 받으세요. 이후 업데이트는 없습니다. <strong>macOS 10.13~12인가요?</strong> <a href="https://github.com/ai-screams/Azimuth/releases/tag/legacy-v1.7.2-4">레거시판(1.7.2 Legacy)을</a> 받으세요. 핵심 기능은 같고 새 기능은 들어가지 않습니다. 어느 쪽이든 macOS를 업그레이드한 뒤 업데이트를 확인하면 그 macOS에서 돌 수 있는 가장 새 버전으로 옮겨 갑니다.</p>
+
+            <!-- macOS 13 DMG, direct: 1.7.7 is the last version for macOS 13 and is never bumped. -->
+            <a id="download-macos13"
+               href="https://github.com/ai-screams/Azimuth/releases/download/v1.7.7/Azimuth-1.7.7.dmg"
+               class="btn btn-secondary btn-legacy">
+              <svg width="14" height="14" viewBox="0 0 15 15" fill="none" aria-hidden="true"
+                   xmlns="http://www.w3.org/2000/svg">
+                <path d="M7.5 1v8M4.5 6.5l3 3 3-3M2 11.5h11" stroke="currentColor"
+                      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span data-en="Download 1.7.7 for macOS 13 (.dmg)"
+                    data-ko="macOS 13용 1.7.7 다운로드 (.dmg)">macOS 13용 1.7.7 다운로드 (.dmg)</span>
+            </a>
+
+            <!-- Legacy DMG, direct. The label lives in its own <span> so the language toggle
+                 (textContent) keeps the icon. Bump the tag and file name with each legacy release. -->
+            <a id="download-legacy"
+               href="https://github.com/ai-screams/Azimuth/releases/download/legacy-v1.7.2-4/Azimuth-1.7.2-legacy-4.dmg"
+               class="btn btn-secondary btn-legacy">
+              <svg width="14" height="14" viewBox="0 0 15 15" fill="none" aria-hidden="true"
+                   xmlns="http://www.w3.org/2000/svg">
+                <path d="M7.5 1v8M4.5 6.5l3 3 3-3M2 11.5h11" stroke="currentColor"
+                      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span data-en="Download for macOS 10.13–12 (.dmg)"
+                    data-ko="macOS 10.13~12용 다운로드 (.dmg)">macOS 10.13~12용 다운로드 (.dmg)</span>
+            </a>
+
+            <p class="install-note"
+               data-en="Need a specific version? &lt;a href=&quot;https://github.com/ai-screams/Azimuth/releases&quot;&gt;Every release&lt;/a&gt; keeps its DMG and release notes on GitHub."
+               data-ko="특정 버전이 필요한가요? &lt;a href=&quot;https://github.com/ai-screams/Azimuth/releases&quot;&gt;모든 릴리스&lt;/a&gt;의 DMG와 릴리스 노트가 GitHub에 있습니다.">특정 버전이 필요한가요? <a href="https://github.com/ai-screams/Azimuth/releases">모든 릴리스</a>의 DMG와 릴리스 노트가 GitHub에 있습니다.</p>
+
+            <p class="install-note" id="brew-label" style="margin-bottom:.5rem;"
+               data-en="Or with Homebrew:" data-ko="또는 Homebrew로:">또는 Homebrew로:</p>
+            <!-- Focusable scroll region: on narrow screens the command scrolls
+                 inside the pre, and keyboard users need focus to scroll it.
+                 Named by the (localized) label above. -->
+            <pre class="code-block" tabindex="0" role="region" aria-labelledby="brew-label"><code>brew install --cask ai-screams/tap/azimuth</code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ── 6. FAQ ────────────────────────────────────────────── -->
+    <section id="faq" aria-labelledby="faq-heading">
+      <div class="container">
+        <span class="section-label"
+              data-en="FAQ" data-ko="FAQ">FAQ</span>
+        <h2 class="section-title" id="faq-heading"
+            data-en="Frequently asked questions"
+            data-ko="자주 묻는 질문">자주 묻는 질문</h2>
+
+        <div class="faq-list">
+
+          <details class="faq-item">
+            <summary class="faq-summary"
+                     data-en="Why does Azimuth need Accessibility permission?"
+                     data-ko="Azimuth가 손쉬운 사용 권한이 필요한 이유는?">Azimuth가 손쉬운 사용 권한이 필요한 이유는?</summary>
+            <p class="faq-answer"
+               data-en="It moves and resizes other apps' windows via the macOS Accessibility API — the standard mechanism for all window managers. Azimuth does no keylogging and makes no network connection except the Sparkle update check."
+               data-ko="macOS 손쉬운 사용 API를 통해 다른 앱의 윈도우를 이동·크기 조정합니다. 모든 윈도우 매니저의 표준 방식입니다. Azimuth는 키로깅을 하지 않으며 Sparkle 업데이트 확인 외에는 네트워크 연결을 하지 않습니다.">macOS 손쉬운 사용 API를 통해 다른 앱의 윈도우를 이동·크기 조정합니다. 모든 윈도우 매니저의 표준 방식입니다. Azimuth는 키로깅을 하지 않으며 Sparkle 업데이트 확인 외에는 네트워크 연결을 하지 않습니다.</p>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-summary"
+                     data-en="Does it work on older macOS?"
+                     data-ko="구형 macOS에서도 작동하나요?">구형 macOS에서도 작동하나요?</summary>
+            <p class="faq-answer"
+               data-en="Yes, with an earlier version. On macOS 13 (Ventura), use version 1.7.7 from Requirements &amp; install: it is the last version for macOS 13 and gets no further updates. On macOS 10.13 (High Sierra) through 12 (Monterey), use the legacy build (1.7.2 Legacy). It keeps the core features (window commands, shortcuts, menu, undo) and most settings, but gets no new ones. Launch at login needs macOS 13 and failure notifications need macOS 10.15. Both update themselves, and after you upgrade macOS their next update check moves them to the newest version that macOS can run. The legacy build was tested on a real Mac with macOS 10.13.6 and in macOS 12 and 13 virtual machines; 10.14–11 have not been tested on real hardware. These macOS versions no longer get Apple security updates, so upgrade if your Mac can."
+               data-ko="네, 이전 버전으로 쓸 수 있습니다. macOS 13(Ventura)에서는 요구사항 &amp; 설치에 있는 1.7.7을 쓰세요. macOS 13용 마지막 버전이며 이후 업데이트는 없습니다. macOS 10.13(High Sierra)부터 12(Monterey)까지는 레거시판(1.7.2 Legacy)을 쓰세요. 핵심 기능(윈도우 명령, 단축키, 메뉴, 되돌리기)과 대부분의 설정은 같고, 새 기능은 들어가지 않습니다. 다만 로그인 시 실행은 macOS 13 이상, 실패 알림은 macOS 10.15 이상에서만 쓸 수 있습니다. 둘 다 스스로 업데이트되며, macOS를 업그레이드한 뒤 업데이트를 확인하면 그 macOS에서 돌 수 있는 가장 새 버전으로 옮겨 갑니다. 레거시판은 macOS 10.13.6 실제 Mac과 macOS 12·13 가상 머신에서 확인했고, 10.14~11은 실제 Mac에서 확인하지 않았습니다. 이 macOS들은 Apple 보안 업데이트가 끝났으므로, 가능하면 macOS를 업그레이드하는 것이 좋습니다.">네, 이전 버전으로 쓸 수 있습니다. macOS 13(Ventura)에서는 요구사항 &amp; 설치에 있는 1.7.7을 쓰세요. macOS 13용 마지막 버전이며 이후 업데이트는 없습니다. macOS 10.13(High Sierra)부터 12(Monterey)까지는 레거시판(1.7.2 Legacy)을 쓰세요. 핵심 기능(윈도우 명령, 단축키, 메뉴, 되돌리기)과 대부분의 설정은 같고, 새 기능은 들어가지 않습니다. 다만 로그인 시 실행은 macOS 13 이상, 실패 알림은 macOS 10.15 이상에서만 쓸 수 있습니다. 둘 다 스스로 업데이트되며, macOS를 업그레이드한 뒤 업데이트를 확인하면 그 macOS에서 돌 수 있는 가장 새 버전으로 옮겨 갑니다. 레거시판은 macOS 10.13.6 실제 Mac과 macOS 12·13 가상 머신에서 확인했고, 10.14~11은 실제 Mac에서 확인하지 않았습니다. 이 macOS들은 Apple 보안 업데이트가 끝났으므로, 가능하면 macOS를 업그레이드하는 것이 좋습니다.</p>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-summary"
+                     data-en="Can I customize the shortcuts?"
+                     data-ko="단축키를 커스터마이징할 수 있나요?">단축키를 커스터마이징할 수 있나요?</summary>
+            <p class="faq-answer"
+               data-en="Yes — open Settings → Shortcuts. You can set per-command bindings, view conflict warnings, toggle command groups on or off, and switch between Standard (arrow keys) and Vim (HJKL) presets."
+               data-ko="가능합니다. 설정 → 단축키를 여세요. 명령별 바인딩 설정, 충돌 경고 확인, 명령 그룹 활성화·비활성화, Standard(화살표 키) 및 Vim(HJKL) 프리셋 전환이 모두 지원됩니다.">가능합니다. 설정 → 단축키를 여세요. 명령별 바인딩 설정, 충돌 경고 확인, 명령 그룹 활성화·비활성화, Standard(화살표 키) 및 Vim(HJKL) 프리셋 전환이 모두 지원됩니다.</p>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-summary"
+                     data-en="How are updates delivered?"
+                     data-ko="업데이트는 어떻게 제공되나요?">업데이트는 어떻게 제공되나요?</summary>
+            <p class="faq-answer"
+               data-en="In-app via Sparkle — notarized and EdDSA-signature-verified. You can also check on demand from the menu bar icon. If you installed with Homebrew (brew install --cask ai-screams/tap/azimuth), updates still come through Sparkle in the app; brew upgrade will not fight the built-in updater."
+               data-ko="Sparkle를 통해 앱 내에서 자동 업데이트됩니다(공증 + EdDSA 서명 검증). 메뉴 바 아이콘에서 직접 확인도 가능합니다. Homebrew로 설치했더라도(brew install --cask ai-screams/tap/azimuth) 업데이트는 앱 안의 Sparkle이 처리하며, brew upgrade가 내장 업데이터와 충돌하지 않습니다.">Sparkle를 통해 앱 내에서 자동 업데이트됩니다(공증 + EdDSA 서명 검증). 메뉴 바 아이콘에서 직접 확인도 가능합니다. Homebrew로 설치했더라도(brew install --cask ai-screams/tap/azimuth) 업데이트는 앱 안의 Sparkle이 처리하며, brew upgrade가 내장 업데이터와 충돌하지 않습니다.</p>
+          </details>
+
+        </div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ── 7. Support ─────────────────────────────────────────── -->
+    <section id="support" aria-labelledby="support-heading">
+      <div class="container">
+        <span class="section-label"
+              data-en="Support" data-ko="후원">후원</span>
+        <h2 class="section-title" id="support-heading"
+            data-en="Support Azimuth"
+            data-ko="Azimuth 후원하기">Azimuth 후원하기</h2>
+        <p class="section-sub"
+           data-en="Azimuth is free and open source — no paywall, no ads, no telemetry — and it always will be. If it earns a place in your workflow, you can chip in to fund development. A supporter license just says thanks; it unlocks nothing, since every feature is already free for everyone."
+           data-ko="Azimuth는 유료 장벽도, 광고도, 텔레메트리도 없는 무료 오픈소스이고, 앞으로도 그렇습니다. 작업 흐름에 자리를 잡았다면 개발에 보탬을 주실 수 있어요. 서포터 라이선스는 감사의 표시일 뿐 — 모든 기능은 이미 누구에게나 무료라 잠기는 건 없습니다.">Azimuth는 유료 장벽도, 광고도, 텔레메트리도 없는 무료 오픈소스이고, 앞으로도 그렇습니다. 작업 흐름에 자리를 잡았다면 개발에 보탬을 주실 수 있어요. 서포터 라이선스는 감사의 표시일 뿐 — 모든 기능은 이미 누구에게나 무료라 잠기는 건 없습니다.</p>
+        <div class="support-actions" style="margin-top: 1.75rem; display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center;">
+          <a href="https://ko-fi.com/pignuante" target="_blank" rel="noopener"
+             class="btn btn-primary"
+             data-en="💛 Support on Ko-fi" data-ko="💛 Ko-fi로 후원하기">💛 Ko-fi로 후원하기</a>
+          <a href="https://github.com/sponsors/ai-screams" target="_blank" rel="noopener"
+             class="btn btn-secondary"
+             data-en="♥ Sponsor on GitHub" data-ko="♥ GitHub에서 후원">♥ GitHub에서 후원</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── 7. Footer ──────────────────────────────────────────── -->
+  <footer role="contentinfo">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-left">
+          <svg width="16" height="16" viewBox="0 0 1024 1024" aria-hidden="true"
+               xmlns="http://www.w3.org/2000/svg">
+            <rect width="1024" height="1024" rx="228" fill="#1E3A5F"/>
+            <circle cx="512" cy="542.7" r="358.4" fill="none" stroke="#F2F5F9" stroke-width="44"/>
+            <rect x="327.7" y="419.8" width="368.6" height="266.2" rx="20.5" fill="none" stroke="#F2F5F9" stroke-width="44"/>
+            <rect x="354.3" y="507.9" width="157.7" height="151.6" rx="8.2" fill="#F2A541"/>
+            <path d="M512 87 L563.2 169 H460.8 Z" fill="#F2A541"/>
+          </svg>
+          <div class="footer-text">
+            <div data-en="© 2026 Ai-Scream · Apache-2.0 · Built with Swift + AppKit"
+                 data-ko="© 2026 Ai-Scream · Apache-2.0 · Swift + AppKit으로 제작">© 2026 Ai-Scream · Apache-2.0 · Swift + AppKit으로 제작</div>
+            <div data-en="No data collection · no telemetry · the only network access is the Sparkle update check."
+                 data-ko="데이터 수집 없음 · 텔레메트리 없음 · 네트워크 접속은 Sparkle 업데이트 확인뿐.">데이터 수집 없음 · 텔레메트리 없음 · 네트워크 접속은 Sparkle 업데이트 확인뿐.</div>
+          </div>
+        </div>
+        <div class="footer-links">
+          <a href="manual.html"
+             data-en="Manual" data-ko="매뉴얼">매뉴얼</a>
+          <a href="#faq"
+             data-en="FAQ" data-ko="FAQ">FAQ</a>
+          <a href="#support"
+             data-en="Support" data-ko="후원">후원</a>
+          <a href="https://github.com/ai-screams/Azimuth/issues" target="_blank" rel="noopener"
+             data-en="Report an issue" data-ko="이슈 등록">이슈 등록</a>
+          <a href="https://ai-scream.ai/ko/" data-ko-href="https://ai-scream.ai/ko/"
+             data-en="More from Ai-Scream" data-ko="Ai-Scream의 다른 프로젝트">Ai-Scream의 다른 프로젝트</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ── Language toggle + download progressive-enhancement JS ── -->
+  <script>
+    (function () {
+      'use strict';
+
+      // Each language is its own page (docs/ko/ is generated, #212); the release label follows <html lang>.
+      var currentLang = document.documentElement.lang === 'ko' ? 'ko' : 'en';
+
+      // ── Progressive enhancement: resolve latest DMG from GitHub Releases ──
+      // One allowed external request. Silent on any failure.
+      (function () {
+        if (!window.fetch) return;
+        try {
+          fetch('https://api.github.com/repos/ai-screams/Azimuth/releases/latest', {
+            headers: { 'Accept': 'application/vnd.github+json' }
+          })
+          .then(function (res) {
+            if (!res.ok) return null;
+            return res.json();
+          })
+          .then(function (data) {
+            try {
+              if (!data || !data.tag_name) return;
+
+              var tag = data.tag_name;
+
+              // Find the .dmg asset
+              var dmgUrl = null;
+              var dmgSize = null;
+              var assets = data.assets || [];
+              for (var i = 0; i < assets.length; i++) {
+                var a = assets[i];
+                if (a.name && a.name.slice(-4).toLowerCase() === '.dmg') {
+                  dmgUrl = a.browser_download_url;
+                  dmgSize = a.size ? Math.round(a.size / (1024 * 1024)) + ' MB' : null;
+                  break;
+                }
+              }
+
+              // Build bilingual labels
+              var labelEn = 'Download Azimuth ' + tag + ' (.dmg)';
+              var labelKo = 'Azimuth ' + tag + ' 다운로드 (.dmg)';
+
+              // Build dl-meta text
+              var metaEn = 'Universal · macOS 14+ · .dmg' + (dmgSize ? ' · ' + dmgSize : '');
+              var metaKo = 'Universal · macOS 14+ · .dmg' + (dmgSize ? ' · ' + dmgSize : '');
+
+              // Update all .js-download buttons
+              var btns = document.querySelectorAll('.js-download');
+              for (var j = 0; j < btns.length; j++) {
+                var btn = btns[j];
+                if (dmgUrl) btn.href = dmgUrl;
+                // The label is the inner span (the anchor also holds the icon).
+                var label = btn.querySelector('[data-en]') || btn;
+                label.setAttribute('data-en', labelEn);
+                label.setAttribute('data-ko', labelKo);
+                label.textContent = currentLang === 'ko' ? labelKo : labelEn;
+              }
+
+              // Update dl-meta
+              var dlMeta = document.getElementById('dl-meta');
+              if (dlMeta) {
+                dlMeta.setAttribute('data-en', metaEn);
+                dlMeta.setAttribute('data-ko', metaKo);
+                dlMeta.textContent = currentLang === 'ko' ? metaKo : metaEn;
+              }
+            } catch (e) { /* silent */ }
+          })
+          .catch(function () { /* silent — network failure, 404, rate limit */ });
+        } catch (e) { /* silent */ }
+      })();
+
+    })();
+  </script>
+
+  <!-- ── Privacy-friendly analytics (GoatCounter) ────────────────────────────
+       Cookieless, no personal data, no cross-site tracking → no consent banner
+       needed (does not contradict the app's zero-telemetry stance; this measures
+       only the website). DISABLED until you opt in:
+         1. Create a free site at https://www.goatcounter.com (free for non-commercial).
+         2. Replace YOURCODE below with your site code.
+         3. Uncomment the <script> line to enable. Delete this block to keep analytics off.
+       Alternative: Plausible (paid/self-host). Do NOT use Google Analytics (tracking
+       cookies + contradicts Azimuth's privacy positioning).
+  <script data-goatcounter="https://YOURCODE.goatcounter.com/count"
+          async src="//gc.zgo.at/count.js"></script>
+  -->
+
+</body>
+</html>

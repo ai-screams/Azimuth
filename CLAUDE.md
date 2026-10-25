@@ -152,8 +152,11 @@ block a commit over a file you never touched. Fetch the pinned release zip and l
 ## Docs (`docs/` is the GitHub Pages source)
 
 - `index.html` (landing) and `manual.html` (user manual) are **bilingual**: each string exists as
-  a `data-en` attribute, a `data-ko` attribute, **and** the visible inner text (a JS toggle swaps
-  it). Any copy change must update **all three**, or the languages drift.
+  a `data-en` attribute, a `data-ko` attribute, **and** the visible inner text. Any copy change must update
+  **all three**, or the languages drift. The Korean pages `docs/ko/index.html` and `docs/ko/manual.html` are
+  **generated** from those attributes (plus `data-ko-<attr>` for attributes such as `href`, `aria-label`,
+  `content`): edit only the English sources, then run `python3 scripts/site/build-ko.py`. Never edit
+  `docs/ko/` by hand; CI (`release-scripts`) fails when it is out of date.
 - Strings like "N commands" / "N shortcuts" must match `WindowCommand.menuCommands`
   (currently **34**). Bumping a command means updating both HTML files and the README.
 - The **legacy build** (macOS 10.13–12, branch `legacy/10.13`) is linked by its release tag

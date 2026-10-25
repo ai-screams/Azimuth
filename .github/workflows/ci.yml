@@ -134,6 +134,11 @@ jobs:
         run: ./scripts/previous-release-tag-test.sh
       - name: Appcast finalize checks
         run: python3 scripts/appcast-finalize-test.py
+      - name: Korean page generator checks
+        run: python3 scripts/site/build-ko-test.py
+      # docs/ko/는 영어 원본에서 만든다(#212). 원본만 고치고 생성기를 돌리지 않으면 한국어 페이지가 옛 내용으로 남는다.
+      - name: Korean pages match the English sources
+        run: python3 scripts/site/build-ko.py --check
       # 양쪽에 똑같이 두기로 한 파일(scripts/shared-with-legacy.txt, LEGACY.md)이 legacy/10.13과 같은지 본다.
       # 한쪽만 고치면 다른 판이 옛 규칙으로 돈다. 없거나 다르면 실패한다.
       - name: Shared files match legacy/10.13

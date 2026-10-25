@@ -1,22 +1,35 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-ko-lang="ko">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Azimuth Manual — Complete reference for requirements, shortcuts, command behavior, and roadmap." />
-  <title>Azimuth Manual — macOS Window Manager</title>
+  <meta name="description" content="Reference for Azimuth on macOS: requirements, the Accessibility permission, all 34 shortcuts in the Standard and Vim presets, and how each command places a window."
+        data-ko-content="macOS용 Azimuth 안내서: 요구 사항, 손쉬운 사용 권한, Standard·Vim 프리셋의 단축키 34개, 각 명령이 창을 놓는 방식." />
+  <title data-en="Azimuth Manual — Shortcuts and Commands" data-ko="Azimuth 매뉴얼 | 단축키와 명령 안내">Azimuth Manual — Shortcuts and Commands</title>
 
-  <link rel="canonical" href="https://ai-scream.ai/Azimuth/manual.html" />
+  <link rel="canonical" href="https://ai-scream.ai/Azimuth/manual.html" data-ko-href="https://ai-scream.ai/Azimuth/ko/manual.html" />
+  <!-- Each language version lists both (#212); scripts/site/build-ko.py writes docs/ko/ from this file. -->
+  <link rel="alternate" hreflang="en" href="https://ai-scream.ai/Azimuth/manual.html" />
+  <link rel="alternate" hreflang="ko" href="https://ai-scream.ai/Azimuth/ko/manual.html" />
+  <link rel="alternate" hreflang="x-default" href="https://ai-scream.ai/Azimuth/manual.html" />
   <meta name="theme-color" content="#1a2a4a" />
   <link rel="icon" type="image/png" href="assets/favicon.png" />
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
   <meta property="og:type" content="article" />
   <meta property="og:site_name" content="Azimuth" />
-  <meta property="og:title" content="Azimuth Manual" />
-  <meta property="og:description" content="Complete reference: requirements, shortcuts, command behavior, and roadmap." />
-  <meta property="og:url" content="https://ai-scream.ai/Azimuth/manual.html" />
+  <meta property="og:locale" content="en_US" data-ko-content="ko_KR" />
+  <meta property="og:locale:alternate" content="ko_KR" data-ko-content="en_US" />
+  <meta property="og:title" content="Azimuth Manual — Shortcuts and Commands" data-ko-content="Azimuth 매뉴얼 | 단축키와 명령 안내" />
+  <meta property="og:description" content="Reference for Azimuth on macOS: requirements, the Accessibility permission, all 34 shortcuts in the Standard and Vim presets, and how each command places a window."
+        data-ko-content="macOS용 Azimuth 안내서: 요구 사항, 손쉬운 사용 권한, Standard·Vim 프리셋의 단축키 34개, 각 명령이 창을 놓는 방식." />
+  <meta property="og:url" content="https://ai-scream.ai/Azimuth/manual.html" data-ko-content="https://ai-scream.ai/Azimuth/ko/manual.html" />
   <meta property="og:image" content="https://ai-scream.ai/Azimuth/assets/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Azimuth Manual — Shortcuts and Commands" data-ko-content="Azimuth 매뉴얼 | 단축키와 명령 안내" />
+  <meta name="twitter:description" content="Reference for Azimuth on macOS: requirements, the Accessibility permission, all 34 shortcuts in the Standard and Vim presets, and how each command places a window."
+        data-ko-content="macOS용 Azimuth 안내서: 요구 사항, 손쉬운 사용 권한, Standard·Vim 프리셋의 단축키 34개, 각 명령이 창을 놓는 방식." />
   <meta name="twitter:image" content="https://ai-scream.ai/Azimuth/assets/og-image.png" />
 
   <style>
@@ -212,7 +225,10 @@
       color: var(--text-muted);
       transition: background 0.15s, color 0.15s;
       line-height: 1.4;
+      display: inline-block;
+      text-decoration: none;
     }
+    .lang-btn:hover { color: var(--text); text-decoration: none; }
     .lang-btn.active {
       background: var(--bg-card);
       color: var(--text);
@@ -732,8 +748,8 @@
 
   <!-- ── Sticky top bar ────────────────────────────────────────── -->
   <header role="banner">
-    <nav class="topbar" aria-label="Main navigation">
-      <a class="topbar-logo" href="./" aria-label="Azimuth — home">
+    <nav class="topbar" aria-label="Main navigation" data-ko-aria-label="주 메뉴">
+      <a class="topbar-logo" href="./" aria-label="Azimuth — home" data-ko-aria-label="Azimuth 홈">
         <svg class="compass-icon" width="22" height="22" viewBox="0 0 1024 1024" aria-hidden="true"
              xmlns="http://www.w3.org/2000/svg">
           <rect width="1024" height="1024" rx="228" fill="#1E3A5F"/>
@@ -746,9 +762,11 @@
       </a>
 
       <div class="topbar-right">
-        <div class="lang-toggle" role="group" aria-label="Language selector">
-          <button class="lang-btn active" id="btn-en" onclick="setLang('en')" aria-pressed="true">EN</button>
-          <button class="lang-btn" id="btn-ko" onclick="setLang('ko')" aria-pressed="false">KO</button>
+        <div class="lang-toggle" role="group" aria-label="Language selector" data-ko-aria-label="언어 선택">
+          <a class="lang-btn active" href="manual.html" hreflang="en" lang="en" aria-current="page"
+             data-ko-class="lang-btn" data-ko-href="../manual.html" data-ko-aria-current="false">EN</a>
+          <a class="lang-btn" href="ko/manual.html" hreflang="ko" lang="ko"
+             data-ko-class="lang-btn active" data-ko-href="manual.html" data-ko-aria-current="page">KO</a>
         </div>
       </div>
     </nav>
@@ -792,7 +810,7 @@
         <div class="sky-cloud sky-cloud-e"><svg viewBox="-30 -40 440 240"><use href="#sky-cloud-1" filter="url(#sky-fluff)"/></svg></div>
       </div>
       <div class="container">
-        <a class="back-link" href="./" aria-label="Back to Azimuth home">
+        <a class="back-link" href="./" aria-label="Back to Azimuth home" data-ko-aria-label="Azimuth 홈으로">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
             <path d="M9 2L4 7l5 5" stroke="currentColor" stroke-width="1.6"
                   stroke-linecap="round" stroke-linejoin="round"/>
@@ -930,7 +948,7 @@
         </p>
 
         <div class="features-table-wrap">
-          <table class="features-table" aria-label="Feature summary table">
+          <table class="features-table" aria-label="Feature summary table" data-ko-aria-label="기능 요약 표">
             <thead>
               <tr>
                 <th data-en="Area" data-ko="영역">Area</th>
@@ -1228,7 +1246,7 @@
 
         <!-- Standard preset table -->
         <div class="shortcuts-table-wrap">
-          <table class="shortcuts-table" aria-label="Standard preset keyboard shortcuts">
+          <table class="shortcuts-table" aria-label="Standard preset keyboard shortcuts" data-ko-aria-label="Standard 프리셋 단축키">
             <thead>
               <tr>
                 <th data-en="Group" data-ko="그룹">Group</th>
@@ -1576,7 +1594,7 @@
         </p>
 
         <div class="features-table-wrap">
-          <table class="roadmap-table" aria-label="Roadmap table">
+          <table class="roadmap-table" aria-label="Roadmap table" data-ko-aria-label="로드맵 표">
             <thead>
               <tr>
                 <th data-en="Stage" data-ko="단계">Stage</th>
@@ -1672,70 +1690,13 @@
              data-en="Support" data-ko="후원">Support</a>
           <a href="https://github.com/ai-screams/Azimuth/issues" target="_blank" rel="noopener"
              data-en="Report an issue" data-ko="이슈 등록">Report an issue</a>
-          <a href="https://ai-scream.ai/"
-             data-href-en="https://ai-scream.ai/" data-href-ko="https://ai-scream.ai/ko/"
+          <a href="https://ai-scream.ai/" data-ko-href="https://ai-scream.ai/ko/"
              data-en="More from Ai-Scream" data-ko="Ai-Scream의 다른 프로젝트">More from Ai-Scream</a>
         </div>
       </div>
     </div>
   </footer>
 
-  <!-- ── Language toggle JS (identical mechanism to index.html) ── -->
-  <script>
-    (function () {
-      'use strict';
-
-      var STORAGE_KEY = 'azimuth-lang';
-      // Storage can throw (blocked site data, some private modes); the page still works in English.
-      var currentLang = 'en';
-      try { currentLang = localStorage.getItem(STORAGE_KEY) || 'en'; } catch (e) {}
-
-      function applyLang(lang) {
-        currentLang = lang;
-        try { localStorage.setItem(STORAGE_KEY, lang); } catch (e) {}
-
-        // update all elements with data-en / data-ko
-        var els = document.querySelectorAll('[data-en], [data-ko]');
-        for (var i = 0; i < els.length; i++) {
-          var el = els[i];
-          var val = el.getAttribute('data-' + lang);
-          if (val === null) continue;
-
-          // elements that use HTML (bold, code tags) — use innerHTML
-          if (el.classList.contains('install-note') || el.classList.contains('principle-note')) {
-            el.innerHTML = val;
-          } else {
-            el.textContent = val;
-          }
-        }
-
-        // links whose target differs per locale (the Ai-Scream home: / vs /ko/)
-        var hrefs = document.querySelectorAll('[data-href-' + lang + ']');
-        for (var j = 0; j < hrefs.length; j++) {
-          hrefs[j].href = hrefs[j].getAttribute('data-href-' + lang);
-        }
-
-        // update html lang attribute
-        document.documentElement.lang = lang === 'ko' ? 'ko' : 'en';
-
-        // update button states
-        var btnEn = document.getElementById('btn-en');
-        var btnKo = document.getElementById('btn-ko');
-        if (btnEn && btnKo) {
-          btnEn.classList.toggle('active', lang === 'en');
-          btnKo.classList.toggle('active', lang === 'ko');
-          btnEn.setAttribute('aria-pressed', String(lang === 'en'));
-          btnKo.setAttribute('aria-pressed', String(lang === 'ko'));
-        }
-      }
-
-      // expose for onclick
-      window.setLang = applyLang;
-
-      // apply lang on page load
-      applyLang(currentLang);
-    })();
-  </script>
 
 </body>
 </html>
