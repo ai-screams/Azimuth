@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>Page not found — Azimuth</title>
+  <link rel="icon" type="image/png" href="/Azimuth/assets/favicon.png" />
+  <!-- Served for any missing path under /Azimuth/, so every link is absolute. Same sky tokens as index.html. -->
+  <style>
+    :root {
+      --sky: linear-gradient(180deg, #5E9BE0 0%, #8FBDF0 40%, #C4DEF7 75%, #E9F3FC 100%);
+      --ink: #0F2340;
+      --ink-soft: #2B3E5C;
+      --cta-bg: #1E3A5F;
+      --cta-fg: #FFFFFF;
+      --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --sky: linear-gradient(180deg, #0C1A3A 0%, #24305E 50%, #5E4677 85%, #9A5E6E 100%);
+        --ink: #FFFFFF;
+        --ink-soft: rgba(255,255,255,0.8);
+        --cta-bg: #F2A541;
+        --cta-fg: #10203A;
+      }
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      background: var(--sky);
+      color: var(--ink);
+      font-family: var(--font);
+      text-align: center;
+    }
+    main { max-width: 32rem; display: flex; flex-direction: column; align-items: center; gap: 0.9rem; }
+    h1 { font-size: clamp(2.6rem, 9vw, 4.5rem); font-weight: 800; letter-spacing: -0.045em; line-height: 1; }
+    p { font-size: 1.05rem; line-height: 1.5; color: var(--ink-soft); }
+    .links { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 0.8rem; }
+    a.btn {
+      padding: 11px 22px;
+      border-radius: 999px;
+      font-weight: 600;
+      text-decoration: none;
+      background: var(--cta-bg);
+      color: var(--cta-fg);
+    }
+    a.btn.secondary { background: transparent; color: var(--ink); border: 1px solid currentColor; }
+  </style>
+</head>
+<body>
+  <main>
+    <svg width="72" height="72" viewBox="0 0 1024 1024" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <rect width="1024" height="1024" rx="228" fill="#1E3A5F"/>
+      <circle cx="512" cy="542.7" r="358.4" fill="none" stroke="#F2F5F9" stroke-width="30"/>
+      <rect x="327.7" y="419.8" width="368.6" height="266.2" rx="20.5" fill="none" stroke="#F2F5F9" stroke-width="30"/>
+      <rect x="354.3" y="507.9" width="157.7" height="151.6" rx="8.2" fill="#F2A541"/>
+      <path d="M512 87 L563.2 169 H460.8 Z" fill="#F2A541"/>
+    </svg>
+    <h1>404</h1>
+    <p>This page is off the map.<br /><span lang="ko">찾는 페이지가 없습니다.</span></p>
+    <div class="links">
+      <a class="btn" href="/Azimuth/">Azimuth home</a>
+      <a class="btn secondary" href="/Azimuth/manual.html">Manual</a>
+    </div>
+  </main>
+</body>
+</html>

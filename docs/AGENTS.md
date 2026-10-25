@@ -14,6 +14,7 @@ inline design-token stylesheet.
 |------|-------------|
 | `index.html` | Marketing landing: hero (sky with clouds and an animated glass-window stage + Download/GitHub CTAs), feature cards, shortcuts, how-it-works, requirements/install, FAQ, and the funding/support block. Self-contained: inline `<style>` (design tokens, `prefers-color-scheme` dark mode), inline SVGs, JSON-LD `SoftwareApplication` structured data, OG/Twitter meta, and a bottom language-toggle `<script>`. |
 | `manual.html` | Complete reference: requirements, feature summary table, `#shortcuts` ("all 34 commands" + modifier-layer legend + Standard/Vim preset tables), command-behavior cards, roadmap. Duplicates index.html's token CSS and has its own copy of the language-toggle script. |
+| `404.html` | Not-found page for any missing path under `/Azimuth/` (so its links are absolute), same sky tokens, `noindex`. |
 | `assets/` | Static images only: `favicon.png`, `apple-touch-icon.png`, `og-image.png` (all three generated from the app icon by `scripts/site/make-images.swift`), and demo screenshots `demo-snap.png` / `demo-throw.png`. |
 
 ## For AI Agents
@@ -21,8 +22,10 @@ inline design-token stylesheet.
 ### Working In This Directory
 - **Bilingual (EN/KO) — edit THREE places per string.** Every translatable node carries a
   `data-en` attribute, a `data-ko` attribute, **and** the visible default (EN) text child. A
-  copy change must update **all three**, or the languages drift. (index.html ≈126 `data-en`
-  nodes; manual.html ≈164.)
+  copy change must update **all three**, or the languages drift.
+- **Put `data-en`/`data-ko` on a text-only element.** The toggle sets `textContent`, which wipes any
+  child: a button with an icon carries the attributes on an inner `<span>` (the download buttons, View on
+  GitHub). The release fetch also writes its label into that span.
 - **Language toggle.** A bottom-of-page inline IIFE `<script>` (one per page) swaps
   `textContent` for all `[data-en],[data-ko]` nodes; `localStorage` key `azimuth-lang`, default
   `en`. Special case: `.install-note` uses `innerHTML` (embeds `<strong>`). index.html also
