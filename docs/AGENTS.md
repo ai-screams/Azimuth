@@ -1,5 +1,5 @@
 <!-- Parent: ../AGENTS.md -->
-<!-- Generated: 2026-07-01 | Updated: 2026-07-01 -->
+<!-- Generated: 2026-07-01 | Updated: 2026-10-25 -->
 
 # docs/
 
@@ -12,7 +12,7 @@ inline design-token stylesheet.
 ## Key Files
 | File | Description |
 |------|-------------|
-| `index.html` | Marketing landing: hero (CSS desktop mockup + Download/GitHub CTAs), feature cards, shortcuts, how-it-works, requirements/install, FAQ, and the funding/support block. Self-contained: inline `<style>` (design tokens, `prefers-color-scheme` dark mode), inline SVGs, JSON-LD `SoftwareApplication` structured data, OG/Twitter meta, and a bottom language-toggle `<script>`. |
+| `index.html` | Marketing landing: hero (sky with clouds and an animated glass-window stage + Download/GitHub CTAs), feature cards, shortcuts, how-it-works, requirements/install, FAQ, and the funding/support block. Self-contained: inline `<style>` (design tokens, `prefers-color-scheme` dark mode), inline SVGs, JSON-LD `SoftwareApplication` structured data, OG/Twitter meta, and a bottom language-toggle `<script>`. |
 | `manual.html` | Complete reference: requirements, feature summary table, `#shortcuts` ("all 34 commands" + modifier-layer legend + Standard/Vim preset tables), command-behavior cards, roadmap. Duplicates index.html's token CSS and has its own copy of the language-toggle script. |
 | `assets/` | Static images only: `favicon.png`, `apple-touch-icon.png`, `og-image.png` (all three generated from the app icon by `scripts/site/make-images.swift`), and demo screenshots `demo-snap.png` / `demo-throw.png`. |
 
@@ -50,6 +50,13 @@ inline design-token stylesheet.
 - **Funding links live in index.html's support block.** Ko-fi `https://ko-fi.com/pignuante`
   and GitHub Sponsors `https://github.com/sponsors/ai-screams` (see `.github/FUNDING.yml`).
 - `assets/` holds only images — no `AGENTS.md` of its own.
+- **Hero sky (#211).** One window is placed against the screen (`⌃⌥1` Left 1/3, `⌃⌥←` Left 1/2), shrunk
+  against itself (`⌃⌥⇧↓`, `⌃⌥⇧←`) and undone (`⌃⌥⌫`) on an 18 s CSS loop. The keys and command names must
+  match the Standard preset (`HotkeyPreset.swift`) and `displayName`s; change them together. All `sky-*`
+  keyframes share the 18 s duration and their percentages line up by step, so retime them as a set. Moving
+  elements never get `backdrop-filter` (it re-blurs every frame and stuttered on a phone). Reduce Motion
+  sets `animation: none !important` on them, because the base rule only shortens durations and would make
+  the infinite loops flicker. Light mode is a day sky, dark mode dusk (`--sky`, `--cloud-*` tokens).
 
 ### Testing Requirements
 - No compiler/bundler: edit and open the file in a browser to verify. Toggle EN⇄KO and check

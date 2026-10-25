@@ -73,6 +73,22 @@
       --win-border:  rgba(0,0,0,0.12);
       --menubar-bg:  rgba(240,242,248,0.95);
 
+      /* Hero sky: day in light mode, dusk in dark. --sun is the app icon's north mark. */
+      --sun:           #F2A541;
+      --sky:           linear-gradient(180deg, #5E9BE0 0%, #8FBDF0 40%, #C4DEF7 75%, #E9F3FC 100%);
+      --hero-ink:      #0F2340;
+      --hero-ink-soft: #2B3E5C;
+      --hero-cta-bg:   #1E3A5F;
+      --hero-cta-fg:   #FFFFFF;
+      --cloud-top:     #FFFFFF;
+      --cloud-shade:   #C9D9EE;
+      --haze:          rgba(255,255,255,0.6);
+      --glass:         rgba(255,255,255,0.35);
+      --glass-edge:    rgba(255,255,255,0.65);
+      --sky-win-bg:    linear-gradient(160deg, rgba(255,255,255,0.62), rgba(255,255,255,0.30) 60%, rgba(214,230,248,0.45));
+      --sky-win-edge:  rgba(255,255,255,0.75);
+      --key-name-bg:   rgba(255,255,255,0.5);
+
       --radius-sm:   6px;
       --radius:      10px;
       --radius-lg:   16px;
@@ -117,6 +133,20 @@
         --win-bg:      rgba(22,28,48,0.9);
         --win-border:  rgba(255,255,255,0.1);
         --menubar-bg:  rgba(14,22,40,0.96);
+
+        --sky:           linear-gradient(180deg, #0C1A3A 0%, #24305E 50%, #5E4677 85%, #9A5E6E 100%);
+        --hero-ink:      #FFFFFF;
+        --hero-ink-soft: rgba(255,255,255,0.8);
+        --hero-cta-bg:   #F2A541;
+        --hero-cta-fg:   #10203A;
+        --cloud-top:     #F6C9AE;
+        --cloud-shade:   #6E5A86;
+        --haze:          rgba(246,201,174,0.4);
+        --glass:         rgba(255,255,255,0.12);
+        --glass-edge:    rgba(255,255,255,0.26);
+        --sky-win-bg:    linear-gradient(160deg, rgba(255,255,255,0.26), rgba(255,255,255,0.08) 60%, rgba(246,201,174,0.14));
+        --sky-win-edge:  rgba(255,255,255,0.3);
+        --key-name-bg:   rgba(12,26,58,0.55);
 
         --shadow-card: 0 1px 3px rgba(0,0,0,0.2), 0 4px 16px rgba(0,0,0,0.3);
         --shadow-float: 0 2px 8px rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.4);
@@ -259,57 +289,6 @@
       max-width: 52ch;
     }
 
-    /* ─── Hero ───────────────────────────────────────────────────── */
-    .hero {
-      padding: clamp(3rem, 8vw, 5.5rem) 0 clamp(2.5rem, 6vw, 4.5rem);
-      background: var(--bg-hero);
-      border-bottom: 1px solid var(--border);
-      overflow: hidden;
-    }
-
-    .hero-inner {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: clamp(2rem, 5vw, 4rem);
-      align-items: center;
-    }
-
-    @media (max-width: 720px) {
-      .hero-inner { grid-template-columns: 1fr; }
-      .hero-visual { order: -1; margin: 0 auto; max-width: 340px; width: 100%; }
-    }
-
-    .hero-content { max-width: 44ch; }
-
-    .hero-wordmark {
-      font-size: clamp(2.4rem, 5vw, 3.6rem);
-      font-weight: 750;
-      letter-spacing: -0.05em;
-      line-height: 1;
-      color: var(--text);
-      background: linear-gradient(135deg, var(--text) 0%, var(--steel) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .hero-tagline {
-      font-size: clamp(0.9rem, 2vw, 1rem);
-      color: var(--text-muted);
-      margin-bottom: 0.4rem;
-      line-height: 1.4;
-      font-weight: 420;
-    }
-
-    .hero-sub {
-      font-size: 1.05rem;
-      color: var(--text-mid);
-      font-style: normal;
-      font-weight: 520;
-      margin-bottom: 2rem;
-      letter-spacing: 0.01em;
-    }
-
     .hero-ctas {
       display: flex;
       gap: 10px;
@@ -348,151 +327,228 @@
     .btn-secondary:hover { background: var(--bg-card); border-color: var(--accent-soft); color: var(--text); }
     .btn-legacy { margin-top: 0.6rem; }
 
-    /* ─── Hero CSS desktop mockup ────────────────────────────────── */
-    .hero-visual {
+    /* ─── Hero sky (#211) ─────────────────────────────────────────
+       Glass windows over a cloudy sky; one window is placed against the screen (1/3, 1/2), then shrunk
+       against itself (relative 1/2 twice), then undone. Keys and names match the Standard preset.
+       Moving elements never use backdrop-filter: re-blurring the sky every frame stuttered on phones.
+       Percentages come from an 880×300 stage. */
+    .hero {
       position: relative;
-      width: 100%;
-      max-width: 440px;
-    }
-
-    .desktop-mockup {
-      width: 100%;
-      border-radius: var(--radius-lg);
       overflow: hidden;
-      box-shadow: var(--shadow-float);
-      border: 1px solid var(--border);
-      background: var(--navy);
-      aspect-ratio: 4/3;
+      padding: clamp(3rem, 7vw, 5rem) 0 clamp(2rem, 4vw, 3rem);
+      background: var(--sky);
+      color: var(--hero-ink);
+    }
+    .hero .container { position: relative; z-index: 2; }
+    .hero-inner {
       display: flex;
       flex-direction: column;
-    }
-
-    /* faux menu bar */
-    .mock-menubar {
-      height: 24px;
-      background: var(--menubar-bg);
-      display: flex;
       align-items: center;
-      padding: 0 10px;
-      gap: 5px;
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
+      text-align: center;
     }
-    .mock-menubar-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
+    .hero-content {
+      max-width: 42rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
-    .dot-r { background: #ff5f57; }
-    .dot-y { background: #febc2e; }
-    .dot-g { background: #28c840; }
-    .mock-menubar-text {
-      margin-left: auto;
-      font-size: 9px;
-      color: var(--text-muted);
+    .hero-wordmark {
+      font-size: clamp(3.2rem, 9vw, 6rem);
+      font-weight: 800;
+      letter-spacing: -0.045em;
+      line-height: 0.95;
+      color: var(--hero-ink);
+      margin-bottom: 0.9rem;
+    }
+    .hero-tagline {
+      font-size: clamp(1.1rem, 2.6vw, 1.5rem);
       font-weight: 500;
-      letter-spacing: 0.04em;
+      letter-spacing: -0.01em;
+      line-height: 1.3;
+      color: var(--hero-ink);
+      margin-bottom: 0.4rem;
+    }
+    .hero-sub {
+      font-size: 1.05rem;
+      color: var(--hero-ink-soft);
+      margin-bottom: 1.6rem;
+    }
+    .hero-ctas { justify-content: center; }
+    .hero .btn { border-radius: 999px; padding: 11px 22px; }
+    .hero .btn-primary {
+      background: var(--hero-cta-bg);
+      color: var(--hero-cta-fg);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), 0 10px 24px rgba(16,32,58,0.22);
+    }
+    .hero .btn-primary:hover { background: var(--hero-cta-bg); filter: brightness(1.08); }
+    .hero .btn-secondary {
+      background: var(--glass);
+      border: 1px solid var(--glass-edge);
+      color: var(--hero-ink);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.45);
+      backdrop-filter: blur(20px) saturate(160%);
+      -webkit-backdrop-filter: blur(20px) saturate(160%);
+    }
+    .hero .btn-secondary:hover { background: var(--glass); color: var(--hero-ink); filter: brightness(1.06); }
+    .hero .dl-meta { color: var(--hero-ink-soft); }
+    .hero .dl-legacy a { color: var(--hero-ink); }
+
+    .sky-defs { position: absolute; width: 0; height: 0; }
+    .sky-clouds { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+    .sky-cloud { position: absolute; will-change: transform; animation: sky-drift 50s ease-in-out infinite alternate; }
+    .sky-cloud svg { display: block; width: 100%; height: auto; }
+    .sky-haze { position: absolute; height: 140px; background: radial-gradient(closest-side, var(--haze), transparent); }
+    @keyframes sky-drift { from { transform: translateX(0); } to { transform: translateX(60px); } }
+    .sky-haze-a { left: -4.7%; bottom: -2%; width: 50%; }
+    .sky-haze-b { left: 52.3%; bottom: -4%; width: 53%; }
+    .sky-cloud-a { left: 0; top: 68.4%; width: 34.4%; animation-duration: 46s; }
+    .sky-cloud-b { left: 57%; top: 71%; width: 43%; animation-duration: 58s; animation-direction: alternate-reverse; }
+    .sky-cloud-c { left: 70.9%; top: 5.4%; width: 24.8%; opacity: 0.95; animation-duration: 64s; }
+    .sky-cloud-d { left: -6%; top: 15.9%; width: 24.9%; opacity: 0.9; animation-duration: 52s; animation-direction: alternate-reverse; }
+    .sky-cloud-e { left: 42.8%; top: 39.7%; width: 13.75%; opacity: 0.7; animation-duration: 70s; }
+    /* A narrow hero is tall: clouds placed by height land on the text, so keep them to the corners. */
+    @media (max-width: 720px) {
+      .sky-cloud-d, .sky-cloud-e { display: none; }
+      .sky-cloud-c { top: 0; left: 62%; width: 44%; }
+      .sky-cloud-a { top: auto; bottom: -3%; width: 60%; }
+      .sky-cloud-b { top: auto; bottom: -5%; left: 48%; width: 70%; }
     }
 
-    /* desktop canvas */
-    .mock-desktop {
-      flex: 1;
+    .sky-stage {
       position: relative;
-      background: linear-gradient(135deg, #0e1c38 0%, #16294d 50%, #0e1929 100%);
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      grid-template-rows: 1fr 1fr;
-      gap: 5px;
-      padding: 8px;
+      width: min(880px, 100%);
+      aspect-ratio: 880 / 300;
+      margin-top: clamp(2.5rem, 6vw, 3.5rem);
+      color: var(--hero-ink);
     }
-
-    .mock-win {
-      background: var(--win-bg);
-      border: 1px solid var(--win-border);
-      border-radius: var(--radius-sm);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      backdrop-filter: blur(4px);
-    }
-
-    .mock-win-bar {
-      height: 14px;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      padding: 0 5px;
-      gap: 3px;
-      flex-shrink: 0;
-    }
-    .mock-win-dot {
-      width: 4px; height: 4px;
-      border-radius: 50%;
-      background: var(--border);
-    }
-
-    .mock-win-content {
-      flex: 1;
-      padding: 4px 5px;
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-    }
-    .mock-win-line {
-      height: 3px;
-      border-radius: 2px;
-      background: var(--accent-glow);
-    }
-    .mock-win-line.accent { background: rgba(74,127,193,0.4); width: 60%; }
-    .mock-win-line.short { width: 45%; }
-    .mock-win-line.shorter { width: 30%; }
-
-    /* the "active" window spans both columns in the top row */
-    .mock-win-active {
-      grid-column: 1 / 3;
-      border-color: rgba(74,127,193,0.35);
-      box-shadow: 0 0 0 1px rgba(74,127,193,0.25), 0 2px 12px rgba(74,127,193,0.15);
-    }
-
-    /* snap indicator overlay */
-    .mock-snap-hint {
+    .sky-win {
       position: absolute;
-      right: 10px;
-      bottom: 10px;
+      border-radius: clamp(10px, 2vw, 18px);
+      background: var(--sky-win-bg);
+      border: 1px solid var(--sky-win-edge);
+      overflow: hidden;
+    }
+    .sky-win-dots { display: flex; gap: 6px; padding: clamp(7px, 1.4vw, 12px) clamp(8px, 1.6vw, 14px); }
+    .sky-win-dots span { width: clamp(7px, 1.2vw, 11px); aspect-ratio: 1; border-radius: 50%; background: rgba(255,255,255,0.65); }
+    .sky-win-line { display: block; height: clamp(5px, 0.9vw, 8px); margin: 0 clamp(8px, 1.6vw, 16px) 8px; border-radius: 4px; background: rgba(255,255,255,0.55); }
+    .sky-win-a { left: 50.455%; top: 0; width: 49.545%; height: 48.667%; opacity: 0.7; }
+    .sky-win-b { left: 50.455%; top: 51.333%; width: 49.545%; height: 48.667%; opacity: 0.7; }
+    .sky-main {
+      z-index: 3;
+      border: 2px solid var(--sun);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), 0 14px 30px rgba(16,32,58,0.18);
+      left: 0; top: 50%; width: 49.545%; height: 50%;
+      animation: sky-main 18s cubic-bezier(.3,.9,.3,1) infinite;
+    }
+    .sky-main .sky-win-dots span:nth-child(1) { background: #E36B5D; }
+    .sky-main .sky-win-dots span:nth-child(2) { background: #E8B14A; }
+    .sky-main .sky-win-dots span:nth-child(3) { background: #62B862; }
+    @keyframes sky-main {
+      0%, 5%   { left: 28.409%; top: 10%; width: 45.455%; height: 80%; }
+      11%, 22% { left: 0; top: 0; width: 32.727%; height: 100%; }
+      27%, 41% { left: 0; top: 0; width: 49.545%; height: 100%; }
+      46%, 59% { left: 0; top: 50%; width: 49.545%; height: 50%; }
+      64%, 75% { left: 0; top: 50%; width: 24.773%; height: 50%; }
+      80%, 92% { left: 0; top: 50%; width: 49.545%; height: 50%; }
+      100%     { left: 28.409%; top: 10%; width: 45.455%; height: 80%; }
+    }
+    .sky-frame {
+      position: absolute;
+      inset: -6px;
+      border: 2px dashed currentColor;
+      border-radius: clamp(12px, 2.2vw, 22px);
+      opacity: 0;
+      animation: sky-frame 18s linear infinite;
+    }
+    .sky-frame-label {
+      position: absolute;
+      left: 14px;
+      top: -1.7rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .sky-line, .sky-guide { position: absolute; opacity: 0; animation-duration: 18s; animation-iteration-count: infinite; animation-timing-function: linear; }
+    .sky-line { top: 0; bottom: 0; border-left: 2px dashed currentColor; }
+    .sky-line-third { animation-name: sky-line-third; }
+    .sky-line-half { animation-name: sky-line-half; }
+    .sky-guide-h { left: 0; right: 0; top: 50%; border-top: 2px dashed var(--sun); animation-name: sky-guide-h; }
+    .sky-guide-v { top: 0; bottom: 0; left: 50%; border-left: 2px dashed var(--sun); animation-name: sky-guide-v; }
+    @keyframes sky-frame { 0%, 2% { opacity: 0; } 4%, 29% { opacity: 0.6; } 32%, 100% { opacity: 0; } }
+    @keyframes sky-line-third { 0%, 3% { opacity: 0; } 5%, 14% { opacity: 1; } 16%, 100% { opacity: 0; } }
+    @keyframes sky-line-half { 0%, 18% { opacity: 0; } 20%, 29% { opacity: 1; } 31%, 100% { opacity: 0; } }
+    @keyframes sky-guide-h { 0%, 33% { opacity: 0; } 35%, 42% { opacity: 1; } 44%, 100% { opacity: 0; } }
+    @keyframes sky-guide-v { 0%, 51% { opacity: 0; } 53%, 60% { opacity: 1; } 62%, 100% { opacity: 0; } }
+
+    .sky-keys { position: relative; width: 100%; height: 2.75rem; margin-top: 1.4rem; }
+    .sky-key {
+      position: absolute;
+      inset: 0;
       display: flex;
-      align-items: center;
-      gap: 5px;
-      background: rgba(26,42,74,0.82);
-      border: 1px solid rgba(74,127,193,0.4);
-      border-radius: var(--radius-sm);
-      padding: 4px 8px;
-      backdrop-filter: blur(6px);
-    }
-
-    .keycap-mini {
-      display: inline-flex;
-      align-items: center;
       justify-content: center;
-      background: var(--navy-light);
-      border: 1px solid rgba(255,255,255,0.18);
-      border-bottom-width: 2px;
-      border-radius: 3px;
-      padding: 1px 4px;
+      align-items: center;
+      gap: 0.6rem;
+      opacity: 0;
+      animation-duration: 18s;
+      animation-iteration-count: infinite;
+    }
+    .sky-key kbd {
       font-family: var(--font-mono);
-      font-size: 8px;
-      color: #c8d8f0;
+      font-size: 1rem;
+      padding: 6px 12px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.92);
+      color: #10203A;
+      border: 1px solid rgba(16,32,58,0.12);
+      box-shadow: 0 2px 0 rgba(16,32,58,0.18);
+    }
+    .sky-key-name { font-size: 0.95rem; font-weight: 600; white-space: nowrap; padding: 3px 10px; border-radius: 999px; background: var(--key-name-bg); }
+    .sky-key-basis {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 4px 9px;
+      border-radius: 999px;
       white-space: nowrap;
+      background: rgba(255,255,255,0.9);
+      color: #1E3A5F;
+    }
+    .sky-key-basis.is-window { background: var(--sun); color: #10203A; }
+    .sky-key-1 { animation-name: sky-key-1; }
+    .sky-key-2 { animation-name: sky-key-2; }
+    .sky-key-3 { animation-name: sky-key-3; }
+    .sky-key-4 { animation-name: sky-key-4; }
+    .sky-key-5 { animation-name: sky-key-5; }
+    @keyframes sky-key-1 { 0%, 3% { opacity: 0; } 5%, 19% { opacity: 1; } 21%, 100% { opacity: 0; } }
+    @keyframes sky-key-2 { 0%, 19% { opacity: 0; } 21%, 35% { opacity: 1; } 37%, 100% { opacity: 0; } }
+    @keyframes sky-key-3 { 0%, 35% { opacity: 0; } 37%, 53% { opacity: 1; } 55%, 100% { opacity: 0; } }
+    @keyframes sky-key-4 { 0%, 53% { opacity: 0; } 55%, 71% { opacity: 1; } 73%, 100% { opacity: 0; } }
+    @keyframes sky-key-5 { 0%, 71% { opacity: 0; } 73%, 89% { opacity: 1; } 91%, 100% { opacity: 0; } }
+
+    @media (max-width: 480px) {
+      .sky-key { gap: 0.4rem; }
+      .sky-key kbd { font-size: 0.85rem; padding: 4px 8px; }
+      .sky-key-name { font-size: 0.8rem; }
+      .sky-key-basis { font-size: 0.6rem; padding: 3px 7px; }
+      .sky-frame-label { display: none; }
     }
 
-    .mock-snap-label {
-      font-size: 8px;
-      color: rgba(180,200,240,0.7);
-      font-family: var(--font);
+    /* Reduce Motion: one still frame (the window shrunk to its bottom half, its key shown). The base rule
+       only shortens durations, which would make these infinite loops flicker, so stop them outright. */
+    @media (prefers-reduced-motion: reduce) {
+      .sky-cloud, .sky-main, .sky-frame, .sky-line, .sky-guide, .sky-key { animation: none !important; }
+      .sky-key-3 { opacity: 1; }
     }
 
-    /* compass SVG logo */
-    .compass-icon {
-      flex-shrink: 0;
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
     }
 
     /* ─── Highlights cards ───────────────────────────────────────── */
@@ -920,26 +976,6 @@
       outline-offset: 2px;
     }
 
-    /* ─── Hero snap animation (reduced-motion safe) ──────────────── */
-    @media (prefers-reduced-motion: no-preference) {
-      @keyframes snap-land {
-        0%   { transform: scale(0.94) translateY(-5px); opacity: 0.45; }
-        65%  { transform: scale(1.01) translateY(1px);  opacity: 1; }
-        100% { transform: scale(1)    translateY(0);     opacity: 1; }
-      }
-      @keyframes hint-reveal {
-        from { opacity: 0; transform: translateY(5px) scale(0.95); }
-        to   { opacity: 1; transform: translateY(0)   scale(1); }
-      }
-      .mock-win-active {
-        animation: snap-land 0.32s ease-out 0.3s both;
-      }
-      .mock-snap-hint {
-        opacity: 0;
-        animation: hint-reveal 0.26s ease-out 0.68s both;
-      }
-    }
-
     /* ─── FAQ section ────────────────────────────────────────────── */
     .faq-list {
       display: flex;
@@ -1009,20 +1045,13 @@
   <header role="banner">
     <nav class="topbar" aria-label="Main navigation">
       <div class="topbar-logo" aria-label="Azimuth">
-        <!-- Compass inline SVG -->
-        <svg class="compass-icon" width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true"
+        <svg class="compass-icon" width="22" height="22" viewBox="0 0 1024 1024" aria-hidden="true"
              xmlns="http://www.w3.org/2000/svg">
-          <circle cx="11" cy="11" r="10" stroke="var(--accent)" stroke-width="1.4"/>
-          <circle cx="11" cy="11" r="1.8" fill="var(--accent)"/>
-          <!-- N needle -->
-          <polygon points="11,11 9.3,11 11,3" fill="var(--accent)" opacity="0.9"/>
-          <!-- S needle -->
-          <polygon points="11,11 12.7,11 11,19" fill="var(--text-faint)" opacity="0.55"/>
-          <!-- tick marks -->
-          <line x1="11" y1="1.5" x2="11" y2="3.5" stroke="var(--accent)" stroke-width="1.2"/>
-          <line x1="11" y1="18.5" x2="11" y2="20.5" stroke="var(--text-faint)" stroke-width="1" opacity="0.5"/>
-          <line x1="1.5" y1="11" x2="3.5" y2="11" stroke="var(--text-faint)" stroke-width="1" opacity="0.5"/>
-          <line x1="18.5" y1="11" x2="20.5" y2="11" stroke="var(--text-faint)" stroke-width="1" opacity="0.5"/>
+          <rect width="1024" height="1024" rx="228" fill="#1E3A5F"/>
+          <circle cx="512" cy="542.7" r="358.4" fill="none" stroke="#F2F5F9" stroke-width="44"/>
+          <rect x="327.7" y="419.8" width="368.6" height="266.2" rx="20.5" fill="none" stroke="#F2F5F9" stroke-width="44"/>
+          <rect x="354.3" y="507.9" width="157.7" height="151.6" rx="8.2" fill="#F2A541"/>
+          <path d="M512 87 L563.2 169 H460.8 Z" fill="#F2A541"/>
         </svg>
         <span>Azimuth</span>
       </div>
@@ -1046,6 +1075,39 @@
   <main id="main-content">
     <!-- ── 1. Hero ─────────────────────────────────────────────── -->
     <section class="hero" aria-labelledby="hero-heading">
+      <svg class="sky-defs" aria-hidden="true" focusable="false">
+        <defs>
+          <linearGradient id="sky-puff" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" style="stop-color: var(--cloud-top)"/>
+            <stop offset="0.6" style="stop-color: var(--cloud-top)"/>
+            <stop offset="1" style="stop-color: var(--cloud-shade)"/>
+          </linearGradient>
+          <filter id="sky-fluff" x="-20%" y="-40%" width="140%" height="180%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="3" seed="7" result="noise"/>
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="34" xChannelSelector="R" yChannelSelector="G" result="shape"/>
+            <feGaussianBlur in="shape" stdDeviation="2.4"/>
+          </filter>
+          <g id="sky-cloud-1" fill="url(#sky-puff)">
+            <ellipse cx="170" cy="128" rx="190" ry="42"/>
+            <circle cx="70" cy="112" r="40"/><circle cx="128" cy="88" r="58"/><circle cx="200" cy="66" r="78"/>
+            <circle cx="282" cy="92" r="56"/><circle cx="338" cy="116" r="36"/>
+          </g>
+          <g id="sky-cloud-2" fill="url(#sky-puff)">
+            <ellipse cx="240" cy="120" rx="250" ry="44"/>
+            <circle cx="70" cy="110" r="42"/><circle cx="140" cy="84" r="64"/><circle cx="236" cy="56" r="90"/>
+            <circle cx="336" cy="80" r="70"/><circle cx="420" cy="104" r="48"/>
+          </g>
+        </defs>
+      </svg>
+      <div class="sky-clouds" aria-hidden="true">
+        <div class="sky-haze sky-haze-a"></div>
+        <div class="sky-haze sky-haze-b"></div>
+        <div class="sky-cloud sky-cloud-a"><svg viewBox="-30 -40 440 240"><use href="#sky-cloud-1" filter="url(#sky-fluff)"/></svg></div>
+        <div class="sky-cloud sky-cloud-b"><svg viewBox="-30 -50 550 250"><use href="#sky-cloud-2" filter="url(#sky-fluff)"/></svg></div>
+        <div class="sky-cloud sky-cloud-c"><svg viewBox="-30 -40 440 240"><use href="#sky-cloud-1" filter="url(#sky-fluff)"/></svg></div>
+        <div class="sky-cloud sky-cloud-d"><svg viewBox="-30 -50 550 250"><use href="#sky-cloud-2" filter="url(#sky-fluff)"/></svg></div>
+        <div class="sky-cloud sky-cloud-e"><svg viewBox="-30 -40 440 240"><use href="#sky-cloud-1" filter="url(#sky-fluff)"/></svg></div>
+      </div>
       <div class="container">
         <div class="hero-inner">
           <div class="hero-content">
@@ -1114,70 +1176,39 @@
                  data-ko="모든 버전과 릴리스 노트 →">All versions and release notes →</a>
             </p>
           </div>
-
-          <!-- CSS desktop mockup -->
-          <div class="hero-visual" aria-hidden="true">
-            <div class="desktop-mockup" role="img"
-                 aria-label="Illustration of windows arranged in a tidy grid on a macOS desktop">
-              <!-- faux menu bar -->
-              <div class="mock-menubar">
-                <div class="mock-menubar-dot dot-r"></div>
-                <div class="mock-menubar-dot dot-y"></div>
-                <div class="mock-menubar-dot dot-g"></div>
-                <span class="mock-menubar-text">Azimuth ·  Menu bar</span>
-              </div>
-
-              <!-- desktop grid -->
-              <div class="mock-desktop">
-                <!-- Top half: single window spanning full width -->
-                <div class="mock-win mock-win-active">
-                  <div class="mock-win-bar">
-                    <div class="mock-win-dot"></div>
-                    <div class="mock-win-dot"></div>
-                    <div class="mock-win-dot"></div>
-                  </div>
-                  <div class="mock-win-content">
-                    <div class="mock-win-line accent"></div>
-                    <div class="mock-win-line"></div>
-                    <div class="mock-win-line short"></div>
-                    <div class="mock-win-line"></div>
-                    <div class="mock-win-line shorter"></div>
-                  </div>
-                </div>
-
-                <!-- Bottom-left quarter -->
-                <div class="mock-win">
-                  <div class="mock-win-bar">
-                    <div class="mock-win-dot"></div>
-                    <div class="mock-win-dot"></div>
-                    <div class="mock-win-dot"></div>
-                  </div>
-                  <div class="mock-win-content">
-                    <div class="mock-win-line short"></div>
-                    <div class="mock-win-line shorter"></div>
-                  </div>
-                </div>
-
-                <!-- Bottom-right quarter -->
-                <div class="mock-win">
-                  <div class="mock-win-bar">
-                    <div class="mock-win-dot"></div>
-                    <div class="mock-win-dot"></div>
-                    <div class="mock-win-dot"></div>
-                  </div>
-                  <div class="mock-win-content">
-                    <div class="mock-win-line shorter"></div>
-                    <div class="mock-win-line short"></div>
-                  </div>
-                </div>
-
-                <!-- Snap hint overlay -->
-                <div class="mock-snap-hint">
-                  <span class="keycap-mini">⌃⌥←</span>
-                  <span class="mock-snap-label">snap left half</span>
-                </div>
-              </div>
+          <p class="visually-hidden"
+             data-en="Animation: one window is placed with Left 1/3 and Left 1/2, which measure against the screen, then shrunk to its own bottom half and its own left half, then undone."
+             data-ko="애니메이션: 창 하나를 화면 기준인 Left 1/3과 Left 1/2로 놓은 뒤, 그 창 기준으로 아래 절반과 왼쪽 절반으로 줄이고, 되돌립니다.">
+            Animation: one window is placed with Left 1/3 and Left 1/2, which measure against the screen, then shrunk to its own bottom half and its own left half, then undone.
+          </p>
+          <div class="sky-stage" aria-hidden="true">
+            <div class="sky-win sky-win-a"><div class="sky-win-dots"><span></span><span></span><span></span></div></div>
+            <div class="sky-win sky-win-b"><div class="sky-win-dots"><span></span><span></span><span></span></div></div>
+            <div class="sky-frame">
+              <span class="sky-frame-label" data-en="Screen" data-ko="화면">Screen</span>
+              <div class="sky-line sky-line-third" style="left: 33.333%;"></div>
+              <div class="sky-line sky-line-third" style="left: 66.667%;"></div>
+              <div class="sky-line sky-line-half" style="left: 50%;"></div>
             </div>
+            <div class="sky-win sky-main">
+              <div class="sky-win-dots"><span></span><span></span><span></span></div>
+              <span class="sky-win-line" style="width: 60%;"></span>
+              <span class="sky-win-line" style="width: 82%; opacity: 0.7;"></span>
+              <div class="sky-guide sky-guide-h"></div>
+              <div class="sky-guide sky-guide-v"></div>
+            </div>
+          </div>
+          <div class="sky-keys" aria-hidden="true">
+            <div class="sky-key sky-key-1"><kbd>⌃⌥1</kbd><span class="sky-key-name">Left 1/3</span>
+              <span class="sky-key-basis" data-en="of the screen" data-ko="화면 기준">of the screen</span></div>
+            <div class="sky-key sky-key-2"><kbd>⌃⌥←</kbd><span class="sky-key-name">Left 1/2</span>
+              <span class="sky-key-basis" data-en="of the screen" data-ko="화면 기준">of the screen</span></div>
+            <div class="sky-key sky-key-3"><kbd>⌃⌥⇧↓</kbd><span class="sky-key-name">Shrink Bottom 1/2</span>
+              <span class="sky-key-basis is-window" data-en="of this window" data-ko="이 창 기준">of this window</span></div>
+            <div class="sky-key sky-key-4"><kbd>⌃⌥⇧←</kbd><span class="sky-key-name">Shrink Left 1/2</span>
+              <span class="sky-key-basis is-window" data-en="of this window" data-ko="이 창 기준">of this window</span></div>
+            <div class="sky-key sky-key-5"><kbd>⌃⌥⌫</kbd><span class="sky-key-name">Undo</span>
+              <span class="sky-key-basis" data-en="per window" data-ko="창마다 기록">per window</span></div>
           </div>
         </div>
       </div>
