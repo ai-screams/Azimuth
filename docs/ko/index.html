@@ -302,6 +302,8 @@
       margin-bottom: 2.5rem;
       max-width: 52ch;
     }
+    /* A four-sentence paragraph, not a one-line subtitle: give it the FAQ answers' line length. */
+    .support-sub { max-width: 72ch; }
 
     .hero-ctas {
       display: flex;
@@ -457,14 +459,15 @@
     .sky-main .sky-win-dots span:nth-child(1) { background: #E36B5D; }
     .sky-main .sky-win-dots span:nth-child(2) { background: #E8B14A; }
     .sky-main .sky-win-dots span:nth-child(3) { background: #62B862; }
+    /* Six steps, 16% apart. The last, Center, keeps the undone window's size, so it lands on the first frame. */
     @keyframes sky-main {
-      0%, 5%   { left: 28.409%; top: 10%; width: 45.455%; height: 80%; }
-      11%, 22% { left: 0; top: 0; width: 32.727%; height: 100%; }
-      27%, 41% { left: 0; top: 0; width: 49.545%; height: 100%; }
-      46%, 59% { left: 0; top: 50%; width: 49.545%; height: 50%; }
-      64%, 75% { left: 0; top: 50%; width: 24.773%; height: 50%; }
-      80%, 92% { left: 0; top: 50%; width: 49.545%; height: 50%; }
-      100%     { left: 28.409%; top: 10%; width: 45.455%; height: 80%; }
+      0%, 4%   { left: 25.227%; top: 25%; width: 49.545%; height: 50%; }
+      9%, 20%  { left: 0; top: 0; width: 32.727%; height: 100%; }
+      25%, 36% { left: 0; top: 0; width: 49.545%; height: 100%; }
+      41%, 52% { left: 0; top: 50%; width: 49.545%; height: 50%; }
+      57%, 68% { left: 0; top: 50%; width: 24.773%; height: 50%; }
+      73%, 84% { left: 0; top: 50%; width: 49.545%; height: 50%; }
+      89%, 100% { left: 25.227%; top: 25%; width: 49.545%; height: 50%; }
     }
     .sky-frame {
       position: absolute;
@@ -489,11 +492,11 @@
     .sky-line-half { animation-name: sky-line-half; }
     .sky-guide-h { left: 0; right: 0; top: 50%; border-top: 2px dashed var(--sun); animation-name: sky-guide-h; }
     .sky-guide-v { top: 0; bottom: 0; left: 50%; border-left: 2px dashed var(--sun); animation-name: sky-guide-v; }
-    @keyframes sky-frame { 0%, 2% { opacity: 0; } 4%, 29% { opacity: 0.6; } 32%, 100% { opacity: 0; } }
-    @keyframes sky-line-third { 0%, 3% { opacity: 0; } 5%, 14% { opacity: 1; } 16%, 100% { opacity: 0; } }
-    @keyframes sky-line-half { 0%, 18% { opacity: 0; } 20%, 29% { opacity: 1; } 31%, 100% { opacity: 0; } }
-    @keyframes sky-guide-h { 0%, 33% { opacity: 0; } 35%, 42% { opacity: 1; } 44%, 100% { opacity: 0; } }
-    @keyframes sky-guide-v { 0%, 51% { opacity: 0; } 53%, 60% { opacity: 1; } 62%, 100% { opacity: 0; } }
+    @keyframes sky-frame { 0%, 1% { opacity: 0; } 3%, 31% { opacity: 0.6; } 34%, 82% { opacity: 0; } 84%, 96% { opacity: 0.6; } 99%, 100% { opacity: 0; } }
+    @keyframes sky-line-third { 0%, 2% { opacity: 0; } 4%, 15% { opacity: 1; } 17%, 100% { opacity: 0; } }
+    @keyframes sky-line-half { 0%, 18% { opacity: 0; } 20%, 31% { opacity: 1; } 33%, 100% { opacity: 0; } }
+    @keyframes sky-guide-h { 0%, 34% { opacity: 0; } 36%, 44% { opacity: 1; } 46%, 100% { opacity: 0; } }
+    @keyframes sky-guide-v { 0%, 50% { opacity: 0; } 52%, 60% { opacity: 1; } 62%, 100% { opacity: 0; } }
 
     .sky-keys { position: relative; width: 100%; height: 2.75rem; margin-top: 1.4rem; }
     .sky-key {
@@ -535,11 +538,13 @@
     .sky-key-3 { animation-name: sky-key-3; }
     .sky-key-4 { animation-name: sky-key-4; }
     .sky-key-5 { animation-name: sky-key-5; }
-    @keyframes sky-key-1 { 0%, 3% { opacity: 0; } 5%, 19% { opacity: 1; } 21%, 100% { opacity: 0; } }
-    @keyframes sky-key-2 { 0%, 19% { opacity: 0; } 21%, 35% { opacity: 1; } 37%, 100% { opacity: 0; } }
-    @keyframes sky-key-3 { 0%, 35% { opacity: 0; } 37%, 53% { opacity: 1; } 55%, 100% { opacity: 0; } }
-    @keyframes sky-key-4 { 0%, 53% { opacity: 0; } 55%, 71% { opacity: 1; } 73%, 100% { opacity: 0; } }
-    @keyframes sky-key-5 { 0%, 71% { opacity: 0; } 73%, 89% { opacity: 1; } 91%, 100% { opacity: 0; } }
+    .sky-key-6 { animation-name: sky-key-6; }
+    @keyframes sky-key-1 { 0%, 2% { opacity: 0; } 4%, 16% { opacity: 1; } 18%, 100% { opacity: 0; } }
+    @keyframes sky-key-2 { 0%, 18% { opacity: 0; } 20%, 32% { opacity: 1; } 34%, 100% { opacity: 0; } }
+    @keyframes sky-key-3 { 0%, 34% { opacity: 0; } 36%, 48% { opacity: 1; } 50%, 100% { opacity: 0; } }
+    @keyframes sky-key-4 { 0%, 50% { opacity: 0; } 52%, 64% { opacity: 1; } 66%, 100% { opacity: 0; } }
+    @keyframes sky-key-5 { 0%, 66% { opacity: 0; } 68%, 80% { opacity: 1; } 82%, 100% { opacity: 0; } }
+    @keyframes sky-key-6 { 0%, 82% { opacity: 0; } 84%, 96% { opacity: 1; } 98%, 100% { opacity: 0; } }
 
     @media (max-width: 480px) {
       .sky-key { gap: 0.4rem; }
@@ -850,6 +855,10 @@
       line-height: 1.55;
     }
     .install-note strong { color: var(--text-mid); font-weight: 600; }
+    /* One line per older macOS so each reader finds their own case. */
+    .legacy-note ul { margin: 0; padding-left: 1.1rem; }
+    .legacy-note li + li { margin-top: 0.35rem; }
+    .legacy-note p { margin: 0.5rem 0 0; }
     .install-note a, .dl-legacy a { color: var(--text-mid); text-decoration: underline; text-underline-offset: 2px; }
 
     /* ─── Download meta note ─────────────────────────────────────── */
@@ -924,8 +933,10 @@
     .footer-left {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
     }
+    /* The app icon itself, about the height of the two text lines; the 16px SVG lost the dial and north mark. */
+    .footer-icon { flex-shrink: 0; border-radius: 22%; }
 
     .footer-text {
       font-size: 0.8rem;
@@ -995,7 +1006,6 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
-      max-width: 72ch;
     }
 
     .faq-item {
@@ -1041,6 +1051,8 @@
       color: var(--text-muted);
       line-height: 1.65;
       border-top: 1px solid var(--border);
+      /* The box spans the container like the cards above; the answer text keeps a readable line length. */
+      padding-right: max(1.1rem, 100% - 72ch - 1.1rem);
     }
 
     /* ─── Mobile shortcuts: hide Group column at 480px ──────────── */
@@ -1184,8 +1196,8 @@
             </p>
           </div>
           <p class="visually-hidden"
-             data-en="Animation: one window is placed with Left 1/3 and Left 1/2, which measure against the screen, then shrunk to its own bottom half and its own left half, then undone."
-             data-ko="애니메이션: 창 하나를 화면 기준인 Left 1/3과 Left 1/2로 놓은 뒤, 그 창 기준으로 아래 절반과 왼쪽 절반으로 줄이고, 되돌립니다.">애니메이션: 창 하나를 화면 기준인 Left 1/3과 Left 1/2로 놓은 뒤, 그 창 기준으로 아래 절반과 왼쪽 절반으로 줄이고, 되돌립니다.</p>
+             data-en="Animation: one window is placed with Left 1/3 and Left 1/2, which measure against the screen, then shrunk to its own bottom half and its own left half, undone, and centered at its current size."
+             data-ko="애니메이션: 창 하나를 화면 기준인 Left 1/3과 Left 1/2로 놓은 뒤, 그 창 기준으로 아래 절반과 왼쪽 절반으로 줄이고, 되돌린 뒤, 크기 그대로 화면 가운데로 옮깁니다.">애니메이션: 창 하나를 화면 기준인 Left 1/3과 Left 1/2로 놓은 뒤, 그 창 기준으로 아래 절반과 왼쪽 절반으로 줄이고, 되돌린 뒤, 크기 그대로 화면 가운데로 옮깁니다.</p>
           <div class="sky-stage" aria-hidden="true">
             <div class="sky-win sky-win-a"><div class="sky-win-dots"><span></span><span></span><span></span></div></div>
             <div class="sky-win sky-win-b"><div class="sky-win-dots"><span></span><span></span><span></span></div></div>
@@ -1214,6 +1226,8 @@
               <span class="sky-key-basis is-window" data-en="of this window" data-ko="이 창 기준">이 창 기준</span></div>
             <div class="sky-key sky-key-5"><kbd>⌃⌥⌫</kbd><span class="sky-key-name">Undo</span>
               <span class="sky-key-basis" data-en="per window" data-ko="창마다 기록">창마다 기록</span></div>
+            <div class="sky-key sky-key-6"><kbd>⌃⌥C</kbd><span class="sky-key-name">Center</span>
+              <span class="sky-key-basis" data-en="of the screen" data-ko="화면 기준">화면 기준</span></div>
           </div>
         </div>
       </div>
@@ -1848,9 +1862,9 @@
                data-en="The download is Developer ID–signed and notarized by Apple, so it opens without Gatekeeper warnings."
                data-ko="다운로드 파일은 Developer ID 서명 + Apple 공증을 거쳐 Gatekeeper 경고 없이 바로 열립니다.">다운로드 파일은 Developer ID 서명 + Apple 공증을 거쳐 Gatekeeper 경고 없이 바로 열립니다.</p>
 
-            <p class="install-note" id="legacy"
-               data-en="&lt;strong&gt;macOS 13?&lt;/strong&gt; Download &lt;a href=&quot;https://github.com/ai-screams/Azimuth/releases/tag/v1.7.7&quot;&gt;version 1.7.7&lt;/a&gt;, the last version for macOS 13. It gets no further updates. &lt;strong&gt;macOS 10.13–12?&lt;/strong&gt; Download the &lt;a href=&quot;https://github.com/ai-screams/Azimuth/releases/tag/legacy-v1.7.2-4&quot;&gt;legacy build (1.7.2 Legacy)&lt;/a&gt;. It keeps the core features but gets no new ones. After you upgrade macOS, either one moves to the newest version that macOS can run on its next update check."
-               data-ko="&lt;strong&gt;macOS 13인가요?&lt;/strong&gt; macOS 13용 마지막 버전인 &lt;a href=&quot;https://github.com/ai-screams/Azimuth/releases/tag/v1.7.7&quot;&gt;1.7.7을&lt;/a&gt; 받으세요. 이후 업데이트는 없습니다. &lt;strong&gt;macOS 10.13~12인가요?&lt;/strong&gt; &lt;a href=&quot;https://github.com/ai-screams/Azimuth/releases/tag/legacy-v1.7.2-4&quot;&gt;레거시판(1.7.2 Legacy)을&lt;/a&gt; 받으세요. 핵심 기능은 같고 새 기능은 들어가지 않습니다. 어느 쪽이든 macOS를 업그레이드한 뒤 업데이트를 확인하면 그 macOS에서 돌 수 있는 가장 새 버전으로 옮겨 갑니다."><strong>macOS 13인가요?</strong> macOS 13용 마지막 버전인 <a href="https://github.com/ai-screams/Azimuth/releases/tag/v1.7.7">1.7.7을</a> 받으세요. 이후 업데이트는 없습니다. <strong>macOS 10.13~12인가요?</strong> <a href="https://github.com/ai-screams/Azimuth/releases/tag/legacy-v1.7.2-4">레거시판(1.7.2 Legacy)을</a> 받으세요. 핵심 기능은 같고 새 기능은 들어가지 않습니다. 어느 쪽이든 macOS를 업그레이드한 뒤 업데이트를 확인하면 그 macOS에서 돌 수 있는 가장 새 버전으로 옮겨 갑니다.</p>
+            <div class="install-note legacy-note" id="legacy"
+               data-en="&lt;ul&gt;&lt;li&gt;&lt;strong&gt;macOS 13?&lt;/strong&gt; Download &lt;a href=&quot;https://github.com/ai-screams/Azimuth/releases/tag/v1.7.7&quot;&gt;version 1.7.7&lt;/a&gt;, the last version for macOS 13. It gets no further updates.&lt;/li&gt;&lt;li&gt;&lt;strong&gt;macOS 10.13–12?&lt;/strong&gt; Download the &lt;a href=&quot;https://github.com/ai-screams/Azimuth/releases/tag/legacy-v1.7.2-4&quot;&gt;legacy build (1.7.2 Legacy)&lt;/a&gt;. It keeps the core features but gets no new ones.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;After you upgrade macOS, either one moves to the newest version that macOS can run on its next update check.&lt;/p&gt;"
+               data-ko="&lt;ul&gt;&lt;li&gt;&lt;strong&gt;macOS 13인가요?&lt;/strong&gt; macOS 13용 마지막 버전인 &lt;a href=&quot;https://github.com/ai-screams/Azimuth/releases/tag/v1.7.7&quot;&gt;1.7.7을&lt;/a&gt; 받으세요. 이후 업데이트는 없습니다.&lt;/li&gt;&lt;li&gt;&lt;strong&gt;macOS 10.13–12인가요?&lt;/strong&gt; &lt;a href=&quot;https://github.com/ai-screams/Azimuth/releases/tag/legacy-v1.7.2-4&quot;&gt;레거시판(1.7.2 Legacy)을&lt;/a&gt; 받으세요. 핵심 기능은 같고 새 기능은 들어가지 않습니다.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;어느 쪽이든 macOS를 업그레이드한 뒤 업데이트를 확인하면 그 macOS에서 돌 수 있는 가장 새 버전으로 옮겨 갑니다.&lt;/p&gt;"><ul><li><strong>macOS 13인가요?</strong> macOS 13용 마지막 버전인 <a href="https://github.com/ai-screams/Azimuth/releases/tag/v1.7.7">1.7.7을</a> 받으세요. 이후 업데이트는 없습니다.</li><li><strong>macOS 10.13–12인가요?</strong> <a href="https://github.com/ai-screams/Azimuth/releases/tag/legacy-v1.7.2-4">레거시판(1.7.2 Legacy)을</a> 받으세요. 핵심 기능은 같고 새 기능은 들어가지 않습니다.</li></ul><p>어느 쪽이든 macOS를 업그레이드한 뒤 업데이트를 확인하면 그 macOS에서 돌 수 있는 가장 새 버전으로 옮겨 갑니다.</p></div>
 
             <!-- macOS 13 DMG, direct: 1.7.7 is the last version for macOS 13 and is never bumped. -->
             <a id="download-macos13"
@@ -1957,10 +1971,10 @@
         <h2 class="section-title" id="support-heading"
             data-en="Support Azimuth"
             data-ko="Azimuth 후원하기">Azimuth 후원하기</h2>
-        <p class="section-sub"
+        <p class="section-sub support-sub"
            data-en="Azimuth is free and open source — no paywall, no ads, no telemetry — and it always will be. If it earns a place in your workflow, you can chip in to fund development. A supporter license just says thanks; it unlocks nothing, since every feature is already free for everyone."
            data-ko="Azimuth는 유료 장벽도, 광고도, 텔레메트리도 없는 무료 오픈소스이고, 앞으로도 그렇습니다. 작업 흐름에 자리를 잡았다면 개발에 보탬을 주실 수 있어요. 서포터 라이선스는 감사의 표시일 뿐 — 모든 기능은 이미 누구에게나 무료라 잠기는 건 없습니다.">Azimuth는 유료 장벽도, 광고도, 텔레메트리도 없는 무료 오픈소스이고, 앞으로도 그렇습니다. 작업 흐름에 자리를 잡았다면 개발에 보탬을 주실 수 있어요. 서포터 라이선스는 감사의 표시일 뿐 — 모든 기능은 이미 누구에게나 무료라 잠기는 건 없습니다.</p>
-        <div class="support-actions" style="margin-top: 1.75rem; display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center;">
+        <div class="support-actions" style="margin-top: 1.75rem; display: flex; gap: 0.75rem; flex-wrap: wrap;">
           <a href="https://ko-fi.com/pignuante" target="_blank" rel="noopener"
              class="btn btn-primary"
              data-en="💛 Support on Ko-fi" data-ko="💛 Ko-fi로 후원하기">💛 Ko-fi로 후원하기</a>
@@ -1978,14 +1992,7 @@
     <div class="container">
       <div class="footer-inner">
         <div class="footer-left">
-          <svg width="16" height="16" viewBox="0 0 1024 1024" aria-hidden="true"
-               xmlns="http://www.w3.org/2000/svg">
-            <rect width="1024" height="1024" rx="228" fill="#1E3A5F"/>
-            <circle cx="512" cy="542.7" r="358.4" fill="none" stroke="#F2F5F9" stroke-width="44"/>
-            <rect x="327.7" y="419.8" width="368.6" height="266.2" rx="20.5" fill="none" stroke="#F2F5F9" stroke-width="44"/>
-            <rect x="354.3" y="507.9" width="157.7" height="151.6" rx="8.2" fill="#F2A541"/>
-            <path d="M512 87 L563.2 169 H460.8 Z" fill="#F2A541"/>
-          </svg>
+          <img class="footer-icon" src="../assets/apple-touch-icon.png" width="32" height="32" alt="">
           <div class="footer-text">
             <div data-en="© 2026 Ai-Scream · Apache-2.0 · Built with Swift + AppKit"
                  data-ko="© 2026 Ai-Scream · Apache-2.0 · Swift + AppKit으로 제작">© 2026 Ai-Scream · Apache-2.0 · Swift + AppKit으로 제작</div>

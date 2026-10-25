@@ -640,58 +640,6 @@
       line-height: 1.55;
     }
 
-    /* ─── Roadmap table ──────────────────────────────────────────── */
-    #roadmap { background: var(--surface); }
-
-    table.roadmap-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.85rem;
-    }
-
-    .roadmap-table th {
-      text-align: left;
-      padding: 0.55rem 0.9rem;
-      font-size: 0.72rem;
-      font-weight: 650;
-      letter-spacing: 0.07em;
-      text-transform: uppercase;
-      color: var(--text-faint);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .roadmap-table td {
-      padding: 0.55rem 0.9rem;
-      border-bottom: 1px solid var(--border);
-      vertical-align: top;
-      line-height: 1.5;
-    }
-
-    .roadmap-table tr:last-child td { border-bottom: none; }
-    .roadmap-table tr:hover td { background: var(--accent-glow); }
-
-    .roadmap-table td:first-child {
-      color: var(--text);
-      font-weight: 600;
-      white-space: nowrap;
-      font-size: 0.82rem;
-    }
-    .roadmap-table td:nth-child(2) { color: var(--text-mid); }
-    .roadmap-table td:nth-child(3) { text-align: center; font-size: 1rem; white-space: nowrap; }
-
-    .principle-note {
-      margin-top: 1.5rem;
-      padding: 0.85rem 1.1rem;
-      background: var(--bg-card);
-      border: 1px solid var(--border-card);
-      border-left: 3px solid var(--accent);
-      border-radius: var(--radius-sm);
-      font-size: 0.85rem;
-      color: var(--text-mid);
-      line-height: 1.55;
-      font-style: italic;
-    }
-
     /* ─── Footer ─────────────────────────────────────────────────── */
     footer {
       border-top: 1px solid var(--border);
@@ -710,8 +658,10 @@
     .footer-left {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
     }
+    /* The app icon itself, about the height of the two text lines; the 16px SVG lost the dial and north mark. */
+    .footer-icon { flex-shrink: 0; border-radius: 22%; }
 
     .footer-text {
       font-size: 0.8rem;
@@ -1575,87 +1525,6 @@
       </div>
     </section>
 
-    <div class="divider"></div>
-
-    <!-- ── 6. Roadmap ────────────────────────────────────────────── -->
-    <section id="roadmap" aria-labelledby="roadmap-heading">
-      <div class="container">
-        <span class="section-label"
-              data-en="What's next" data-ko="로드맵">What's next</span>
-        <h2 class="section-title" id="roadmap-heading"
-            data-en="Roadmap"
-            data-ko="로드맵">
-          Roadmap
-        </h2>
-        <p class="section-sub"
-           data-en="Planned work, in order of priority."
-           data-ko="우선순위 순으로 정리한 예정 작업.">
-          Planned work, in order of priority.
-        </p>
-
-        <div class="features-table-wrap">
-          <table class="roadmap-table" aria-label="Roadmap table" data-ko-aria-label="로드맵 표">
-            <thead>
-              <tr>
-                <th data-en="Stage" data-ko="단계">Stage</th>
-                <th data-en="Description" data-ko="내용">Description</th>
-                <th data-en="Status" data-ko="상태">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>P8 / v1</td>
-                <td data-en="Regression testing across representative apps (Finder / Safari / Terminal / VS Code / Xcode), failure case collection and stabilization — v1 release gate"
-                    data-ko="대표 앱(Finder/Safari/Terminal/VS Code/Xcode) 회귀 + 실패 케이스 수집·안정화 → v1 출시 기준">
-                  Regression testing across representative apps (Finder / Safari / Terminal / VS Code / Xcode), failure case collection and stabilization — v1 release gate
-                </td>
-                <td data-en="✅ Shipped / stable" data-ko="✅ 완료 / 안정화">✅ Shipped / stable</td>
-              </tr>
-              <tr>
-                <td data-en="Hardening" data-ko="후속 하드닝">Hardening</td>
-                <td data-en="DisplayResolver: edge-based adjacency detection for asymmetric monitor layouts"
-                    data-ko="DisplayResolver 인접 판정 엣지 기반화 (비대칭 레이아웃 대응)">
-                  DisplayResolver: edge-based adjacency detection for asymmetric monitor layouts
-                </td>
-                <td data-en="⏸ Deferred" data-ko="⏸ 보류">⏸ Deferred</td>
-              </tr>
-              <tr>
-                <td data-en="Next" data-ko="다음">Next</td>
-                <td data-en="Anchor: snap or size-match the current window to another window on the same display"
-                    data-ko="anchor: 동일 모니터 내 다른 창을 기준으로 현재 창 붙이기/크기 맞추기">
-                  Anchor: snap or size-match the current window to another window on the same display
-                </td>
-                <td>🟡</td>
-              </tr>
-              <tr>
-                <td data-en="Later" data-ko="이후">Later</td>
-                <td data-en="Workspaces: per-app default positions, named scene save/restore, monitor-aware scenes"
-                    data-ko="워크스페이스: app별 기본 위치, named scene 저장/복원, monitor-aware scene">
-                  Workspaces: per-app default positions, named scene save/restore, monitor-aware scenes
-                </td>
-                <td>🟡</td>
-              </tr>
-              <tr>
-                <td data-en="Future" data-ko="장기">Future</td>
-                <td data-en="Automation: URL scheme, AppleScript/Shortcuts actions, per-app rules, edge stash/pin"
-                    data-ko="자동화: URL scheme, AppleScript/Shortcuts action, app별 규칙, edge stash/pin">
-                  Automation: URL scheme, AppleScript/Shortcuts actions, per-app rules, edge stash/pin
-                </td>
-                <td>🟡</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="principle-note" role="note">
-          <span data-en="&ldquo;Predictability over clever inference. Any effect achievable by composing simple commands is not added as a separate feature.&rdquo;"
-                data-ko="&ldquo;예측 가능성 > 똑똑한 자동 추론. 단순 명령 조합으로 낼 수 있는 효과는 별도 기능으로 추가하지 않는다.&rdquo;">
-            &ldquo;Predictability over clever inference. Any effect achievable by composing simple commands is not added as a separate feature.&rdquo;
-          </span>
-        </div>
-
-      </div>
-    </section>
 
   </main>
 
@@ -1664,14 +1533,7 @@
     <div class="container">
       <div class="footer-inner">
         <div class="footer-left">
-          <svg width="16" height="16" viewBox="0 0 1024 1024" aria-hidden="true"
-               xmlns="http://www.w3.org/2000/svg">
-            <rect width="1024" height="1024" rx="228" fill="#1E3A5F"/>
-            <circle cx="512" cy="542.7" r="358.4" fill="none" stroke="#F2F5F9" stroke-width="44"/>
-            <rect x="327.7" y="419.8" width="368.6" height="266.2" rx="20.5" fill="none" stroke="#F2F5F9" stroke-width="44"/>
-            <rect x="354.3" y="507.9" width="157.7" height="151.6" rx="8.2" fill="#F2A541"/>
-            <path d="M512 87 L563.2 169 H460.8 Z" fill="#F2A541"/>
-          </svg>
+          <img class="footer-icon" src="assets/apple-touch-icon.png" width="32" height="32" alt="">
           <div class="footer-text">
             <div data-en="© 2026 Ai-Scream · Apache-2.0 · Built with Swift + AppKit"
                  data-ko="© 2026 Ai-Scream · Apache-2.0 · Swift + AppKit으로 제작">
